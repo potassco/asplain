@@ -1,27 +1,27 @@
 # Installation
 
-fillname requires Python 3.8+. We recommend version 3.10.
+asplain requires Python 3.8+. We recommend version 3.10.
 
 You can check a successful installation by running
 
 ```console
-$ fillname -h
+$ asplain -h
 ```
 
 ## Installing with pip
 
 
-The python fillname package can be found [here](https://fillname.org/).
+The python asplain package can be found [here](https://github.com/potassco/asplain.git/).
 
 ```console
-$ pip install fillname
+$ pip install asplain
 ```
 
 ## Development
 
 ### Installing from source
 
-The project is hosted on [github](https://fillname.org/) and can
+The project is hosted on [github](https://github.com/potassco/asplain.git/) and can
 also be installed from source.
 
 ```{warning}
@@ -32,10 +32,10 @@ We recommend this only for development purposes.
 The `setuptools` package is required to run the commands below.
 ```
 
-Execute the following command in the top level fillname directory:
+Execute the following command in the top level asplain directory:
 
 ```console
-$ git clone https://fillname.org/
-$ cd fillname
+$ git clone https://github.com/potassco/asplain.git/
+$ cd asplain
 $ pip install -e .[all]
 ```

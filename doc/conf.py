@@ -29,7 +29,7 @@ copyright = f'{datetime.datetime.now().date().strftime("%Y")}, {author}'
 
 # The full version, including alpha/beta/rc tags
 
-release = metadata.version("fillname")
+release = metadata.version("asplain")
 
 # -- General configuration ---------------------------------------------------
 

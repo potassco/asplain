@@ -5,9 +5,9 @@ Test cases for main application functionality.
 from io import StringIO
 from unittest import TestCase
 
-from fillname.utils import logging
-from fillname.utils.logging import configure_logging, get_logger
-from fillname.utils.parser import get_parser
+from asplain.utils import logging
+from asplain.utils.logging import configure_logging, get_logger
+from asplain.utils.parser import get_parser
 
 
 class TestMain(TestCase):
