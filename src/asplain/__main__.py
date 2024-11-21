@@ -11,7 +11,8 @@ from .transformers.transformer_pipeline import (
     AbductionPipeline,
     ModelSupportPipeline,
 )
-from importlib_resources import files
+from . import viz_explanation
+from importlib.resources import path
 import os
 
 
@@ -34,32 +35,32 @@ def main() -> None:
     abduction_prg = AbductionPipeline().parse_files(domain_file_paths)
     with open(os.path.join(domain_base_path, "out", "abduction.lp"), "w") as f:
         f.write(abduction_prg)
-        log.debug("Abduction encoding saved in " + f.name)
+        log.info("Abduction encoding saved in " + f.name)
 
     support_prg = ModelSupportPipeline().parse_files(domain_file_paths)
     with open(os.path.join(domain_base_path, "out", "support.lp"), "w") as f:
         f.write(support_prg)
-        log.debug("Support encoding saved in " + f.name)
+        log.info("Support encoding saved in " + f.name)
 
     ctl = Control(["0", "--opt-mode=optN"])
     ctl.add("base", [], abduction_prg)
     ctl.add("base", [], support_prg)
     for f in args.explanation_config:
         ctl.load(f.name)
-    base_encoding = files("asplain.encodings").joinpath("base.lp")
-    ctl.load(str(base_encoding))
+    with path("asplain.encodings", "base.lp") as base_encoding:
+        ctl.load(str(base_encoding))
     ctl.ground([("base", [])])
     # TODO save the rules somewhere (the mapping from id to rule)
     contrastive_explanations = []
     with ctl.solve(yield_=True) as handle:
         for m in handle:
-            # TODO check how to avoid having double models
             if not m.optimality_proven:
-                log.debug("Skipping non optimal model")
                 continue
-            contrastive_explanations.append([str(s) for s in m.symbols(atoms=True)])
-            log.debug("----- Expanation %s", m.number)
-            log.debug(m)
+            symbols = [str(s) for s in m.symbols(atoms=True)]
+            contrastive_explanations.append(symbols)
+            log.info("----- Expanation %s", m.number)
+            log.info(m)
+            viz_explanation(symbols, directory=output_dir, name_format=f"contrastive-ex-{m.number}")
 
 
 if __name__ == "__main__":
