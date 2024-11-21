@@ -2,7 +2,7 @@
 The command line parser for the project.
 """
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter, FileType
 from importlib import metadata
 from textwrap import dedent
 from typing import Any, Optional, cast
@@ -19,13 +19,18 @@ def get_parser() -> ArgumentParser:
     Return the parser for command line options.
     """
     parser = ArgumentParser(
-        prog="asplain",
+        prog="clebug",
         description=dedent(
-            """\
-            asplain
-            filldescription
             """
+             ▗▄▖   ▗▄▄▖ ▗▄▄▖  ▗▖     ▗▄▖  ▗▄▄▄▖ ▗▖  ▗▖
+            ▐▌ ▐▌ ▐▌    ▐▌ ▐▌ ▐▌    ▐▌ ▐▌   █   ▐▛▚▖▐▌
+            ▐▛▀▜▌  ▝▀▚▖ ▐▛▀▘  ▐▌    ▐▛▀▜▌   █   ▐▌ ▝▜▌
+            ▐▌ ▐▌ ▗▄▄▞▘ ▐▌    ▐▙▄▄▖ ▐▌ ▐▌ ▗▄█▄▖ ▐▌  ▐▌
+
+            Contrastive explanations for ASP using clingo.
+            """,
         ),
+        formatter_class=RawTextHelpFormatter,
     )
     levels = [
         ("error", logging.ERROR),
@@ -47,6 +52,31 @@ def get_parser() -> ArgumentParser:
         metavar=f"{{{','.join(key for key, _ in levels)}}}",
         help="set log level [%(default)s]",
         type=cast(Any, lambda name: get(levels, name)),
+    )
+
+    parser.add_argument(
+        "files",
+        type=FileType("r"),
+        help=dedent(
+            """\
+            - Files containing facts that define the graph.
+              See the allowed syntax: https://clingraph.readthedocs.io/en/latest/clingraph/syntax.html.
+
+            - A single JSON file using clingos output option `--outf=2`.
+            In this case, the facts defining the graphs will be loaded from each stable model."""
+        ),
+        nargs="*",
+    )
+    parser.add_argument(
+        "--explanation-config",
+        help=dedent(
+            """\
+            An encoding that defines the configuration for the
+            contrastive explanation: real model, abducibles, query and distance"""
+        ),
+        type=FileType("r"),
+        nargs="*",
+        metavar="",
     )
 
     parser.add_argument("--version", "-v", action="version", version=f"%(prog)s {VERSION}")

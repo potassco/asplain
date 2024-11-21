@@ -34,3 +34,5 @@ build
 .coverage
 _build
 _autosummary
+
+out/
