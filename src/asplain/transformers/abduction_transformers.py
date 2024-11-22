@@ -6,20 +6,20 @@ from clingo import ast
 from .custom_transformer import CustomTransformer
 
 WRAPPER_HYPOTHETICAL_PREDICATE_NAME = "hypothetical"
-WRAPPER_MODEL_PREDICATE_NAME = "_xclingo_model"
-WRAPPER_ABDUCEDS_PREDICATE_NAME = "_xclingo_abduced"
+WRAPPER_MODEL_PREDICATE_NAME = "_model"
+WRAPPER_ABDUCEDS_PREDICATE_NAME = "_abduced"
 
 
 class AbducedRemovedTransformer(CustomTransformer):
 
     def visit_Rule(self, rule: ast.AST) -> ast.AST:
         """
-        Creates a special literal `not _xclingo_abduced(rm, Head)` in the body of each rule, allowing the removing of some atoms when abducing.
+        Creates a special literal `not _abduced(rm, Head)` in the body of each rule, allowing the removing of some atoms when abducing.
         """
         if rule.head.ast_type != ast.ASTType.Literal:  # TODO: Which expressions fall here?
             return rule
         else:
-            # Creates new literal for the body (not _xclingo_abduced(rm, Head))
+            # Creates new literal for the body (not _abduced(rm, Head))
             not_removed_literal = ast.Literal(
                 location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
                 sign=True,  # Negative Literal

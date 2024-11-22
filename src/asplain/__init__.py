@@ -26,7 +26,7 @@ def viz_explanation(explanation_symbols, directory="out", name_format="explanati
     Args:
         explanation_symbols (List): _description_
     """
-    fb = Factbase(default_graph="trace")
+    fb = Factbase(default_graph="trace", prefix="viz_")
     ctl = Control(["--warn=none"])
     ctx = ClingraphContext()
     ctl.add("base", [], "\n".join([s + "." for s in explanation_symbols]))
@@ -35,6 +35,7 @@ def viz_explanation(explanation_symbols, directory="out", name_format="explanati
     enable_python()
     ctl.ground([("base", [])], context=ctx)
     ctl.solve(on_model=fb.add_model)
-    graphs = compute_graphs(fb)
-    files = render(graphs, view=True, directory=directory, name_format=name_format)
-    log.info("Render saved in %s", files["trace"])
+    graphs = compute_graphs(fb, graphviz_type="directed")
+    files = render(graphs, view=True, directory=directory, name_format="{graph_name}-graph")
+    for _, f in files.items():
+        log.info("Render saved in %s", f)

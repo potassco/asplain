@@ -14,13 +14,13 @@ from ._ast_shortcuts import (
     inhibits,
 )
 
-MODEL_WRAPPER_PREDICATE_NAME = "_xclingo_model"
+MODEL_WRAPPER_PREDICATE_NAME = "_model"
 WORLD_PREDICATE_NAME = "world"
 WORLD_VARIABLE_NAME = "World"
 
-SUPPORT_RULE_PREDICATE_NAME = "_xclingo_sup"
-DEPENDS_RULE_PREDICATE_NAME = "_xclingo_depends"
-PREVENTS_RULE_PREDICATE_NAME = "_xclingo_prevents"
+SUPPORT_RULE_PREDICATE_NAME = "_sup"
+DEPENDS_RULE_PREDICATE_NAME = "_depends"
+PREVENTS_RULE_PREDICATE_NAME = "_prevents"
 
 
 class WorldVariableSafeTransformer(CustomTransformer):
@@ -35,7 +35,7 @@ class WorldVariableSafeTransformer(CustomTransformer):
             if rule.head.atom.name in [DEPENDS_RULE_PREDICATE_NAME, PREVENTS_RULE_PREDICATE_NAME]:
                 return rule
 
-            # Creates new literal for the body (not _xclingo_abduced(rm, Head))
+            # Creates new literal for the body (not _abduced(rm, Head))
             world_literal = ast.Literal(
                 location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
                 sign=False,  # Positive Literal
@@ -119,7 +119,7 @@ class SupportRuleTransformer(CustomTransformer):
 
     def visit_Rule(self, rule: ast.AST) -> ast.AST:
         """
-        Creates a special literal `not _xclingo_abduced(rm, Head)` in the body of each rule, allowing the removing of some atoms when abducing.
+        Creates a special literal `not _abduced(rm, Head)` in the body of each rule, allowing the removing of some atoms when abducing.
         """
         if rule.head.ast_type != ast.ASTType.Literal:  # TODO: Which expressions fall here?
             return rule
@@ -127,7 +127,7 @@ class SupportRuleTransformer(CustomTransformer):
             # Increments rule count
             self.rule_count += 1
 
-            # Creates new head _xclingo_sup(RuleID, World, SupportedAtom, VariableValues)
+            # Creates new head _sup(RuleID, World, SupportedAtom, VariableValues)
             xclingo_sup_literal = ast.Literal(
                 location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
                 sign=False,  # Positive Literal

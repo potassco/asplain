@@ -7,36 +7,36 @@
 % - contrastive worlds real and hypothetical.
 % - inhibitors (https://arxiv.org/abs/1602.06897).
 
-% _xclingo_model(real,Atom) :- real(Atom).
-% _xclingo_model(hypothetical,Atom) :- hypothetical(Atom).
+% _model(real,Atom) :- real(Atom).
+% _model(hypothetical,Atom) :- hypothetical(Atom).
 
 % Marks relevant atoms of the program, with respect of the atoms that must be explained.
 % TODO: for now this is marking all atoms as relevant. Should adapt the real xclingo implementation.
-_xclingo_relevant(W, Atom) :- _xclingo_model(W, Atom).
+_relevant(W, Atom) :- _model(W, Atom).
 
 %%%% fireable if abduced
-_xclingo_fbody(_abduced, hypothetical, Atom, ()) :- _xclingo_abduced(add, Atom).
+_fbody(_abduced, hypothetical, Atom, ()) :- _abduced(add, Atom).
 %%%% fireable if fact
-_xclingo_fbody(RuleID, World, Atom, Vars) :- _xclingo_relevant(World, Atom), _xclingo_sup(RuleID, World, Atom, Vars), not _xclingo_depends(_xclingo_sup(RuleID, World, _, _), _).
+_fbody(R, W, Atom, Vars) :- _relevant(W, Atom), _sup(R, W, Atom, Vars), not _depends(_sup(R, W, _, _), _).
 %%%% firable if supported body.
-_xclingo_fbody(R, W, Atom, Vars) :-
-    _xclingo_sup(R, W, Atom, Vars),
-    _xclingo_f_atom(W, Cause) : _xclingo_depends(_xclingo_sup(R, W, Atom, Vars), Cause).
+_fbody(R, W, Atom, Vars) :-
+    _sup(R, W, Atom, Vars),
+    _f_atom(W, Cause) : _depends(_sup(R, W, Atom, Vars), Cause).
 
 % Decides which rule fire each relevant atom in the graph (must be one and only one).
-{_xclingo_f(RuleID, World, Atom, Vars) : _xclingo_fbody(RuleID, World, Atom, Vars)} :- _xclingo_relevant(World, Atom).
+{_f(R, W, Atom, Vars) : _fbody(R, W, Atom, Vars)} :- _relevant(W, Atom).
 
-:- _xclingo_f(ID1, W, Atom, _), _xclingo_f(ID2, W, Atom, _), ID1!=ID2.
-:- _xclingo_relevant(W, Atom), not _xclingo_f_atom(W,Atom).
+:- _f(ID1, W, Atom, _), _f(ID2, W, Atom, _), ID1!=ID2.
+:- _relevant(W, Atom), not _f_atom(W,Atom).
 
-_xclingo_f_atom(World, Atom) :- _xclingo_f(_, World, Atom, _).
+_f_atom(W, Atom) :- _f(_, W, Atom, _).
 
 % Captures positive body for this graph
-_xclingo_direct_cause(RuleID, World, Effect, Cause) :-
-    _xclingo_f(RuleID, World, Effect, Vars),
-    _xclingo_depends(_xclingo_sup(RuleID, World, Effect, Vars), Cause).
+_direct_cause(R, W, Effect, Cause) :-
+    _f(R, W, Effect, Vars),
+    _depends(_sup(R, W, Effect, Vars), Cause).
 
 % Captures negative body for this graph
-_xclingo_direct_inhibitor(RuleID, World, Effect, Inhibitor) :-
-    _xclingo_f(RuleID, World, Effect, Vars),
-    _xclingo_prevents(_xclingo_sup(RuleID, World, Effect, Vars), Inhibitor).
+_direct_inhibitor(R, W, Effect, Inhibitor) :-
+    _f(R, W, Effect, Vars),
+    _prevents(_sup(R, W, Effect, Vars), Inhibitor).
