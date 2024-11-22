@@ -2,6 +2,8 @@ from typing import Union
 
 from clingo import Number, ast
 
+from asplain.utils.logging import get_logger
+
 from ._ast_shortcuts import collect_free_vars, inhibits, propagates
 from .custom_transformer import CustomTransformer, GeneratorTransformer
 
@@ -12,6 +14,8 @@ WORLD_VARIABLE_NAME = "World"
 SUPPORT_RULE_PREDICATE_NAME = "_sup"
 DEPENDS_RULE_PREDICATE_NAME = "_depends"
 PREVENTS_RULE_PREDICATE_NAME = "_prevents"
+
+log = get_logger("main")
 
 
 class WorldVariableSafeTransformer(CustomTransformer):
@@ -25,7 +29,6 @@ class WorldVariableSafeTransformer(CustomTransformer):
             # To ignore rules
             if rule.head.atom.name in [DEPENDS_RULE_PREDICATE_NAME, PREVENTS_RULE_PREDICATE_NAME]:
                 return rule
-
             # Creates new literal for the body (not _abduced(rm, Head))
             world_literal = ast.Literal(
                 location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
@@ -112,10 +115,21 @@ class SupportRuleTransformer(CustomTransformer):
         """
         Creates a special literal `not _abduced(rm, Head)` in the body of each rule, allowing the removing of some atoms when abducing.
         """
+        head_literals = []
+        rules = []
         if rule.head.ast_type != ast.ASTType.Literal:  # TODO: Which expressions fall here?
-            return rule
+            if rule.head.ast_type != ast.ASTType.Literal:  # choices
+                for r in rule.head.elements:
+                    head_literals.append(r.literal)
+            else:
+                log.warning("Skiped rule: %s", rule)
+                return rule
         else:
+            head_literals.append(rule.head)
             # Increments rule count
+
+        for lit in head_literals:
+
             self.rule_count += 1
 
             # Creates new head _sup(RuleID, World, SupportedAtom, VariableValues)
@@ -134,7 +148,7 @@ class SupportRuleTransformer(CustomTransformer):
                             location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
                             name=WORLD_VARIABLE_NAME,
                         ),
-                        rule.head,
+                        lit,
                         ast.Function(
                             location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
                             name="",  # For creating a tuple
@@ -147,13 +161,15 @@ class SupportRuleTransformer(CustomTransformer):
             )
 
             # Creates the new rule
-            rule = ast.Rule(
-                location=rule.location,
-                head=xclingo_sup_literal,
-                body=rule.body,
+            rules.append(
+                ast.Rule(
+                    location=rule.location,
+                    head=xclingo_sup_literal,
+                    body=rule.body,
+                )
             )
 
-        return rule
+        return rules
 
 
 class DependenciesTransformer(GeneratorTransformer):

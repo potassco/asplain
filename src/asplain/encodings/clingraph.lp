@@ -31,7 +31,7 @@ viz_attr(node,(N,contrastive),fillcolor, @concat(_color_blue,";0.5:",_color_gree
 viz_attr(node,(N,contrastive),fillcolor, _color_green):-node(N, hypothetical), not node(N, real).
 viz_attr(node,(N,contrastive),fillcolor, @concat(_color_blue,"30")):-not node(N, hypothetical), node(N, real).
 viz_attr(node, (N,contrastive), (fontcolor;color), "#11111130") :- not node(N, hypothetical), node(N, real).
-viz_attr(node, (N,contrastive), penwidth, "5") :- attr(node, N, query, _), node(N, real).
+viz_attr(node, (N,contrastive), penwidth, "5") :- attr(node, N, query, _).
 
 % ===== Edges
 viz_edge(((N,G),(N',G)),G):-edge((N,N'),G).
