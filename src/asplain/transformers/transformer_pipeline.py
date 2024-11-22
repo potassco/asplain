@@ -1,16 +1,16 @@
-from typing import Sequence, Union
 from pathlib import Path
+from typing import Sequence, Union
 
-from clingo.ast import parse_string, parse_files
 from clingo import ast
+from clingo.ast import parse_files, parse_string
 
-from .abduction_transformers import HypotheticalLiteralsTransformer, AbducedRemovedTransformer
+from .abduction_transformers import AbducedRemovedTransformer, HypotheticalLiteralsTransformer
 from .model_support_transformers import (
-    ModelLiteralTransformer,
-    WorldVariableSafeTransformer,
-    SupportRuleTransformer,
-    DependenciesTransformer,
     CommentGenerator,
+    DependenciesTransformer,
+    ModelLiteralTransformer,
+    SupportRuleTransformer,
+    WorldVariableSafeTransformer,
 )
 
 

@@ -1,25 +1,23 @@
 from typing import Sequence
-from clingo.ast import AST, ASTType, Sign, Variable, BooleanConstant
-from typing import Callable, Iterator, Sequence, Union
+
+from clingo import Number, String
 from clingo.ast import (
     AST,
-    Location,
-    Position,
     ASTType,
-    Sign,
-)
-from clingo.ast import (
-    Literal,
-    SymbolicAtom,
-    Function,
     BodyAggregate,
     BodyAggregateElement,
+    BooleanConstant,
     ConditionalLiteral,
-    SymbolicTerm,
+    Function,
+    Literal,
+    Location,
     Pool,
+    Position,
+    Sign,
+    SymbolicAtom,
+    SymbolicTerm,
     Variable,
 )
-from clingo import Number, String
 
 
 def collect_free_vars(lit_list: Sequence[AST], ignored_predicates=[]):

@@ -1,14 +1,5 @@
 # asplain
 
-> Remove this block after following the instructions below to use the template.
->
-> This project template is configured to ease collaboration. Linters,
-> formatters, and actions are already configured and ready to use.
->
-> To use the project template, run the `init.py` script to give the project a
-> name and some metadata. The script can then be removed and the
-> `pyproject.toml` file be adjusted as needed.
-
 ## Installation
 
 To install the project, run
@@ -30,7 +21,6 @@ For example
 ```bash
 asplain examples/james-bond/encoding.lp --explanation-config examples/james-bond/explanation-conf.lp --log info
 ```
-
 
 To generate and open the documentation, run
 

@@ -4,9 +4,7 @@ The asplain project.
 
 import logging
 import os
-
 from importlib.resources import path
-
 
 from clingo import Control
 from clingo.script import enable_python

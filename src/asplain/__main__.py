@@ -2,18 +2,16 @@
 The main entry point for the application.
 """
 
+import os
 import sys
+from importlib.resources import path
 
 from clingo import Control
+
+from . import viz_explanation
+from .transformers.transformer_pipeline import AbductionPipeline, ModelSupportPipeline
 from .utils.logging import configure_logging, get_logger
 from .utils.parser import get_parser
-from .transformers.transformer_pipeline import (
-    AbductionPipeline,
-    ModelSupportPipeline,
-)
-from . import viz_explanation
-from importlib.resources import path
-import os
 
 
 def main() -> None:

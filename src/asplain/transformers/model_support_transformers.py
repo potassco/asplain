@@ -1,18 +1,9 @@
 from typing import Union
 
-from clingo import ast
-from clingo import Number
+from clingo import Number, ast
 
-from .custom_transformer import (
-    CustomTransformer,
-    GeneratorTransformer,
-)
-
-from ._ast_shortcuts import (
-    collect_free_vars,
-    propagates,
-    inhibits,
-)
+from ._ast_shortcuts import collect_free_vars, inhibits, propagates
+from .custom_transformer import CustomTransformer, GeneratorTransformer
 
 MODEL_WRAPPER_PREDICATE_NAME = "_model"
 WORLD_PREDICATE_NAME = "world"

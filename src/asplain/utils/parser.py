@@ -2,7 +2,7 @@
 The command line parser for the project.
 """
 
-from argparse import ArgumentParser, RawTextHelpFormatter, FileType
+from argparse import ArgumentParser, FileType, RawTextHelpFormatter
 from importlib import metadata
 from textwrap import dedent
 from typing import Any, Optional, cast

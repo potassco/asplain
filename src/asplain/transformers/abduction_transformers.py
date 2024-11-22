@@ -1,6 +1,3 @@
-from pathlib import Path
-from typing import Sequence, Union
-
 from clingo import ast
 
 from .custom_transformer import CustomTransformer
