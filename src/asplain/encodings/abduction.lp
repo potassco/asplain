@@ -12,6 +12,9 @@
 
 #defined _abduced/2.
 
+:- _query(exclude,Atom), _model(hypothetical,Atom).
+:- _query(include,Atom), not _model(hypothetical,Atom).
+
 world(real;hypothetical).
 
 {_abduced(X,Atom)} :- _abducible(X,Atom).
@@ -29,3 +32,7 @@ _model(hypothetical,Atom) :- _abduced(add, Atom).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :~ _distance(N,D,L). [D@L,N]
+
+% Default distance
+% _distance((Atom,h), 1, 0) :- _model(hypothetical, Atom), not _model(real, Atom).
+% _distance((Atom,r), 1, 0) :- _model(real, Atom), not _model(hypothetical, Atom).

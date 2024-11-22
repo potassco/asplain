@@ -4,9 +4,9 @@ edge((Cause,Effect),World):-_direct_cause(RuleID, World, Effect, Cause).
 
 node(Atom, contrastive):- node(Atom, (real;hypothetical)).
 attr(node,Atom,abduced,X):- node(Atom, W), _abduced(X,Atom).
+attr(node,Atom,query,X):- node(Atom, W), _query(X,Atom).
 
-edge((Cause,Effect),contrastive):-_direct_inhibitor(RuleID, World, Effect, Cause).
+edge((Cause,Effect),contrastive):-_direct_inhibitor(RuleID, World, Effect, Cause), node(Effect, contrastive), node(Cause, contrastive).
+attr(edge,(Cause,Effect),type,inhibitor):-_direct_inhibitor(RuleID, World, Effect, Cause), node(Effect, contrastive), node(Cause, contrastive).
 edge((Cause,Effect),contrastive):-_direct_cause(RuleID, World, Effect, Cause).
 attr(edge,(Cause,Effect),type,cause):-_direct_cause(RuleID, World, Effect, Cause).
-attr(edge,(Cause,Effect),type,inhibitor):-_direct_inhibitor(RuleID, World, Effect, Cause).
-% attr(edge,(Cause,Effect),origin,World):-_direct_cause(RuleID, World, Effect, Cause).

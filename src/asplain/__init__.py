@@ -34,6 +34,6 @@ def viz_explanation(explanation_symbols, directory="out", name_format="explanati
     ctl.ground([("base", [])], context=ctx)
     ctl.solve(on_model=fb.add_model)
     graphs = compute_graphs(fb, graphviz_type="directed")
-    files = render(graphs, view=True, directory=directory, name_format="{graph_name}-graph")
+    files = render(graphs, view=True, directory=directory, name_format=name_format)
     for _, f in files.items():
         log.info("Render saved in %s", f)
