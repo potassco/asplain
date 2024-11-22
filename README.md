@@ -25,6 +25,13 @@ Run the following for basic usage information:
 asplain -h
 ```
 
+For example
+
+```bash
+asplain examples/james-bond/encoding.lp --explanation-config examples/james-bond/explanation-conf.lp --log info
+```
+
+
 To generate and open the documentation, run
 
 ```bash

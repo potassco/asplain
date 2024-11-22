@@ -8,4 +8,4 @@
 % #show _abduced/2.
 #show node/2.
 #show edge/2.
-#show attr/2.
+#show attr/4.
