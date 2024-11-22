@@ -4,6 +4,7 @@ The asplain project.
 
 import os
 from importlib.resources import path
+from typing import Sequence
 
 from clingo import Control
 from clingo.script import enable_python
@@ -19,7 +20,7 @@ log = get_logger("main")
 
 class Asplain:
 
-    def __init__(self, domain_files: list[str], explanation_preference_files: list[str]):
+    def __init__(self, domain_files: Sequence[str], explanation_preference_files: Sequence[str]):
         """
         Create an Asplain instance.
 
@@ -46,7 +47,9 @@ class Asplain:
             f.write(self._support_prg)
             log.info("Support encoding saved in " + f.name)
 
-    def explain(self, model_symbols: list[str], query_include: list[str], query_exclude: list[str]) -> list[str]:
+    def explain(
+        self, model_symbols: Sequence[str], query_include: Sequence[str], query_exclude: Sequence[str]
+    ) -> Sequence[str]:
         """
         Explain the given model and queries.
 
@@ -95,7 +98,7 @@ class Asplain:
 
         return contrastive_explanations
 
-    def viz_explanation_graph(self, explanation_graph: str, name: str = "explanation"):
+    def viz_explanation_graph(self, explanation_graph: str, name: str = "explanation") -> None:
         """
         Visualize the explanation graph using cligraph
 

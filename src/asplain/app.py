@@ -1,5 +1,6 @@
 import sys
 from textwrap import dedent
+from typing import Any, Callable, Optional, Sequence
 
 from clingo import Application, ApplicationOptions, Control, Flag, Model
 
@@ -11,7 +12,7 @@ log = get_logger("main")
 
 class AsplainApp(Application):
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         """
         Create application
         """
@@ -19,9 +20,9 @@ class AsplainApp(Application):
         self._log_level = "WARNING"
         self._model = None
         self._query = None
-        self._explanation_preference_file = None
+        self._explanation_preference_file: Optional[Sequence[str]] = None
 
-    def parse_log_level(self, log_level):
+    def parse_log_level(self, log_level: str) -> bool:
         """
         Parse log
         """
@@ -31,12 +32,12 @@ class AsplainApp(Application):
 
         return True
 
-    def parse_general(self, attr_name):
+    def parse_general(self, attr_name: str) -> Callable[[str], bool]:
         """
         Parse general attributes
         """
 
-        def setter(value):
+        def setter(value: Any) -> bool:
             self.__setattr__(attr_name, value)
             return True
 
@@ -95,7 +96,7 @@ class AsplainApp(Application):
             argument="<query>",
         )
 
-    def _divide_query_string(self, query_string: str):
+    def _divide_query_string(self, query_string: str) -> tuple[list[str], list[str]]:
         """
         Divide the query string into atoms to include and exclude
         """
@@ -107,7 +108,7 @@ class AsplainApp(Application):
         """
         Print a model on the console. If no query was provided, it asks the user for one
         """
-        model_symbols = model.symbols(atoms=True, shown=True, theory=True)
+        model_symbols = [str(s) for s in model.symbols(atoms=True, shown=True, theory=True)]
         if self._query:
             query = self._query
         else:
@@ -126,13 +127,13 @@ class AsplainApp(Application):
         for i, g in enumerate(graphs):
             self._explainer.viz_explanation_graph(g, name=f"model-{model.number}-explanation-{i}")
 
-    def main(self, ctl, files):
+    def main(self, ctl: Control, files: Sequence[str]) -> None:
         """
         Main function ran on call
         """
         # pylint: disable=W0201
-        configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())
-        self._explainer = Asplain(files, [self._explanation_preference_file])
+        configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
+        self._explainer = Asplain(files, [self._explanation_preference_file])  # type: ignore
         if self._model:
             ctl.add("base", [], self._model)
         else:
