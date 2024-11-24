@@ -11,7 +11,7 @@ extra_css:
 theme:
   name: material
   logo: assets/images/potassco-logo.svg
-  custom_dir: overrides
+  custom_dir: docs/overrides
   features:
     - header.autohide
     - navigation.instant
@@ -21,7 +21,7 @@ theme:
     - content.code.annotate
     - toc.integrate
     - toc.follow
-    # - navigation.path
+    - navigation.path
     # - navigation.top
     - navigation.tabs
     - content.code.copy
@@ -65,4 +65,25 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
       options:
         custom_icons:
-          - overrides/.icons
+          - docs/overrides/.icons
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting_started.md
+      - Usage: usage.md
+  - Reference:
+      - reference/index.md
+      - API: reference/api.md
+      - Encodings: reference/encodings.md
+  - Examples:
+      - examples/index.md
+  - Community:
+      - community/index.md
+      # - Contributing: contributing.md
+      # - Code of Conduct: code_of_conduct.md
+      # - License: license.md

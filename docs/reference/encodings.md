@@ -1,11 +1,6 @@
----
-icon: material/bookmark-multiple
----
+______________________________________________________________________
 
-# Reference
-
-
-## Encodings
+## icon: material/file-code-outline
 
 Here are the used encodings
 
@@ -74,5 +69,3 @@ attr(edge, (Caused, Cause), dir, back) :- edge((Caused, Cause), Graph).
 #show graph/1.
 
 ```
-
-## API
