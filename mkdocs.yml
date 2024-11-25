@@ -70,20 +70,19 @@ markdown_extensions:
   - md_in_html
   - pymdownx.blocks.caption
   - pymdownx.snippets
-
-nav:
-  - Home: index.md
-  - Getting started:
-      - Installation: getting_started.md
-      - Usage: usage.md
-  - Reference:
-      - reference/index.md
-      - API: reference/api.md
-      - Encodings: reference/encodings.md
-  - Examples:
-      - examples/index.md
-  - Community:
-      - community/index.md
-      # - Contributing: contributing.md
-      # - Code of Conduct: code_of_conduct.md
-      # - License: license.md
+# nav:
+#   - Home: index.md
+#   - Getting started:
+#       - Installation: getting_started.md
+#       - Usage: usage.md
+#   - Reference:
+#       - reference/index.md
+#       - API: reference/api.md
+#       - Encodings: reference/encodings.md
+#   - Examples:
+#       - examples/index.md
+#   - Community:
+#       - community/index.md
+#       # - Contributing: contributing.md
+#       # - Code of Conduct: code_of_conduct.md
+#       # - License: license.md

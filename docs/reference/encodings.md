@@ -1,6 +1,7 @@
-______________________________________________________________________
+---
+icon: material/file-code-outline
+---
 
-## icon: material/file-code-outline
 
 Here are the used encodings
 

@@ -1,17 +1,13 @@
-______________________________________________________________________
-
-title: Home hide:
-
-- navigation
-- toc
-- title
-
-______________________________________________________________________
+---
+    title: Home
+    hide:
+        - navigation
+        - toc
+---
 
 # Asplain
 
-*Asplain* (ASP+explain) is a system to generate contrastive explanations of ASP
-programs.
+*Asplain* (ASP+explain) is a system to generate and work with explanation graphs using ASP.
 
 !!! example "James Bond"
 

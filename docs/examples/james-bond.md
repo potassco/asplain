@@ -11,7 +11,6 @@ asplain encoding.lp --explanation-preference explanation-preference.lp 0
 
 === "encoding.lp"
 
-````
 ```prolog
 p :- d, not a. %(1)!
 
@@ -24,11 +23,9 @@ h.
 1.  :speech_balloon: Posioned if drinks d and not antidote a. a acts as an inhibitor of p.
 2.  :speech_balloon: Antidote if not holiday h inhibitor of a, enabler of p.
 3.  :speech_balloon: Bond drinks d and is not on a holiday.
-````
 
 === "explanation-preference.lp"
 
-````
 ```prolog
 %===== Abducibles
 _abducible((rm;add),d).
@@ -38,22 +35,17 @@ _abducible((rm;add),h).
 _distance(Atom, 1, 1) :-
     _abduced(_, Atom).
 ```
-````
 
 !!! example "James Bond"
 
-````
-```
-... include_encoding(examples/james-bond/encoding.lp){anotations="true"}
-```
-````
+    ```
+    ... include_encoding(examples/james-bond/encoding.lp){anotations="true"}
+    ```
 
 !!! example "James Bond"
 
-````
-```
---8<-- "examples/james-bond/encoding.lp"
-```
+    ```
+    --8<-- "examples/james-bond/encoding.lp"
+    ```
 
 ![James Bond](../assets/images/james-bond-1.png){width="500"}
-````

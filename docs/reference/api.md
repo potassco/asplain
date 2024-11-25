@@ -1,6 +1,6 @@
-______________________________________________________________________
-
-## icon: material/book-open-variant
+---
+icon: material/book-open-variant
+---
 
 # API
 
