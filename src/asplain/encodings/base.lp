@@ -1,3 +1,5 @@
+% Computes the contrastive graphs using abduction.
+
 #include "abduction.lp".
 #include "contrastive.lp".
 #include "graphs.lp".

@@ -1,9 +1,12 @@
-% graph((real;hypothetical;contrastive)).
+% Creates the graph based on the causes and inhibitors
+
+%=== Nodes
 node(Atom):-_f_atom(W, Atom).
 attr(node,Atom,origin,W):- _f_atom(W, Atom).
 attr(node,Atom,abduced,X):- node(Atom), _abduced(X,Atom).
 attr(node,Atom,query,X):- node(Atom), _query(X,Atom).
 
+%=== Edges
 edge(Cause,Effect):-_direct_cause(RuleID, W, Effect, Cause).
 attr(edge,(Cause,Effect),origin,W):-_direct_cause(RuleID, W, Effect, Cause).
 

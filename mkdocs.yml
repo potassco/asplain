@@ -1,22 +1,28 @@
 site_name: asplain
-site_url: https://mydomain.org/mysite
+site_url: https://mydomain.org/asplain
 site_description: An Experimental Package Management Solution for Python
 repo_name: potassco/asplain
 repo_url: https://github.com/potassco/asplain
 copyright: Copyright &copy; 2024 Potassco
 
 extra_css:
-  - stylesheets/extra.css
+  - _custom/css/extra.css
+  - _custom/css/mkdocstrings.css
+  - _custom/css/custom_admonition.css
+
+extra_javascript:
+  - _custom/javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 theme:
   name: material
   logo: assets/images/potassco-logo.svg
-  custom_dir: docs/overrides
+  custom_dir: docs/_custom/overrides
   features:
     - header.autohide
     - navigation.instant
     - navigation.tracking
-    - navigation.sections
+    # - navigation.sections
     - navigation.indexes
     - content.code.annotate
     - toc.integrate
@@ -25,8 +31,11 @@ theme:
     # - navigation.top
     - navigation.tabs
     - content.code.copy
+    # - navigation.expand
   icon:
     repo: fontawesome/brands/github
+    admonition:
+      quote: material/file-code-outline
   palette:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
@@ -52,12 +61,16 @@ extra:
       link: https://github.com/potassco/asplain
     - icon: potassco-logo
       link: https://potassco.org
-
+  generator: false
 markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.keys
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.emoji:
@@ -65,11 +78,30 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
       options:
         custom_icons:
-          - docs/overrides/.icons
+          - _custom/overrides/.icons
   - attr_list
   - md_in_html
   - pymdownx.blocks.caption
   - pymdownx.snippets
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: true
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            # show_root_toc_entry: false
+            # show_inherited_summary: true
+            show_inherited_detail: true
+            show_inherited_detail_toc: true
+            show_inherited_detail_tree: true
+            show_source: false
 # nav:
 #   - Home: index.md
 #   - Getting started:

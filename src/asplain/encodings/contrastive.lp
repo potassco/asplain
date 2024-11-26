@@ -1,24 +1,14 @@
-%%%%%%%%%%%%%% xclingo_fired_contrastive.lp %%%%%%%%%%%%%%%%%
-
-%% xclingo implementation of
-% https://www.cambridge.org/core/services/aop-cambridge-core/content/view/542C1AA568113B703F179D15E3CBB3EE/S1471068424000048a.pdf/model_explanation_via_support_graphs.pdf
-% but it includes:
-% - abduced atoms.
-% - contrastive worlds real and hypothetical.
-% - inhibitors (https://arxiv.org/abs/1602.06897).
-
-% _model(real,Atom) :- real(Atom).
-% _model(hypothetical,Atom) :- hypothetical(Atom).
-
 % Marks relevant atoms of the program, with respect of the atoms that must be explained.
-% TODO: for now this is marking all atoms as relevant. Should adapt the real xclingo implementation.
+% TODO: for now this is marking all atoms as relevant.
 _relevant(W, Atom) :- _model(W, Atom).
 
-%%%% fireable if abduced
+%=== Firable
+
+% fireable if abduced
 _fbody(_abduced, hypothetical, Atom, ()) :- _abduced(add, Atom).
-%%%% fireable if fact
+% fireable if fact
 _fbody(R, W, Atom, Vars) :- _relevant(W, Atom), _sup(R, W, Atom, Vars), not _depends(_sup(R, W, _, _), _).
-%%%% firable if supported body.
+% firable if supported body.
 _fbody(R, W, Atom, Vars) :-
     _sup(R, W, Atom, Vars),
     _f_atom(W, Cause) : _depends(_sup(R, W, Atom, Vars), Cause).
@@ -30,6 +20,8 @@ _fbody(R, W, Atom, Vars) :-
 :- _relevant(W, Atom), not _f_atom(W,Atom).
 
 _f_atom(W, Atom) :- _f(_, W, Atom, _).
+
+%=== Causes and inhibitors
 
 % Captures positive body for this graph
 _direct_cause(R, W, Effect, Cause) :-

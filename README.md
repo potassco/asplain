@@ -22,10 +22,10 @@ For example
 asplain examples/james-bond/encoding.lp --explanation-config examples/james-bond/explanation-conf.lp --log info
 ```
 
-To generate and open the documentation, run
+To generate the documentation, run
 
 ```bash
-nox -s doc -- open
+nox -s doc
 ```
 
 Instructions to install and use `nox` can be found in
