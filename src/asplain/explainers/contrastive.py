@@ -92,7 +92,7 @@ class ContrastiveExplainer(Explainer):
                 if not m.optimality_proven:
                     continue
                 explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
-                log.info("----- Expanation %s", explanation_graph_prg)
+                log.info("----- Expanation \n%s", explanation_graph_prg)
                 contrastive_explanations.append(explanation_graph_prg)
 
         return contrastive_explanations
@@ -119,4 +119,4 @@ class ContrastiveExplainer(Explainer):
         graphs = compute_graphs(fb, graphviz_type="directed")
         files = render(graphs, view=True, directory=self._output_dir, name_format=name)
         for _, f in files.items():
-            print("Explanation graph saved in: " + f)
+            log.info("Explanation graph saved in: " + f)

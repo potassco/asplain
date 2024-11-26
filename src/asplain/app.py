@@ -1,3 +1,4 @@
+import os
 import sys
 from textwrap import dedent
 from typing import Any, Callable, Optional, Sequence
@@ -20,7 +21,7 @@ class AsplainApp(Application):
         self._log_level = "WARNING"
         self._model = None
         self._query = None
-        self._explanation_preference_file: Optional[Sequence[str]] = None
+        self._explanation_preference: Optional[Sequence[str]] = None
 
     def parse_log_level(self, log_level: str) -> bool:
         """
@@ -31,6 +32,19 @@ class AsplainApp(Application):
             return self._log_level in ["INFO", "WARNING", "DEBUG", "ERROR"]
 
         return True
+
+    def parse_file(self, attr_name: str) -> Callable[[str], bool]:
+        """
+        Parse file attributes
+        """
+
+        def setter(value: Any) -> bool:
+            if not os.path.isfile(value):
+                raise ValueError(f"File '{value}' does not exist.")
+            self.__setattr__(attr_name, value)
+            return True
+
+        return setter
 
     def parse_general(self, attr_name: str) -> Callable[[str], bool]:
         """
@@ -68,7 +82,7 @@ class AsplainApp(Application):
                 """\
                 Preference file for explanations."""
             ),
-            self.parse_general("_explanation_preference_file"),
+            self.parse_file("_explanation_preference"),
             argument="<explanation-preference>",
         )
         options.add(
@@ -76,10 +90,10 @@ class AsplainApp(Application):
             "model",
             dedent(
                 """\
-                A fixed model to explain. Input should be an ASP program using facts.
-                            If this parameter is not provided, the solving will follow normally in search for models. """
+                File with a fixed model to explain. Input should be an ASP program using facts.
+                If this parameter is not provided, the solving will follow normally in search for models. """
             ),
-            self.parse_general("_model"),
+            self.parse_file("_model"),
             argument="<model>",
         )
 
@@ -104,25 +118,33 @@ class AsplainApp(Application):
         exclude = [atom[1:] for atom in query_string.split() if atom.startswith("-")]
         return include, exclude
 
-    def on_model(self, model: Model) -> None:
+    def print_model(self, model: Model, printer: Callable[[], None]) -> None:
         """
         Print a model on the console. If no query was provided, it asks the user for one
         """
-        model_symbols = [str(s) for s in model.symbols(atoms=True, shown=True, theory=True)]
+        for sym in model.symbols(shown=True):
+            sys.stdout.write(f"{sym} ")
+        sys.stdout.write("\n")
+
         if self._query:
             query = self._query
         else:
-            print(colored("yellow", "Model:" + str(model_symbols)))
             query = input(
                 colored(
                     "yellow",
-                    "What do you want to explain? Separate atoms by spaces, write -a to force atom a to not appear (Press enter to skip): ",
+                    dedent(
+                        """
+                    What do you want to explain?
+                    Provide the atoms you would like in your model separated by spaces.
+                    Write -a to force atom a to not appear. (Press enter to skip): """,
+                    ),
                 )
             )
             if query.lower() == "":
-                pass
-
+                print("pass")
+                return
         include, exclude = self._divide_query_string(query)
+        model_symbols = [str(s) for s in model.symbols(atoms=True, shown=True, theory=True)]
         graphs = self._explainer.explain(model_symbols, include, exclude)
         for i, g in enumerate(graphs):
             self._explainer.viz_explanation_graph(g, name=f"model-{model.number}-explanation-{i}")
@@ -133,12 +155,12 @@ class AsplainApp(Application):
         """
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
-        self._explainer = ContrastiveExplainer(files, [self._explanation_preference_file])  # type: ignore
+        self._explainer = ContrastiveExplainer(files, [self._explanation_preference])  # type: ignore
         if self._model:
-            ctl.add("base", [], self._model)
+            ctl.load(self._model)
         else:
             for f in files:
                 ctl.load(f)
 
         ctl.ground([("base", [])])
-        ctl.solve(on_model=self.on_model)
+        ctl.solve()
