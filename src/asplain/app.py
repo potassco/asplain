@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional, Sequence
 
 from clingo import Application, ApplicationOptions, Control, Flag, Model
 
-from . import Asplain
+from .explainers import ContrastiveExplainer
 from .utils.logging import colored, configure_logging, get_logger
 
 log = get_logger("main")
@@ -133,7 +133,7 @@ class AsplainApp(Application):
         """
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
-        self._explainer = Asplain(files, [self._explanation_preference_file])  # type: ignore
+        self._explainer = ContrastiveExplainer(files, [self._explanation_preference_file])  # type: ignore
         if self._model:
             ctl.add("base", [], self._model)
         else:

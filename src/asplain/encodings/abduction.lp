@@ -1,14 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% _model(real,Atom)
-% Atom is obtained by solving the program as it was given.
-% What is in input, is assumed to be naturally true
-% What is not in input, is assumed to be naturally false
-
-% hypothetical(Atom)
-% Atom is true/false in the hypothetical world we are
-% reasoning about. The certainty/falsety of the atom
-% may come from what is natural or from the
-% assumptions we may make in the hypothetical world.
+% Finds the hypothetical model using abduction
 
 #defined _abduced/2.
 
@@ -19,7 +10,8 @@ world(real;hypothetical).
 
 {_abduced(X,Atom)} :- _abducible(X,Atom).
 
-% Constraints
+%=== Constraints
+
 % (C1) No sense to remove something that is not in input
 :- not _model(real,Atom), _abduced(rm,Atom).
 % (C2) + (C4) No sense to both remove and add something
@@ -29,7 +21,7 @@ world(real;hypothetical).
 
 _model(hypothetical,Atom) :- _abduced(add, Atom).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%=== Distance
 
 :~ _distance(N,D,L). [D@L,N]
 

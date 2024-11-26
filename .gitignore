@@ -36,3 +36,4 @@ _build
 _autosummary
 
 out/
+site/
