@@ -94,7 +94,8 @@ class ContrastiveExplainer(Explainer):
                 explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
                 log.info("----- Expanation \n%s", explanation_graph_prg)
                 contrastive_explanations.append(explanation_graph_prg)
-
+        if len(contrastive_explanations) == 0:
+            log.warning("No explanation found")
         return contrastive_explanations
 
     def viz_explanation_graph(self, explanation_graph: str, name: str = "explanation") -> None:
