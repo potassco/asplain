@@ -18,6 +18,7 @@ theme:
   name: material
   logo: assets/images/potassco-logo.svg
   custom_dir: docs/_custom/overrides
+  favicon: assets/images/potassco-logo-dark.svg
   features:
     - header.autohide
     - navigation.instant
@@ -31,7 +32,7 @@ theme:
     # - navigation.top
     - navigation.tabs
     - content.code.copy
-    # - navigation.expand
+    - navigation.expand
   icon:
     repo: fontawesome/brands/github
     admonition:
@@ -93,6 +94,8 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          import:
+            - https://docs.python.org/3/objects.inv
           options:
             show_symbol_type_heading: true
             show_symbol_type_toc: true

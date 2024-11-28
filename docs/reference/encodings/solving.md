@@ -1,6 +1,16 @@
 # Solving
 
 
+??? example
+
+    ```
+    ::: encodings/base.lp
+        :include-glosary: true
+        :include-dependency: true
+
+    ```
+
+
 ## `base.lp`
 
 

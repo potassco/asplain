@@ -1,0 +1,10 @@
+seat((1,1)).
+seat((1,2)).
+seat((2,1)).
+seat((2,2)).
+assign("Torsten",(1,1)).
+person("Susana",cat).
+person("Alexander",cat).
+person("Torsten",dog).
+assign("Susana",(2,2)).
+assign("Alexander",(2,1)).
