@@ -79,7 +79,7 @@ def collect_free_vars(lit_list: Sequence[AST], ignored_predicates: list[str]) ->
                 seen_vars.add(var_name)
             continue
 
-    for var_name in seen_vars:
+    for var_name in sorted(seen_vars):
         if var_name not in unsafe_vars:
             loc = Location(
                 Position("", 0, 0),

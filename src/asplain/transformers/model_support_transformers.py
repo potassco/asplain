@@ -242,9 +242,12 @@ class ExplainabilityReifier(GeneratorTransformer):
 
         elif rule.head.ast_type == ast.ASTType.Disjunction:  # Disjunctive head
             log.warning("Disjunction not supported yet, skiped rule: %s", rule)
-            yield rule
+            return
 
         elif rule.head.ast_type == ast.ASTType.Literal:  # Non-disjunctive head
+            if rule.head.atom.ast_type == ast.ASTType.BooleanConstant:  # Integrity Constraint
+                log.warning("Integrity constraints are ignored skiped rule: %s", rule)
+                return
             supported_atoms.append(rule.head)
             additional_causes.append([])
         else:
