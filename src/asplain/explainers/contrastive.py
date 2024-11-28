@@ -68,6 +68,7 @@ class ContrastiveExplainer(Explainer):
             ", why  ".join([""] + [str(q) for q in query_include]),
             ", why not".join([""] + [str(q) for q in query_exclude]),
         )
+        self.assert_is_model(model_symbols)
 
         ctl = Control(["0", "--opt-mode=optN"])
         ctl.add("base", [], self._abduction_prg)
