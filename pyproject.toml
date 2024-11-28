@@ -19,7 +19,7 @@ Homepage = "https://github.com/potassco/asplain.git/"
 format = ["black", "isort", "autoflake"]
 lint_pylint = ["pylint"]
 typecheck = ["types-setuptools", "mypy"]
-test = ["coverage[toml]"]
+test = ["coverage[toml]", "clintest"]
 doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 dev = ["asplain[test,typecheck,lint_pylint]"]
 

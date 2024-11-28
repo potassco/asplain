@@ -7,10 +7,19 @@
 
 % ===== Graphs
 graph((real;hypothetical;contrastive)).
+type_hypothetical(hypothetical):-attr(node,_,abduced,_).
+type_hypothetical(alternative):- not type_hypothetical(same), #false:  attr(node,_,abduced,_).
+type_hypothetical(same):- #false: attr(node,N,origin,real), not attr(node,N,origin,hypothetical);
+                            #false: not attr(node,N,origin,real), attr(node,N,origin,hypothetical).
 
 viz_graph(explanation).
 viz_graph(G,explanation):-graph(G).
-viz_attr(graph,G,label,@stringify(G,true)):-graph(G).
+viz_attr(graph,(real;hypothetical),label,"<<u>{{name}}</u><br/>({{type}})>").
+viz_attr(graph,real,(label,name),"Reference").
+viz_attr(graph,real,(label,type),"Real").
+viz_attr(graph,hypothetical,(label,name),"Found").
+viz_attr(graph,hypothetical,(label,type),@stringify(T,true)):-type_hypothetical(T).
+viz_attr(graph,contrastive,label,"<<u>Contrastive</u><br/>>"):-graph(contrastive).
 viz_attr(graph,G,fontname,"Baskerville"):-graph(G).
 
 % ===== Nodes

@@ -72,7 +72,7 @@ The query can be provided via command line using `--query`, separated by spaces.
     We pass a model via the command line where `d` `h` and `p` are true. And ask a query that enforces `p` to be false.
 
     ```console
-    asplain examples/james-bond/encoding.lp  --explanation-preference examples/james-bond/explanation-preference.lp 0 --model "d. h. p." --query "-p"
+    asplain examples/james-bond/encoding.lp  --explanation-preference examples/james-bond/explanation-preference.lp 0 --model examples/james-bond/model.lp --query "-p"
     ```
 
     This computes two explanation graphs.
