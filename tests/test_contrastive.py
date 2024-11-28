@@ -4,9 +4,9 @@ Test cases for main application functionality.
 
 from unittest import TestCase
 
-from clingo import Control, SolveResult
+from clingo import Control
 from clintest.assertion import And, Contains, Not, Or, True_
-from clintest.quantifier import All, Any, Exact
+from clintest.quantifier import All, Exact
 from clintest.test import Assert
 
 from asplain.explainers import ContrastiveExplainer
@@ -17,7 +17,7 @@ class MockResult:
     Mocking clingo's Result class
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Create a new mock result.
         """
@@ -33,7 +33,7 @@ class ExplainerTester:
     Test class for the explainer.
     """
 
-    def __init__(self, explainer, model_symbols, query_include, query_exclude):
+    def __init__(self, explainer, model_symbols, query_include, query_exclude) -> None:
         """
         Create a new tester.
 
@@ -49,7 +49,7 @@ class ExplainerTester:
         self._query_include = query_include
         self._query_exclude = query_exclude
 
-    def run_test(self, test):
+    def run_test(self, test) -> None:
         """
         Run a clintest test.
 

@@ -1,3 +1,7 @@
+"""
+Provides a set of Pipelines of transformers for generating different reifications.
+"""
+
 from pathlib import Path
 from typing import Sequence, Union
 
@@ -7,10 +11,9 @@ from clingo.ast import parse_files, parse_string
 from .abduction_transformers import AbducedRemovedTransformer, HypotheticalLiteralsTransformer
 from .model_support_transformers import (
     CommentGenerator,
-    DependenciesTransformer,
+    ExplainabilityReifier,
     ModelLiteralTransformer,
-    SupportRuleTransformer,
-    WorldVariableSafeTransformer,
+    WorldVariableSafetyTransformer,
 )
 
 
@@ -19,10 +22,14 @@ class TransformerPipeline:
     A class that applies a sequence of transformers to a program.
     """
 
-    def __init__(self, transformers):
+    def __init__(self, transformers: Sequence[ast.Transformer]) -> None:
         self.transformers = transformers
 
-    def _apply_transformers(self, stm):
+    def _apply_transformers(self, stm: ast.AST) -> list[ast.AST]:
+        """
+        Applies the transformers to the given program.
+        May generate multiple elements when at least of the transformers generates multiple elements.
+        """
         pipes = [stm]
         for transformer in self.transformers:
             new_pipes = []
@@ -62,7 +69,7 @@ class AbductionPipeline(TransformerPipeline):
     Reifies the abduction program.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             [
                 AbducedRemovedTransformer(),
@@ -73,16 +80,15 @@ class AbductionPipeline(TransformerPipeline):
 
 class ModelSupportPipeline(TransformerPipeline):
     """
-    Reifies the model support program.
+    Reifies the model support program. This program includes the positive and negative dependencies among the atoms.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             [
                 CommentGenerator(),
-                SupportRuleTransformer(),
-                DependenciesTransformer(),
+                ExplainabilityReifier(),
                 ModelLiteralTransformer(),
-                WorldVariableSafeTransformer(),
+                WorldVariableSafetyTransformer(),
             ]
         )
