@@ -1,0 +1,20 @@
+:root {
+    --md-admonition-icon--asp-doc: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.59 7.41 9 12l4.59 4.6L15 15.18 11.82 12 15 8.82M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>')
+}
+
+.md-typeset .admonition.asp-doc,
+.md-typeset details.asp-doc {
+    border-color: rgba(0, 31, 65);
+}
+
+.md-typeset .asp-doc>.admonition-title,
+.md-typeset .asp-doc>summary {
+    background-color: rgba(0, 31, 65, 0.1);
+}
+
+.md-typeset .asp-doc>.admonition-title::before,
+.md-typeset .asp-doc>summary::before {
+    background-color: rgba(0, 31, 65);
+    -webkit-mask-image: var(--md-admonition-icon--asp-doc);
+    mask-image: var(--md-admonition-icon--asp-doc);
+}

@@ -6,13 +6,25 @@
 #const _color_red = "#FF5630".
 
 % ===== Graphs
+graph((real;hypothetical;contrastive)).
+type_hypothetical(hypothetical):-attr(node,_,abduced,_).
+type_hypothetical(alternative):- not type_hypothetical(same), #false:  attr(node,_,abduced,_).
+type_hypothetical(same):- #false: attr(node,N,origin,real), not attr(node,N,origin,hypothetical);
+                            #false: not attr(node,N,origin,real), attr(node,N,origin,hypothetical).
 
 viz_graph(explanation).
 viz_graph(G,explanation):-graph(G).
-viz_attr(graph,G,label,@stringify(G,true)):-graph(G).
+viz_attr(graph,(real;hypothetical),label,"<<u>{{name}}</u><br/>({{type}})>").
+viz_attr(graph,real,(label,name),"Reference").
+viz_attr(graph,real,(label,type),"Real").
+viz_attr(graph,hypothetical,(label,name),"Found").
+viz_attr(graph,hypothetical,(label,type),@stringify(T,true)):-type_hypothetical(T).
+viz_attr(graph,contrastive,label,"<<u>Contrastive</u><br/>>"):-graph(contrastive).
 viz_attr(graph,G,fontname,"Baskerville"):-graph(G).
 
 % ===== Nodes
+node(N, contrastive):-node(N).
+node(N,G):-node(N),attr(node,N,origin,G).
 
 viz_node((N,G), G):-node(N, G).
 viz_attr(node,(N,G),style,filled):-node(N,G).
@@ -34,10 +46,6 @@ viz_attr(node, (N,contrastive), (fontcolor;color), "#11111130") :- not node(N, h
 viz_attr(node, (N,contrastive), penwidth, "5") :- attr(node, N, query, _).
 
 % ===== Edges
-viz_edge(((N,G),(N',G)),G):-edge((N,N'),G).
+viz_edge(((N,contrastive),(N',contrastive)), contrastive):-edge(N,N').
+viz_edge(((N,G),(N',G)),G):-edge(N, N'), attr(edge, (N,N'),origin,G).
 viz_attr(edge, ((N,contrastive),(N',contrastive)), style, dashed):-attr(edge,(N,N'),type,inhibitor).
-
-#show node/2.
-#show attr/4.
-#show edge/2.
-#show graph/1.
