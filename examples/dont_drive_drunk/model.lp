@@ -8,7 +8,7 @@ person(clare).
 drive(gabriel).
 drive(clare).
 punish(gabriel).
-% resist(gabriel).
+resist(gabriel).
 alcohol(gabriel).
 sentence(clare,innocent).
 sentence(gabriel,prison).

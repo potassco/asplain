@@ -1,10 +1,43 @@
-% Creates the graph based on the causes and inhibitors
+%*
+
+Creates the graph based on the causes and inhibitors
+
+#node(A)
+    Defines a node in the graph
+    - A: the node identifier (atom)
+
+#edge(N,N')
+    Defines an edge in the graph. They represent the causal relationships between nodes,
+    as well as negative relationships (inhibitors).
+    - N: the origin node
+    - N': the destination node
+
+#attr(T,N,A,V)
+    Defines an attribute for a node or edge.
+
+    - T: the type of the element (`node` or `edge`)
+    - N: the node or edge identifier
+    - A: the attribute name
+    - V: the attribute value
+
+    === "T=`node`"
+
+        - `A=origin`: `V` = either `real` or `hypothetical`
+        - `A=abduced`: `V` = either `rm` or `add`
+        - `A=query`: `V` = either `include` or `exclude`
+
+    === "T=`edge`"
+
+        - `A=origin`: `V` = either `real` or `hypothetical`
+        - `A=type`: `V` = either `inhibitor` or `cause`
+
+*%
 
 %=== Nodes
-node(Atom):-_f_atom(W, Atom).
-attr(node,Atom,origin,W):- _f_atom(W, Atom).
-attr(node,Atom,abduced,X):- node(Atom), _abduced(X,Atom).
-attr(node,Atom,query,X):- node(Atom), _query(X,Atom).
+node(A):-_f_atom(W, A).
+attr(node,A,origin,W):- _f_atom(W, A).
+attr(node,A,abduced,X):- node(A), _abduced(X,A).
+attr(node,A,query,X):- node(A), _query(X,A).
 
 %=== Edges
 edge(Cause,Effect):-_direct_cause(RuleID, W, Effect, Cause).

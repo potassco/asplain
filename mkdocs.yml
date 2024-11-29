@@ -9,6 +9,7 @@ extra_css:
   - _custom/css/extra.css
   - _custom/css/mkdocstrings.css
   - _custom/css/custom_admonition.css
+  - _custom/css/mkdoclingo.css
 
 extra_javascript:
   - _custom/javascripts/mathjax.js
@@ -26,13 +27,15 @@ theme:
     # - navigation.sections
     - navigation.indexes
     - content.code.annotate
-    - toc.integrate
+    # - toc.integrate
     - toc.follow
     - navigation.path
     # - navigation.top
     - navigation.tabs
     - content.code.copy
-    - navigation.expand
+    - content.tooltips
+    # - navigation.instant.preview
+    # - navigation.expand
   icon:
     repo: fontawesome/brands/github
     admonition:
@@ -88,6 +91,11 @@ markdown_extensions:
       generic: true
   - toc:
       permalink: true
+  - footnotes
+  # - material.extensions.preview:
+  #     targets:
+  #       include:
+  #         - resources/*
 plugins:
   - search
   - autorefs
