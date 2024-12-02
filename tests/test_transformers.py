@@ -57,6 +57,26 @@ class TestExplainabilityReifier(TestCase):
 
     def test_ignore_constraints(self) -> None:
         """
-        Test that constraints are ignored.
+        Test that constraints are ignored. [tests/transformer_tests/test_ignore_constraints]
         """
         self._test_case("test_ignore_constraints")
+
+    def test_ignore_constraints2(self) -> None:
+        """
+        Test that constraints are ignored.
+        [tests/transformer_tests/test_ignore_constraints2]
+        """
+        self._test_case("test_ignore_constraints2")
+
+    def test_aggregates(self) -> None:
+        """
+        Test that aggregates generate the corresponding dependency rules.
+        [tests/transformer_tests/test_aggregates]
+        """
+        self._test_case("test_aggregates")
+
+    # def test_conditional_literals(self) -> None:
+    #     """
+    #     Test that conditional literals generate the corresponding dependency rules [tests/transformer_tests/test_aggregates]
+    #     """
+    #     self._test_case("test_aggregates")
