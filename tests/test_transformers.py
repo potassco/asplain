@@ -1,5 +1,5 @@
 """
-Test cases for transformers.
+Test cases for transformers .
 """
 
 from unittest import TestCase
@@ -74,9 +74,3 @@ class TestExplainabilityReifier(TestCase):
         [tests/transformer_tests/test_aggregates]
         """
         self._test_case("test_aggregates")
-
-    # def test_conditional_literals(self) -> None:
-    #     """
-    #     Test that conditional literals generate the corresponding dependency rules [tests/transformer_tests/test_aggregates]
-    #     """
-    #     self._test_case("test_aggregates")

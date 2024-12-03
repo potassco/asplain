@@ -175,7 +175,11 @@ class ExplainabilityReifier(GeneratorTransformer):
     def __init__(self) -> None:
         self.rule_count = 0
 
-    def _generate_support_rule(self, supported_lit: ast.AST, rule_body: ast.ASTSequence) -> ast.AST:
+    def _generate_support_rule(
+        self,
+        supported_lit: ast.AST,
+        rule_body: ast.ASTSequence,
+    ) -> ast.AST:
         """
         Creates the support rule from an original rule.
         """
@@ -246,22 +250,6 @@ class ExplainabilityReifier(GeneratorTransformer):
             ),
         )
 
-        # world_safety_lit = ast.Literal(
-        #     location=support_literal.location,
-        #     sign=False,  # Positive Literal
-        #     atom=ast.Function(
-        #         location=support_literal.location,
-        #         name=WORLD_PREDICATE_NAME,
-        #         arguments=[
-        #             ast.Variable(
-        #                 location=(support_literal.location),
-        #                 name=WORLD_VARIABLE_NAME,
-        #             )
-        #         ],
-        #         external=False,
-        #     ),
-        # )
-
         # Creates the new rule
         return ast.Rule(
             location=support_literal.location,
@@ -295,8 +283,8 @@ class ExplainabilityReifier(GeneratorTransformer):
             raise NotImplementedError(f"Rules with a head of type {rule.head.ASTType} are not supported yet")
 
         # For each supported atom, we create a new rule.
-        for lit, choice_causes in zip(supported_atoms, additional_causes):
-            support_rule = self._generate_support_rule(lit, rule.body)
+        for lit, choice_condition in zip(supported_atoms, additional_causes):
+            support_rule = self._generate_support_rule(lit, list(rule.body) + choice_condition)
 
             # Yield Support Rule
             yield support_rule
@@ -305,7 +293,7 @@ class ExplainabilityReifier(GeneratorTransformer):
             depends_rule = self._generate_dependency_rule(
                 support_rule.head,
                 DEPENDS_RULE_PREDICATE_NAME,
-                list(propagates(support_rule.body)) + choice_causes,  # Causes
+                list(propagates(support_rule.body)),  # Causes
                 [],  # Body of the dependency rule
             )
             if depends_rule is not None:

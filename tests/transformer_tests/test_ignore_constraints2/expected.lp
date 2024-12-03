@@ -11,8 +11,8 @@ _sup(4,World,seat((1,(1..2))),()) :- world(World).
 _sup(5,World,seat((2,(1..2))),()) :- world(World).
 % ---- encoding
 % 1 <= { assign(P,S): seat(S) } <= 1 :- person(P,A).
-_sup(6,World,assign(P,S),(A,P)) :- world(World); _model(World,person(P,A)).
-_depends(_sup(6,World,assign(P,S),(A,P)),(person(P,A);seat(S))) :- _sup(6,World,assign(P,S),(A,P)).
+_sup(6,World,assign(P,S),(A,P,S)) :- world(World); _model(World,person(P,A)); _model(World,seat(S)).
+_depends(_sup(6,World,assign(P,S),(A,P,S)),(person(P,A);seat(S))) :- _sup(6,World,assign(P,S),(A,P,S)).
 % error :- person(P,A); assign(P,S); assign(P',S); P' != P.
 _sup(7,World,error,(A,P,P',S)) :- world(World); _model(World,person(P,A)); _model(World,assign(P,S)); _model(World,assign(P',S)); P' != P.
 _depends(_sup(7,World,error,(A,P,P',S)),(person(P,A);assign(P,S);assign(P',S))) :- _sup(7,World,error,(A,P,P',S)).

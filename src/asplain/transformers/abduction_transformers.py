@@ -29,40 +29,76 @@ class AbducedRemovedTransformer(CustomTransformer):
         Creates a special literal `not _abduced(rm, Head)` in the body of each rule, allowing the removing of some
         atoms when abducing.
         """
-        if rule.head.ast_type != ast.ASTType.Literal:
-            return rule
+        head = rule.head
+        extra_body = []
 
-        # if rule.head.atom.ast_type == ast.ASTType.BooleanConstant:  # Integrity Constraint
-        #     log.warning("Integrity constraints are ignored skiped rule: %s", rule)
-        #     return ast.Comment(
-        #         location=rule.location, value="% " + str(rule), comment_type=0  # ast.CommentType.Line = 0
-        #     )
-
-        # Creates new literal for the body (not _abduced(rm, Head))
-        not_removed_literal = ast.Literal(
-            location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
-            sign=True,  # Negative Literal
-            atom=ast.Function(
-                location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
-                name=WRAPPER_ABDUCEDS_PREDICATE_NAME,
-                arguments=[
-                    ast.Function(
-                        location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
-                        name="rm",
-                        arguments=[],
+        if rule.head.ast_type == ast.ASTType.Aggregate:  # Choices
+            new_elements = []
+            for conditional_lit in rule.head.elements:
+                not_removed_literal = ast.Literal(
+                    location=conditional_lit.literal.location,
+                    sign=True,  # Negative Literal
+                    atom=ast.Function(
+                        location=conditional_lit.literal.location,
+                        name=WRAPPER_ABDUCEDS_PREDICATE_NAME,
+                        arguments=[
+                            ast.Function(
+                                location=conditional_lit.literal.location,
+                                name="rm",
+                                arguments=[],
+                                external=False,
+                            ),
+                            conditional_lit.literal.atom,
+                        ],
                         external=False,
                     ),
-                    rule.head.atom,
-                ],
-                external=False,
-            ),
-        )
+                )
+                new_elements.append(
+                    ast.ConditionalLiteral(
+                        location=conditional_lit.location,
+                        literal=conditional_lit.literal,
+                        condition=[not_removed_literal] + list(conditional_lit.condition),
+                    )
+                )
+            # Updates the head
+            head = ast.Aggregate(
+                location=head.location,
+                left_guard=head.left_guard,
+                elements=new_elements,
+                right_guard=head.right_guard,
+            )
+
+        if rule.head.ast_type == ast.ASTType.Literal:
+            if rule.head.atom.ast_type == ast.ASTType.BooleanConstant:  # Integrity Constraint
+                return rule
+
+            # Creates new literal for the body (not _abduced(rm, Head))
+            not_removed_literal = ast.Literal(
+                location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
+                sign=True,  # Negative Literal
+                atom=ast.Function(
+                    location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
+                    name=WRAPPER_ABDUCEDS_PREDICATE_NAME,
+                    arguments=[
+                        ast.Function(
+                            location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
+                            name="rm",
+                            arguments=[],
+                            external=False,
+                        ),
+                        rule.head.atom,
+                    ],
+                    external=False,
+                ),
+            )
+
+            extra_body.append(not_removed_literal)
 
         # Creates the new rule
         rule = ast.Rule(
             location=rule.location,
-            head=rule.head,
-            body=[not_removed_literal] + list(rule.body),
+            head=head,  # Uses either the original head or the updated head
+            body=extra_body + list(rule.body),
         )
 
         return rule
@@ -134,26 +170,4 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
         Wraps a literal within a hypothetical/1 predicate.
         """
 
-        # if literal.atom.ast_type != ast.ASTType.SymbolicAtom:
-        #     return literal
-
-        # # Adds a wrapper predicate to the head of the rule
-        # literal = ast.Literal(
-        #     location=literal.location,
-        #     sign=literal.sign,  # Positive literal
-        #     atom=ast.Function(
-        #         location=literal.location,
-        #         name=WRAPPER_MODEL_PREDICATE_NAME,
-        #         arguments=[
-        #             ast.Function(
-        #                 location=literal.location,
-        #                 name=WRAPPER_HYPOTHETICAL_PREDICATE_NAME,
-        #                 arguments=[],
-        #                 external=False,
-        #             ),
-        #             literal.atom,
-        #         ],
-        #         external=False,
-        #     ),
-        # )
         return HypotheticalLiteralsTransformer.wrap_literal(literal)
