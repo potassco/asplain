@@ -11,6 +11,8 @@ from clintest.test import Assert
 
 from asplain.explainers import ContrastiveExplainer
 
+# pylint: disable=R0903
+
 
 class MockResult:
     """

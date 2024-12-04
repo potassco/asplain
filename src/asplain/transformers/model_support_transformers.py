@@ -2,13 +2,13 @@
 Transformers used for generating the 'model support' reification.
 """
 
-from typing import Callable, Sequence, Union, Generator
+from typing import Sequence, Union, Generator
 
 from clingo import Number, ast
 
 from asplain.utils.logging import get_logger
 
-from ._ast_shortcuts import collect_free_vars, inhibits, propagates
+from ._ast_shortcuts import collect_free_vars, conditional_literals, aggregates_elements, inhibits, propagates
 from .custom_transformer import CustomTransformer, GeneratorTransformer
 
 MODEL_WRAPPER_PREDICATE_NAME = "_model"
@@ -74,23 +74,55 @@ class ModelLiteralTransformer(CustomTransformer):
     """
 
     @staticmethod
-    def _wrap_literal(literal: ast.AST) -> ast.AST:
+    def wrap_literal(literal: ast.AST) -> ast.AST:
         """
         Wraps the given `literal` in a _model/2 predicate.
         """
-        return ast.Literal(
-            location=literal.location,
-            sign=literal.sign,  # Positive literal
-            atom=ast.Function(
+        if (
+            literal.ast_type == ast.ASTType.ConditionalLiteral
+            and literal.literal.atom.symbol.name != MODEL_WRAPPER_PREDICATE_NAME
+        ):
+            return ast.ConditionalLiteral(
                 location=literal.location,
-                name=MODEL_WRAPPER_PREDICATE_NAME,
-                arguments=[
-                    ast.Variable(location=literal.location, name=WORLD_VARIABLE_NAME),
-                    literal.atom,
-                ],
-                external=False,
-            ),
-        )
+                literal=ModelLiteralTransformer.wrap_literal(literal.literal),
+                condition=[ModelLiteralTransformer.wrap_literal(lit) for lit in literal.condition],
+            )
+
+        if literal.ast_type == ast.ASTType.Literal and literal.atom.ast_type == ast.ASTType.BodyAggregate:
+            elements = [
+                ast.BodyAggregateElement(
+                    terms=e.terms, condition=[ModelLiteralTransformer.wrap_literal(lit) for lit in e.condition]
+                )
+                for e in literal.atom.elements
+            ]
+            return ast.BodyAggregate(
+                location=literal.location,
+                left_guard=literal.atom.left_guard,
+                function=literal.atom.function,
+                elements=elements,
+                right_guard=literal.atom.right_guard,
+            )
+
+        if (
+            literal.ast_type == ast.ASTType.Literal
+            and literal.atom.ast_type == ast.ASTType.SymbolicAtom
+            and literal.atom.symbol.name != MODEL_WRAPPER_PREDICATE_NAME
+        ):
+            return ast.Literal(
+                location=literal.location,
+                sign=literal.sign,  # Positive literal
+                atom=ast.Function(
+                    location=literal.location,
+                    name=MODEL_WRAPPER_PREDICATE_NAME,
+                    arguments=[
+                        ast.Variable(location=literal.location, name=WORLD_VARIABLE_NAME),
+                        literal.atom,
+                    ],
+                    external=False,
+                ),
+            )
+
+        return literal
 
     def visit_Rule(self, rule: ast.AST) -> ast.AST:
         """
@@ -105,13 +137,7 @@ class ModelLiteralTransformer(CustomTransformer):
 
         new_body = []
         for literal in rule.body:
-            if (
-                literal.atom.ast_type == ast.ASTType.SymbolicAtom
-                and literal.atom.symbol.name != MODEL_WRAPPER_PREDICATE_NAME
-            ):
-                new_body.append(self._wrap_literal(literal))
-            else:
-                new_body.append(literal)
+            new_body.append(ModelLiteralTransformer.wrap_literal(literal))
 
         # Creates the new rule
         rule = ast.Rule(
@@ -149,7 +175,11 @@ class ExplainabilityReifier(GeneratorTransformer):
     def __init__(self) -> None:
         self.rule_count = 0
 
-    def _generate_support_rule(self, supported_lit: ast.AST, rule_body: ast.ASTSequence) -> ast.AST:
+    def _generate_support_rule(
+        self,
+        supported_lit: ast.AST,
+        rule_body: ast.ASTSequence,
+    ) -> ast.AST:
         """
         Creates the support rule from an original rule.
         """
@@ -195,27 +225,26 @@ class ExplainabilityReifier(GeneratorTransformer):
 
     def _generate_dependency_rule(
         self,
-        support_rule: ast.AST,
+        support_literal: ast.AST,
         predicate_name: str,
-        dependency_catcher: Callable[[Sequence[ast.AST]], Generator[ast.AST, None, None]],
-        additional_causes: list[ast.AST],
+        dependencies: Sequence[ast.AST],
+        extra_body: Sequence[ast.AST],
     ) -> Union[ast.AST, None]:
         """
         Creates a particular dependency rule, from a given support rule.
         """
-        dependencies = list(dependency_catcher(support_rule.body)) + additional_causes
         if len(dependencies) == 0:
             return None
 
         dependency_literal = ast.Literal(
-            location=support_rule.body[0].location if len(support_rule.body) > 0 else support_rule.head.location,
+            location=support_literal.location,
             sign=False,  # Positive Literal
             atom=ast.Function(
-                location=(support_rule.body[0].location if len(support_rule.body) > 0 else support_rule.head.location),
+                location=(support_literal.location),
                 name=predicate_name,
                 arguments=[
-                    support_rule.head,
-                    ast.Pool(support_rule.head.location, dependencies),
+                    support_literal,
+                    ast.Pool(support_literal.location, dependencies),
                 ],
                 external=False,
             ),
@@ -223,9 +252,9 @@ class ExplainabilityReifier(GeneratorTransformer):
 
         # Creates the new rule
         return ast.Rule(
-            location=support_rule.location,
+            location=support_literal.location,
             head=dependency_literal,
-            body=[support_rule.head],
+            body=[ModelLiteralTransformer.wrap_literal(lit) for lit in extra_body] + [support_literal],
         )
 
     def visit_Rule(self, rule: ast.AST) -> Generator[ast.AST, None, None]:
@@ -254,17 +283,50 @@ class ExplainabilityReifier(GeneratorTransformer):
             raise NotImplementedError(f"Rules with a head of type {rule.head.ASTType} are not supported yet")
 
         # For each supported atom, we create a new rule.
-        for lit, choice_causes in zip(supported_atoms, additional_causes):
-            support_rule = self._generate_support_rule(lit, rule.body)
+        for lit, choice_condition in zip(supported_atoms, additional_causes):
+            support_rule = self._generate_support_rule(lit, list(rule.body) + choice_condition)
+
             # Yield Support Rule
             yield support_rule
-            # Yield Depends Rule (if we have dependencies)
+
+            # Yield Depends Rule for the body of the rule (if we have dependencies)
             depends_rule = self._generate_dependency_rule(
-                support_rule, DEPENDS_RULE_PREDICATE_NAME, propagates, choice_causes
+                support_rule.head,
+                DEPENDS_RULE_PREDICATE_NAME,
+                list(propagates(support_rule.body)),  # Causes
+                [],  # Body of the dependency rule
             )
             if depends_rule is not None:
                 yield depends_rule
+
+            # Yield Depends rule for each conditional literal in the body
+            for conditional_lit in conditional_literals(rule.body):
+                depends_rule = self._generate_dependency_rule(
+                    support_rule.head,
+                    DEPENDS_RULE_PREDICATE_NAME,
+                    [conditional_lit.literal] + list(propagates(conditional_lit.condition)),  # Dependencies
+                    list(conditional_lit.condition),  # Body of the dependency rule
+                )
+                if depends_rule is not None:
+                    yield depends_rule
+
+            # Yield Depends rule for each BodyAggregateElement in the body
+            for agg_element in aggregates_elements(rule.body):
+                depends_rule = self._generate_dependency_rule(
+                    support_rule.head,
+                    DEPENDS_RULE_PREDICATE_NAME,
+                    list(propagates(agg_element.condition)),  # Dependencies
+                    list(agg_element.condition),  # Body of the dependency rule
+                )
+                if depends_rule is not None:
+                    yield depends_rule
+
             # Yield Prevents Rule (if we have inhibitors)
-            prevents_rule = self._generate_dependency_rule(support_rule, PREVENTS_RULE_PREDICATE_NAME, inhibits, [])
+            prevents_rule = self._generate_dependency_rule(
+                support_rule.head,
+                PREVENTS_RULE_PREDICATE_NAME,
+                list(inhibits(rule.body)),  # Dependencies
+                [],  # Body of the dependency rule
+            )
             if prevents_rule is not None:
                 yield prevents_rule

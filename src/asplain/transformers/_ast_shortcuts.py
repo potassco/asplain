@@ -52,16 +52,17 @@ def collect_free_vars(lit_list: Sequence[AST], ignored_predicates: list[str]) ->
     """
     seen_vars, unsafe_vars = set(), set()
     for lit in lit_list:
-        # ignore if its is an ignored predicate
-        if lit.atom.ast_type == ASTType.Function:
-            if lit.atom.name in ignored_predicates:
-                continue
 
-        # handle conditional literals
+        # handle conditional literals (must be handled first)
         if lit.ast_type == ASTType.ConditionalLiteral:
             for var_name in collect_vars_from_literal(lit.literal):
                 unsafe_vars.add(var_name)
             continue
+
+        # ignore if its is an ignored predicate
+        if lit.atom.ast_type == ASTType.Function:
+            if lit.atom.name in ignored_predicates:
+                continue
 
         if lit.atom.ast_type == ASTType.BodyAggregate:
             if lit.atom.left_guard is not None and lit.atom.left_guard.term.ast_type == ASTType.Variable:
@@ -128,3 +129,28 @@ def inhibits(lit_list: Sequence[AST]) -> Generator[AST, None, None]:
             and lit.atom.ast_type == ASTType.SymbolicAtom
         ):
             yield lit.atom
+
+
+def conditional_literals(lit_list: Sequence[AST]) -> Generator[AST, None, None]:
+    """
+    Captures the part of a body that is a conditional literal.
+
+    Yields:
+        AST: literals that are ConditionalLiteral.
+    """
+    for lit in lit_list:
+        if lit.ast_type == ASTType.ConditionalLiteral:
+            yield lit
+
+
+def aggregates_elements(lit_list: Sequence[AST]) -> Generator[AST, None, None]:
+    """
+    Captures the part of a body that is BodyAggregateElement
+
+    Yields:
+        AST: literals that are a BodyAggregateElement.
+    """
+    for lit in lit_list:
+        if lit.ast_type == ASTType.Literal:
+            if lit.atom.ast_type == ASTType.BodyAggregate:
+                yield from lit.atom.elements  # It's not a Conditional Literal but also has a `condition`` child key
