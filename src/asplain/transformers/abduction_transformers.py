@@ -5,6 +5,7 @@ Transformers used for generating the 'model support' reification.
 from clingo import ast
 
 from asplain.utils.logging import get_logger
+
 from .custom_transformer import CustomTransformer
 
 WRAPPER_HYPOTHETICAL_PREDICATE_NAME = "hypothetical"
@@ -138,7 +139,7 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
                 elements=elements,
                 right_guard=literal.atom.right_guard,
             )
-
+        print(literal)
         if (
             literal.ast_type == ast.ASTType.Literal
             and literal.atom.ast_type == ast.ASTType.SymbolicAtom

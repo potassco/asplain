@@ -2,13 +2,13 @@
 Transformers used for generating the 'model support' reification.
 """
 
-from typing import Sequence, Union, Generator
+from typing import Generator, Sequence, Union
 
 from clingo import Number, ast
 
 from asplain.utils.logging import get_logger
 
-from ._ast_shortcuts import collect_free_vars, conditional_literals, aggregates_elements, inhibits, propagates
+from ._ast_shortcuts import aggregates_elements, collect_free_vars, conditional_literals, inhibits, propagates
 from .custom_transformer import CustomTransformer, GeneratorTransformer
 
 MODEL_WRAPPER_PREDICATE_NAME = "_model"

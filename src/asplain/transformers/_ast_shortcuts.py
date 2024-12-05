@@ -4,14 +4,7 @@ A set of helper functions for working with ASTs.
 
 from typing import Generator, Sequence
 
-from clingo.ast import (
-    AST,
-    ASTType,
-    Sign,
-    Location,
-    Position,
-    Variable,
-)
+from clingo.ast import AST, ASTType, Location, Position, Sign, Variable
 
 
 def collect_vars_from_ast_sequence(ast_sequence: Sequence[AST]) -> list[str]:
