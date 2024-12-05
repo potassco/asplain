@@ -1,6 +1,7 @@
 % The original program.
 
-person(gabriel;clare).
+person(gabriel).
+person(clare).
 
 drive(gabriel).
 alcohol(gabriel).
