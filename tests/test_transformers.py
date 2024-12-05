@@ -12,7 +12,7 @@ class TestExplainabilityReifier(TestCase):
     Test cases for explainability reifier.
     """
 
-    TEST_DIR = "/home/velka/projs/asp/asplain/tests/transformer_tests"
+    TEST_DIR = "./tests/transformer_tests"
 
     def _test_case(self, test_case: str) -> None:
         """
@@ -28,8 +28,9 @@ class TestExplainabilityReifier(TestCase):
 
         test_prog_filepath = f"{self.TEST_DIR}/{test_case}/prog.lp"
         result = pipeline.parse_files([test_prog_filepath])
-
-        self.assertEqual(result, expected)
+        result_lines = result.splitlines()
+        expected_lines = expected.splitlines()
+        self.assertEqual(result_lines, expected_lines)
 
     def test_fact(self) -> None:
         """
