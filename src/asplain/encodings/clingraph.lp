@@ -12,6 +12,7 @@ type_hypothetical(alternative):- not type_hypothetical(same), #false:  attr(node
 type_hypothetical(same):- #false: attr(node,N,origin,real), not attr(node,N,origin,hypothetical);
                             #false: not attr(node,N,origin,real), attr(node,N,origin,hypothetical).
 
+
 viz_graph(explanation).
 viz_graph(G,explanation):-graph(G).
 viz_attr(graph,(real;hypothetical),label,"<<u>{{name}}</u><br/>({{type}})>").
@@ -49,3 +50,14 @@ viz_attr(node, (N,contrastive), penwidth, "5") :- attr(node, N, query, _).
 viz_edge(((N,contrastive),(N',contrastive)), contrastive):-edge(N,N').
 viz_edge(((N,G),(N',G)),G):-edge(N, N'), attr(edge, (N,N'),origin,G).
 viz_attr(edge, ((N,contrastive),(N',contrastive)), style, dashed):-attr(edge,(N,N'),type,inhibitor).
+
+
+% ==== Handle empty hypothetical
+
+viz_node((invisible, hypothetical), hypothetical):-not node(_, hypothetical).
+viz_attr(node,(invisible, hypothetical), label, ""):-not node(_, hypothetical).
+viz_attr(node,(invisible, hypothetical), shape, plain):-not node(_, hypothetical).
+
+viz_node((invisible, real), real):-not node(_, real).
+viz_attr(node,(invisible, real), label, ""):-not node(_, real).
+viz_attr(node,(invisible, real), shape, plain):-not node(_, real).

@@ -9,6 +9,7 @@ extra_css:
   - _custom/css/extra.css
   - _custom/css/mkdocstrings.css
   - _custom/css/custom_admonition.css
+  - _custom/css/mkdoclingo.css
 
 extra_javascript:
   - _custom/javascripts/mathjax.js
@@ -18,6 +19,7 @@ theme:
   name: material
   logo: assets/images/potassco-logo.svg
   custom_dir: docs/_custom/overrides
+  favicon: assets/images/potassco-logo-dark.svg
   features:
     - header.autohide
     - navigation.instant
@@ -25,12 +27,14 @@ theme:
     # - navigation.sections
     - navigation.indexes
     - content.code.annotate
-    - toc.integrate
+    # - toc.integrate
     - toc.follow
     - navigation.path
     # - navigation.top
     - navigation.tabs
     - content.code.copy
+    - content.tooltips
+    # - navigation.instant.preview
     # - navigation.expand
   icon:
     repo: fontawesome/brands/github
@@ -87,12 +91,19 @@ markdown_extensions:
       generic: true
   - toc:
       permalink: true
+  - footnotes
+  # - material.extensions.preview:
+  #     targets:
+  #       include:
+  #         - resources/*
 plugins:
   - search
   - autorefs
   - mkdocstrings:
       handlers:
         python:
+          import:
+            - https://docs.python.org/3/objects.inv
           options:
             show_symbol_type_heading: true
             show_symbol_type_toc: true

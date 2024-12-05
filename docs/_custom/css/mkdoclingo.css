@@ -1,0 +1,10 @@
+code.doc-clingo-symbol-encoding::after {
+    content: "ASP";
+    color: var(--md-primary-fg-color);
+}
+
+
+code.doc-clingo-symbol-predicate::after {
+    content: "predicate";
+    color: #ca91bf
+}

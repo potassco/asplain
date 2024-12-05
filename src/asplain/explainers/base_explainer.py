@@ -4,6 +4,8 @@ Classes that do the explanation of the models.
 
 from typing import Sequence
 
+from clingo import Control
+
 from ..utils.logging import get_logger
 
 log = get_logger("main")
@@ -24,6 +26,33 @@ class Explainer:
         """
         self._domain_files = domain_files
         self._explanation_preference_files = explanation_preference_files
+
+    def assert_is_model(self, model_symbols: Sequence[str]) -> bool:
+        """
+        Check if the given model is a valid model.
+
+        Args:
+            model_symbols: The symbols of the model to check.
+
+        Returns:
+            True if the model is valid, False otherwise.
+
+        Raises:
+            ValueError: If the model is not valid.
+        """
+
+        ctl = Control(["0"])
+        for f in self._domain_files:
+            ctl.load(f)
+
+        model_prg = "".join([f":- not {s}." for s in model_symbols])
+        ctl.add("base", [], model_prg)
+        ctl.ground([("base", [])])
+        with ctl.solve(yield_=True) as handle:
+            for m in handle:
+                return
+        log.error("The provided model is not a model of the encoding")
+        raise ValueError("The provided model is not a model of the encoding")
 
     def explain(
         self, model_symbols: Sequence[str], query_include: Sequence[str], query_exclude: Sequence[str]
