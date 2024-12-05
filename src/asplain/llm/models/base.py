@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from . import ModelTag
+from .tags import ModelTag
 
 
 class AbstractModel(ABC):

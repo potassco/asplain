@@ -1,11 +1,9 @@
 """Wrapper for the Ollama model"""
 
-from typing import cast
+from ollama import ChatResponse, Client, ProgressResponse
 
-from ollama import Client, ProgressResponse, ChatResponse
-
-from . import ModelTag
 from .base import AbstractModel
+from .tags import ModelTag
 
 
 class OllamaModel(AbstractModel):
