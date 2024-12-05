@@ -139,7 +139,6 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
                 elements=elements,
                 right_guard=literal.atom.right_guard,
             )
-        print(literal)
         if (
             literal.ast_type == ast.ASTType.Literal
             and literal.atom.ast_type == ast.ASTType.SymbolicAtom

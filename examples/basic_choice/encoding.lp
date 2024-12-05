@@ -1,4 +1,4 @@
-% 
+%
 % The running example from the paper
 % Alviano et.al., "Answer Set Explanations via Preferred Unit-Provable Unsatisfiable Subsets"
 %
