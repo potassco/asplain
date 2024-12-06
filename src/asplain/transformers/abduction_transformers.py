@@ -115,10 +115,7 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
         """
         Wraps the given `literal` in a hypothetical/1 predicate.
         """
-        if (
-            literal.ast_type == ast.ASTType.ConditionalLiteral
-            and literal.literal.atom.symbol.name != WRAPPER_HYPOTHETICAL_PREDICATE_NAME
-        ):
+        if literal.ast_type == ast.ASTType.ConditionalLiteral:
             return ast.ConditionalLiteral(
                 location=literal.location,
                 literal=HypotheticalLiteralsTransformer.wrap_literal(literal.literal),
@@ -139,11 +136,15 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
                 elements=elements,
                 right_guard=literal.atom.right_guard,
             )
-        if (
-            literal.ast_type == ast.ASTType.Literal
-            and literal.atom.ast_type == ast.ASTType.SymbolicAtom
-            and literal.atom.symbol.name != WRAPPER_HYPOTHETICAL_PREDICATE_NAME
-        ):
+        if literal.ast_type == ast.ASTType.Literal:  # Also Pools
+            # Skip 'not _abduced(rm, Head)'
+            if (
+                literal.atom.ast_type == ast.ASTType.Function
+                and literal.sign == 1  # Negative literal
+                and literal.atom.name == WRAPPER_ABDUCEDS_PREDICATE_NAME
+            ):
+                return literal
+
             return ast.Literal(
                 location=literal.location,
                 sign=literal.sign,  # Positive literal
