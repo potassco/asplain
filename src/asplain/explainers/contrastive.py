@@ -68,6 +68,7 @@ class ContrastiveExplainer(Explainer):
             ", why  ".join([""] + [str(q) for q in query_include]),
             ", why not".join([""] + [str(q) for q in query_exclude]),
         )
+        self.assert_is_model(model_symbols)
 
         ctl = Control(["0", "--opt-mode=optN"])
         ctl.add("base", [], self._abduction_prg)
@@ -92,6 +93,7 @@ class ContrastiveExplainer(Explainer):
                 if not m.optimality_proven:
                     continue
                 explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
+                log.debug("----- Full Expanation \n%s", m.symbols(atoms=True))
                 log.info("----- Expanation \n%s", explanation_graph_prg)
                 contrastive_explanations.append(explanation_graph_prg)
         if len(contrastive_explanations) == 0:
@@ -118,6 +120,6 @@ class ContrastiveExplainer(Explainer):
         ctl.ground([("base", [])], context=ctx)
         ctl.solve(on_model=fb.add_model)
         graphs = compute_graphs(fb, graphviz_type="directed")
-        files = render(graphs, view=True, directory=self._output_dir, name_format=name)
+        files = render(graphs, view=True, directory=self._output_dir, name_format=name, format="svg")
         for _, f in files.items():
             log.info("Explanation graph saved in: " + f)
