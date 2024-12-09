@@ -174,6 +174,7 @@ class ExplainabilityReifier(GeneratorTransformer):
 
     def __init__(self) -> None:
         self.rule_count = 0
+        self.constraint_count = 0
 
     def _generate_support_rule(
         self,
@@ -257,6 +258,14 @@ class ExplainabilityReifier(GeneratorTransformer):
             body=[ModelLiteralTransformer.wrap_literal(lit) for lit in extra_body] + [support_literal],
         )
 
+    # def _generate_reciprocal_preventions(lit_sequecence: Sequence[ast.AST]) -> Generator[ast.AST, None, None]:
+    #     for lit in lit_sequecence:
+    #         self._generate_dependency_rule(
+    #             lit,
+    #             PREVENTS_RULE_PREDICATE_NAME,
+    #             [lit],
+    #             [])
+
     def visit_Rule(self, rule: ast.AST) -> Generator[ast.AST, None, None]:
         """
         Generates the support rule, and every needed depends and prevents rules.
@@ -274,9 +283,6 @@ class ExplainabilityReifier(GeneratorTransformer):
             return
 
         elif rule.head.ast_type == ast.ASTType.Literal:  # Non-disjunctive head
-            if rule.head.atom.ast_type == ast.ASTType.BooleanConstant:  # Integrity Constraint
-                log.warning("Integrity constraints are ignored skiped rule: %s", rule)
-                return
             supported_atoms.append(rule.head)
             additional_causes.append([])
         else:
@@ -284,49 +290,54 @@ class ExplainabilityReifier(GeneratorTransformer):
 
         # For each supported atom, we create a new rule.
         for lit, choice_condition in zip(supported_atoms, additional_causes):
-            support_rule = self._generate_support_rule(lit, list(rule.body) + choice_condition)
+            # Constraints
+            if lit.atom.ast_type == ast.ASTType.BooleanConstant:
+                # yield from self._generate_reciprocal_preventions(rule.body)
+                pass
+            else:
+                support_rule = self._generate_support_rule(lit, list(rule.body) + choice_condition)
 
-            # Yield Support Rule
-            yield support_rule
+                # Yield Support Rule
+                yield support_rule
 
-            # Yield Depends Rule for the body of the rule (if we have dependencies)
-            depends_rule = self._generate_dependency_rule(
-                support_rule.head,
-                DEPENDS_RULE_PREDICATE_NAME,
-                list(propagates(support_rule.body)),  # Causes
-                [],  # Body of the dependency rule
-            )
-            if depends_rule is not None:
-                yield depends_rule
-
-            # Yield Depends rule for each conditional literal in the body
-            for conditional_lit in conditional_literals(rule.body):
+                # Yield Depends Rule for the body of the rule (if we have dependencies)
                 depends_rule = self._generate_dependency_rule(
                     support_rule.head,
                     DEPENDS_RULE_PREDICATE_NAME,
-                    [conditional_lit.literal] + list(propagates(conditional_lit.condition)),  # Dependencies
-                    list(conditional_lit.condition),  # Body of the dependency rule
+                    list(propagates(support_rule.body)),  # Causes
+                    [],  # Body of the dependency rule
                 )
                 if depends_rule is not None:
                     yield depends_rule
 
-            # Yield Depends rule for each BodyAggregateElement in the body
-            for agg_element in aggregates_elements(rule.body):
-                depends_rule = self._generate_dependency_rule(
-                    support_rule.head,
-                    DEPENDS_RULE_PREDICATE_NAME,
-                    list(propagates(agg_element.condition)),  # Dependencies
-                    list(agg_element.condition),  # Body of the dependency rule
-                )
-                if depends_rule is not None:
-                    yield depends_rule
+                # Yield Depends rule for each conditional literal in the body
+                for conditional_lit in conditional_literals(rule.body):
+                    depends_rule = self._generate_dependency_rule(
+                        support_rule.head,
+                        DEPENDS_RULE_PREDICATE_NAME,
+                        [conditional_lit.literal] + list(propagates(conditional_lit.condition)),  # Dependencies
+                        list(conditional_lit.condition),  # Body of the dependency rule
+                    )
+                    if depends_rule is not None:
+                        yield depends_rule
 
-            # Yield Prevents Rule (if we have inhibitors)
-            prevents_rule = self._generate_dependency_rule(
-                support_rule.head,
-                PREVENTS_RULE_PREDICATE_NAME,
-                list(inhibits(rule.body)),  # Dependencies
-                [],  # Body of the dependency rule
-            )
-            if prevents_rule is not None:
-                yield prevents_rule
+                # Yield Depends rule for each BodyAggregateElement in the body
+                for agg_element in aggregates_elements(rule.body):
+                    depends_rule = self._generate_dependency_rule(
+                        support_rule.head,
+                        DEPENDS_RULE_PREDICATE_NAME,
+                        list(propagates(agg_element.condition)),  # Dependencies
+                        list(agg_element.condition),  # Body of the dependency rule
+                    )
+                    if depends_rule is not None:
+                        yield depends_rule
+
+                # Yield Prevents Rule (if we have inhibitors)
+                prevents_rule = self._generate_dependency_rule(
+                    support_rule.head,
+                    PREVENTS_RULE_PREDICATE_NAME,
+                    list(inhibits(rule.body)),  # Dependencies
+                    [],  # Body of the dependency rule
+                )
+                if prevents_rule is not None:
+                    yield prevents_rule

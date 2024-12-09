@@ -27,12 +27,26 @@ seat((1,1..2)). seat((2,1..2)).
 
 1{assign(P,S):seat(S)}1:- person(P,A).
 
-:- person(P,A), assign(P, S), assign(P', S), P' != P.
-:- person(P,A), assign(P, S), assign(P', S), P' != P.
+
 :- assign(P,S), assign(P',S), P'>P.
 :- assign(P,(T,C)), assign(P',(T,C')), person(P,cat), person(P',dog).
 
+%% Interaction 1:
+% query:
+% why torsten and susana cannot be in the same table?
+% q :- assign("Susana",(T,_)), assign("Torsten",(T,_)), table(T).
+% :- not q.
+
+%% Interaction 2:
+% promted:
+% assign("Torsten", (1,1)) not assign("Susana", (1,2))
+% query:
+% why Susana is not with Torsten in table 1?
+% q :- assign("Susana", (1,_)).
+% :- not q.
 
 % ---- assumed
 
 assign("Torsten", (1,1)).
+% query
+% assign("Susana",(1,2))
