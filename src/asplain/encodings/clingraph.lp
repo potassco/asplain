@@ -23,6 +23,9 @@ viz_attr(graph,hypothetical,(label,type),@stringify(T,true)):-type_hypothetical(
 viz_attr(graph,contrastive,label,"<<u>Contrastive</u><br/>>"):-graph(contrastive).
 viz_attr(graph,G,fontname,"Baskerville"):-graph(G).
 
+% _edge(N,N',(N,N')):- edge(N,N'), not edge(N,N',_).
+% _edge(N,N',ID):- edge(N,N',ID).
+
 % ===== Nodes
 node(N, contrastive):-node(N).
 node(N,G):-node(N),attr(node,N,origin,G).
@@ -47,14 +50,15 @@ viz_attr(node, (N,contrastive), (fontcolor;color), "#11111130") :- not node(N, h
 viz_attr(node, (N,contrastive), penwidth, "5") :- attr(node, N, query, _).
 
 % ===== Edges
-viz_edge(((N,contrastive),(N',contrastive)), contrastive):-edge(N,N').
-viz_edge(((N,G),(N',G)),G):-edge(N, N'), attr(edge, (N,N'),origin,G).
-viz_attr(edge, ((N,contrastive),(N',contrastive)), style, dashed):-attr(edge,(N,N'),type,inhibitor).
+viz_edge(((N,contrastive),(N',contrastive),ID), contrastive):-edge(N,N',ID).
+viz_edge(((N,G),(N',G),ID),G):-edge(N,N',ID), attr(edge, ID,origin,G).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), style, dashed):-attr(edge,ID,type,inhibitor), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), label, R):-attr(edge,ID,rule,R), edge(N,N',ID).
 
 %%%%%%%%%%%%%%%%%%%
-viz_attr(edge, ((N,contrastive),(N',contrastive)), style, dashed) :- attr(edge, (N,N'), type, reciprocal_inhibitor).
-viz_attr(edge, ((N,contrastive),(N',contrastive)), color, red) :-  attr(edge, (N,N'), type, reciprocal_inhibitor).
-viz_attr(edge, ((N,contrastive),(N',contrastive)), dir, back) :-  attr(edge, (N,N'), dir, back).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), style, dashed) :- attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), color, red) :-  attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), dir, back) :-  attr(edge, ID, dir, back), edge(N,N',ID).
 % viz_attr(node, (C, contrastive),  label, Message):- attr(node, C, type, c_connector), attr(node, C, label, Message).
 % viz_attr(node, (N, contrastive), shape, point) :- attr(node, N, type, c_connector).
 %%%%%%%%%%%%%%%%%%%

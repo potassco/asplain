@@ -14,20 +14,20 @@ reciprocal_inhibitor(C, Vars,  A1, A2) :-
 
 % _constraints(C_Id) :- _fired_constraint(C_Id, _, _).
 
-% _diff_activations((C, Vars1), (C, Vars2)) :- 
+% _diff_activations((C, Vars1), (C, Vars2)) :-
 %     _fired_constraint((C, Vars1), A1),          % We take a fired constraint (C, Vars1) and an atom A1 from it
 %     _constraints((C, Vars2)), Vars1 != Vars2,   % We take a second fired constraint (C, Vars2) of the same constraint, different activation
 %     not _fired_constraint((C, Vars2), A1).      % Such that A1 is not in (C, Vars2) (there is a difference)
 
-% _symm_activations((C, Vars1), (C, Vars2)) :- 
+% _symm_activations((C, Vars1), (C, Vars2)) :-
 %     _constraints((C, Vars1)), _constraints(C, Vars2),
 %     not _diff_activations((C, Vars1), (C, Vars2)).
 
 % selected_constraint(C) :- _constraints(C), not _symm_activations(C, _).
-% aux(C) :- 
-%     _constraints(C), 
-%     _symm_activations(C, C2), 
-%     C < C2, 
+% aux(C) :-
+%     _constraints(C),
+%     _symm_activations(C, C2),
+%     C < C2,
 %     not selected_constraint(C2).
 % selected_constraint(C) :- _constraints(C), not aux(C).
 

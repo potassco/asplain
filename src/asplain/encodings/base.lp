@@ -60,5 +60,5 @@ Computes the contrastive graphs using abduction. A contrastive graph will compar
 #include "graphs.lp".
 
 #show node/1.
-#show edge/2.
+#show edge/3.
 #show attr/4.
