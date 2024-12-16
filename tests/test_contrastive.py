@@ -79,7 +79,7 @@ class TestMain(TestCase):
         Test James bond
         """
         ce = ContrastiveExplainer(
-            ["./examples/james-bond/encoding.lp"], ["./examples/james-bond/explanation-preference.lp"]
+            ["./examples/james-bond/encoding.lp"], ["./examples/james-bond/explanation_preference.lp"]
         )
         tester = ExplainerTester(ce, ["d", "p", "h"], [], ["p"])
 
