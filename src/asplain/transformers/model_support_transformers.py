@@ -18,6 +18,7 @@ WORLD_VARIABLE_NAME = "World"
 SUPPORT_RULE_PREDICATE_NAME = "_sup"
 DEPENDS_RULE_PREDICATE_NAME = "_depends"
 PREVENTS_RULE_PREDICATE_NAME = "_prevents"
+CONSTRAINTS_RULE_PREDICATE_NAME = "_constraints"
 
 log = get_logger("main")
 
@@ -38,7 +39,11 @@ class WorldVariableSafetyTransformer(CustomTransformer):
             return rule
 
         # To ignore rules
-        if rule.head.atom.name in [DEPENDS_RULE_PREDICATE_NAME, PREVENTS_RULE_PREDICATE_NAME]:
+        if rule.head.atom.name in [
+            DEPENDS_RULE_PREDICATE_NAME,
+            PREVENTS_RULE_PREDICATE_NAME,
+            CONSTRAINTS_RULE_PREDICATE_NAME,
+        ]:
             return rule
 
         # Creates new literal for the body (not _abduced(rm, Head))
@@ -74,7 +79,7 @@ class ModelLiteralTransformer(CustomTransformer):
     """
 
     @staticmethod
-    def wrap_literal(literal: ast.AST) -> ast.AST:
+    def wrap_literal(literal: ast.AST, hybrid_worlds: bool = False) -> ast.AST:
         """
         Wraps the given `literal` in a _model/2 predicate.
         """
@@ -84,14 +89,19 @@ class ModelLiteralTransformer(CustomTransformer):
         ):
             return ast.ConditionalLiteral(
                 location=literal.location,
-                literal=ModelLiteralTransformer.wrap_literal(literal.literal),
-                condition=[ModelLiteralTransformer.wrap_literal(lit) for lit in literal.condition],
+                literal=ModelLiteralTransformer.wrap_literal(literal.literal, hybrid_worlds=hybrid_worlds),
+                condition=[
+                    ModelLiteralTransformer.wrap_literal(lit, hybrid_worlds=hybrid_worlds) for lit in literal.condition
+                ],
             )
 
         if literal.ast_type == ast.ASTType.Literal and literal.atom.ast_type == ast.ASTType.BodyAggregate:
             elements = [
                 ast.BodyAggregateElement(
-                    terms=e.terms, condition=[ModelLiteralTransformer.wrap_literal(lit) for lit in e.condition]
+                    terms=e.terms,
+                    condition=[
+                        ModelLiteralTransformer.wrap_literal(lit, hybrid_worlds=hybrid_worlds) for lit in e.condition
+                    ],
                 )
                 for e in literal.atom.elements
             ]
@@ -115,7 +125,7 @@ class ModelLiteralTransformer(CustomTransformer):
                     location=literal.location,
                     name=MODEL_WRAPPER_PREDICATE_NAME,
                     arguments=[
-                        ast.Variable(location=literal.location, name=WORLD_VARIABLE_NAME),
+                        ast.Variable(location=literal.location, name="_" if hybrid_worlds else WORLD_VARIABLE_NAME),
                         literal.atom,
                     ],
                     external=False,
@@ -132,7 +142,11 @@ class ModelLiteralTransformer(CustomTransformer):
             return rule
 
         # To ignore rules
-        if rule.head.atom.name in [DEPENDS_RULE_PREDICATE_NAME, PREVENTS_RULE_PREDICATE_NAME]:
+        if rule.head.atom.name in [
+            DEPENDS_RULE_PREDICATE_NAME,
+            PREVENTS_RULE_PREDICATE_NAME,
+            CONSTRAINTS_RULE_PREDICATE_NAME,
+        ]:
             return rule
 
         new_body = []
@@ -174,11 +188,12 @@ class ExplainabilityReifier(GeneratorTransformer):
 
     def __init__(self) -> None:
         self.rule_count = 0
+        self.constraint_count = 0
 
     def _generate_support_rule(
         self,
         supported_lit: ast.AST,
-        rule_body: ast.ASTSequence,
+        rule_body: Sequence[ast.AST],
     ) -> ast.AST:
         """
         Creates the support rule from an original rule.
@@ -257,6 +272,58 @@ class ExplainabilityReifier(GeneratorTransformer):
             body=[ModelLiteralTransformer.wrap_literal(lit) for lit in extra_body] + [support_literal],
         )
 
+    def _generate_fired_contrastive_constraint(self, lit_sequecence: Sequence[ast.AST]) -> ast.AST:
+        """
+        Creates a rule featuring the predicate _fired_contrastive_constraint/2.
+          _fired_constrastive_constraint((ConstraintID, VariableValues), Atom)
+        identifies the possible firing of a constraint of the original program
+        when both worlds 'real' and 'hypothetical' are considered simultaneously.
+            - The tuple (ConstraintID, VariableValues) identifies a particular
+              firing of such a constraint.
+            - Atom: captures the related atoms that collaborated in the firing of
+              the constraint.
+        """
+        # Increments the constraint count
+        self.constraint_count += 1
+
+        loc = lit_sequecence[0].location
+        head = ast.Literal(
+            location=loc,
+            sign=False,  # Positive Literal
+            atom=ast.Function(
+                location=loc,
+                name=CONSTRAINTS_RULE_PREDICATE_NAME,
+                arguments=[
+                    ast.Function(  # (ConstraintID, VariableValues)
+                        location=loc,
+                        name="",  # For creating a tuple
+                        arguments=[
+                            ast.SymbolicTerm(
+                                location=loc,
+                                symbol=Number(self.constraint_count),
+                            ),
+                            ast.Function(
+                                location=loc,
+                                name="",
+                                arguments=list(collect_free_vars(lit_sequecence, [])),
+                                external=False,
+                            ),
+                        ],
+                        external=False,
+                    ),
+                    ast.Pool(loc, list(propagates(lit_sequecence))),  # Atom
+                ],
+                external=False,
+            ),
+        )
+
+        # Creates the new rule
+        return ast.Rule(
+            location=loc,
+            head=head,
+            body=[ModelLiteralTransformer.wrap_literal(lit, hybrid_worlds=True) for lit in lit_sequecence],
+        )
+
     def visit_Rule(self, rule: ast.AST) -> Generator[ast.AST, None, None]:
         """
         Generates the support rule, and every needed depends and prevents rules.
@@ -274,9 +341,6 @@ class ExplainabilityReifier(GeneratorTransformer):
             return
 
         elif rule.head.ast_type == ast.ASTType.Literal:  # Non-disjunctive head
-            if rule.head.atom.ast_type == ast.ASTType.BooleanConstant:  # Integrity Constraint
-                log.warning("Integrity constraints are ignored skiped rule: %s", rule)
-                return
             supported_atoms.append(rule.head)
             additional_causes.append([])
         else:
@@ -284,49 +348,53 @@ class ExplainabilityReifier(GeneratorTransformer):
 
         # For each supported atom, we create a new rule.
         for lit, choice_condition in zip(supported_atoms, additional_causes):
-            support_rule = self._generate_support_rule(lit, list(rule.body) + choice_condition)
+            # Constraints
+            if lit.atom.ast_type == ast.ASTType.BooleanConstant:
+                yield self._generate_fired_contrastive_constraint(rule.body)
+            else:
+                support_rule = self._generate_support_rule(lit, list(rule.body) + choice_condition)
 
-            # Yield Support Rule
-            yield support_rule
+                # Yield Support Rule
+                yield support_rule
 
-            # Yield Depends Rule for the body of the rule (if we have dependencies)
-            depends_rule = self._generate_dependency_rule(
-                support_rule.head,
-                DEPENDS_RULE_PREDICATE_NAME,
-                list(propagates(support_rule.body)),  # Causes
-                [],  # Body of the dependency rule
-            )
-            if depends_rule is not None:
-                yield depends_rule
-
-            # Yield Depends rule for each conditional literal in the body
-            for conditional_lit in conditional_literals(rule.body):
+                # Yield Depends Rule for the body of the rule (if we have dependencies)
                 depends_rule = self._generate_dependency_rule(
                     support_rule.head,
                     DEPENDS_RULE_PREDICATE_NAME,
-                    [conditional_lit.literal] + list(propagates(conditional_lit.condition)),  # Dependencies
-                    list(conditional_lit.condition),  # Body of the dependency rule
+                    list(propagates(support_rule.body)),  # Causes
+                    [],  # Body of the dependency rule
                 )
                 if depends_rule is not None:
                     yield depends_rule
 
-            # Yield Depends rule for each BodyAggregateElement in the body
-            for agg_element in aggregates_elements(rule.body):
-                depends_rule = self._generate_dependency_rule(
-                    support_rule.head,
-                    DEPENDS_RULE_PREDICATE_NAME,
-                    list(propagates(agg_element.condition)),  # Dependencies
-                    list(agg_element.condition),  # Body of the dependency rule
-                )
-                if depends_rule is not None:
-                    yield depends_rule
+                # Yield Depends rule for each conditional literal in the body
+                for conditional_lit in conditional_literals(rule.body):
+                    depends_rule = self._generate_dependency_rule(
+                        support_rule.head,
+                        DEPENDS_RULE_PREDICATE_NAME,
+                        [conditional_lit.literal] + list(propagates(conditional_lit.condition)),  # Dependencies
+                        list(conditional_lit.condition),  # Body of the dependency rule
+                    )
+                    if depends_rule is not None:
+                        yield depends_rule
 
-            # Yield Prevents Rule (if we have inhibitors)
-            prevents_rule = self._generate_dependency_rule(
-                support_rule.head,
-                PREVENTS_RULE_PREDICATE_NAME,
-                list(inhibits(rule.body)),  # Dependencies
-                [],  # Body of the dependency rule
-            )
-            if prevents_rule is not None:
-                yield prevents_rule
+                # Yield Depends rule for each BodyAggregateElement in the body
+                for agg_element in aggregates_elements(rule.body):
+                    depends_rule = self._generate_dependency_rule(
+                        support_rule.head,
+                        DEPENDS_RULE_PREDICATE_NAME,
+                        list(propagates(agg_element.condition)),  # Dependencies
+                        list(agg_element.condition),  # Body of the dependency rule
+                    )
+                    if depends_rule is not None:
+                        yield depends_rule
+
+                # Yield Prevents Rule (if we have inhibitors)
+                prevents_rule = self._generate_dependency_rule(
+                    support_rule.head,
+                    PREVENTS_RULE_PREDICATE_NAME,
+                    list(inhibits(rule.body)),  # Dependencies
+                    [],  # Body of the dependency rule
+                )
+                if prevents_rule is not None:
+                    yield prevents_rule

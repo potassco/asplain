@@ -6,11 +6,12 @@ Creates the graph based on the causes and inhibitors
     Defines a node in the graph
     - A: the node identifier (atom)
 
-#edge(N,N')
+#edge(N,N',ID)
     Defines an edge in the graph. They represent the causal relationships between nodes,
     as well as negative relationships (inhibitors).
     - N: the origin node
     - N': the destination node
+    - ID: the identifier of the edge (Required for muli-edges)
 
 #attr(T,N,A,V)
     Defines an attribute for a node or edge.
@@ -40,9 +41,22 @@ attr(node,A,abduced,X):- node(A), _abduced(X,A).
 attr(node,A,query,X):- node(A), _query(X,A).
 
 %=== Edges
-edge(Cause,Effect):-_direct_cause(RuleID, W, Effect, Cause).
-attr(edge,(Cause,Effect),origin,W):-_direct_cause(RuleID, W, Effect, Cause).
+edge(Cause,Effect,(Cause,Effect,RuleID)):-_direct_cause(RuleID, W, Effect, Cause).
+attr(edge,(Cause,Effect,RuleID),origin,W):-_direct_cause(RuleID, W, Effect, Cause).
+attr(edge,(Cause,Effect,RuleID),rule,RuleID):-_direct_cause(RuleID, W, Effect, Cause).
 
-edge(Cause,Effect):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).
-attr(edge,(Cause,Effect),type,inhibitor):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).
-attr(edge,(Cause,Effect),type,cause):-_direct_cause(RuleID, W, Effect, Cause).
+edge(Cause,Effect,RuleID):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).
+attr(edge,(Cause,Effect,RuleID),type,inhibitor):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).
+attr(edge,(Cause,Effect,RuleID),type,cause):- _direct_cause(RuleID, W, Effect, Cause).
+
+in_both(A) :- _f_atom(real, A), _f_atom(hypothetical, A).
+
+r_edge(I1, I2, ((I1,I2),(C_Num,Vars))) :-
+    _model_negators(C_Num, Vars, I1, I2), % We take those that interact in integrity constraints.
+    not in_both(I1), not in_both(I2),
+    _f_atom(real,I1), _f_atom(hypothetical,I2),  % We force one direction only
+    node(I1), node(I2).
+
+edge(I1, I2, EID) :- r_edge(I1, I2, EID).
+attr(edge, EID, type, reciprocal_inhibitor) :- r_edge(I1, I2, EID).
+attr(edge, ((I1,I2),(C_Num,Vars)), rule, (C_Num,Vars)) :- r_edge(I1, I2, ((I1,I2),(C_Num,Vars))).

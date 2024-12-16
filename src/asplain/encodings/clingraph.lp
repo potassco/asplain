@@ -23,6 +23,9 @@ viz_attr(graph,hypothetical,(label,type),@stringify(T,true)):-type_hypothetical(
 viz_attr(graph,contrastive,label,"<<u>Contrastive</u><br/>>"):-graph(contrastive).
 viz_attr(graph,G,fontname,"Baskerville"):-graph(G).
 
+% _edge(N,N',(N,N')):- edge(N,N'), not edge(N,N',_).
+% _edge(N,N',ID):- edge(N,N',ID).
+
 % ===== Nodes
 node(N, contrastive):-node(N).
 node(N,G):-node(N),attr(node,N,origin,G).
@@ -33,9 +36,9 @@ viz_attr(node,(N,G),style,filled):-node(N,G).
 viz_attr(node,(N,G),fontname,"Baskerville"):-node(N,G).
 viz_attr(node,(N,(real;hypothetical)),label,N):-node(N,(real;hypothetical)).
 
-viz_attr(node,(N,contrastive),label,N):-node(N,contrastive), not attr(node,N,abduced,_).
-viz_attr(node,(N,contrastive),label,@concat("<<s>",N,"</s>>")):-node(N,contrastive), attr(node,N,abduced,rm).
-viz_attr(node,(N,contrastive),label,@concat("<<u>",N,"</u>>")):-node(N,contrastive), attr(node,N,abduced,add).
+viz_attr(node,(N,contrastive),label,N):-node(N,contrastive), not attr(node,N,abduced,_), not attr(node,N, type, c_connector).
+viz_attr(node,(N,contrastive),label,@concat("<<s>",N,"</s>>")):-node(N,contrastive), attr(node,N,abduced,rm), not attr(node,N, type, c_connector).
+viz_attr(node,(N,contrastive),label,@concat("<<u>",N,"</u>>")):-node(N,contrastive), attr(node,N,abduced,add), not attr(node,N, type, c_connector).
 
 viz_attr(node,(N,real),fillcolor, _color_blue):-node(N, real).
 viz_attr(node,(N,hypothetical),fillcolor, _color_green):-node(N, hypothetical).
@@ -47,10 +50,16 @@ viz_attr(node, (N,contrastive), (fontcolor;color), "#11111130") :- not node(N, h
 viz_attr(node, (N,contrastive), penwidth, "5") :- attr(node, N, query, _).
 
 % ===== Edges
-viz_edge(((N,contrastive),(N',contrastive)), contrastive):-edge(N,N').
-viz_edge(((N,G),(N',G)),G):-edge(N, N'), attr(edge, (N,N'),origin,G).
-viz_attr(edge, ((N,contrastive),(N',contrastive)), style, dashed):-attr(edge,(N,N'),type,inhibitor).
+viz_edge(((N,contrastive),(N',contrastive),ID), contrastive):-edge(N,N',ID).
+viz_edge(((N,G),(N',G),ID),G):-edge(N,N',ID), attr(edge, ID,origin,G).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), style, dashed):-attr(edge,ID,type,inhibitor), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), label, R):-attr(edge,ID,rule,R), edge(N,N',ID).
 
+%%%%%%%%%%%%%%%%%%%
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), style, dashed) :- attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), color, red) :-  attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), dir, back) :-  attr(edge, ID, dir, back), edge(N,N',ID).
+%%%%%%%%%%%%%%%%%%%
 
 % ==== Handle empty hypothetical
 
