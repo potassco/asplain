@@ -136,6 +136,7 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
                 elements=elements,
                 right_guard=literal.atom.right_guard,
             )
+
         if literal.ast_type == ast.ASTType.Literal:  # Also Pools
             # Skip 'not _abduced(rm, Head)'
             if (
@@ -143,6 +144,12 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
                 and literal.sign == 1  # Negative literal
                 and literal.atom.name == WRAPPER_ABDUCEDS_PREDICATE_NAME
             ):
+                return literal
+
+            if literal.atom.ast_type == ast.ASTType.BooleanConstant:  # Integrity Constraint Head
+                return literal
+
+            if literal.atom.ast_type == ast.ASTType.Comparison:
                 return literal
 
             return ast.Literal(
