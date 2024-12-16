@@ -128,24 +128,21 @@ class AbductionReifier(ReifierTestCase):
 
     def test_aggregates(self) -> None:
         """
-        Test that aggregates elements are correctly reified.
-        [tests/support_reification_tests/test_aggregates]
+        Test that aggregates elements are correctly reified. [tests/support_reification_tests/test_aggregates]
 
         """
         self._test_case("test_aggregates")
 
     def test_choice_rule(self) -> None:
         """
-        Tests that the head aggregate elements are correcly reified.
-        [tests/abduction_reification_tests/test_choice_rule]
+        Tests that the head aggregate elements are correcly reified. [tests/abduction_reification_tests/test_choice_rule]
 
         """
         self._test_case("test_choice_rule")
 
     def test_constraints(self) -> None:
         """
-        Test that constraints are correctly reified.
-        [tests/support_reification_tests/test_constraints]
+        Test that constraints are correctly reified. [tests/support_reification_tests/test_constraints]
 
         """
         self._test_case("test_constraints")
