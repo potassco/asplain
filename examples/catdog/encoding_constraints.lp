@@ -24,7 +24,6 @@ person("Susana",cat). person("Alexander",cat). person("Torsten",dog).
 seat((1,1..2)). seat((2,1..2)).
 
 % ---- encoding
-
 1{assign(P,S):seat(S)}1:- person(P,A).
 
 
@@ -35,7 +34,7 @@ seat((1,1..2)). seat((2,1..2)).
 % query:
 % why torsten and susana cannot be in the same table?
 % q :- assign("Susana",(T,_)), assign("Torsten",(T,_)), table(T).
-% :- not q.
+% :- not q.b
 
 %% Interaction 2:
 % promted:

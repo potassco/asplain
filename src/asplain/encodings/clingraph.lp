@@ -59,8 +59,6 @@ viz_attr(edge, ((N,contrastive),(N',contrastive),ID), label, R):-attr(edge,ID,ru
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), style, dashed) :- attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), color, red) :-  attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), dir, back) :-  attr(edge, ID, dir, back), edge(N,N',ID).
-% viz_attr(node, (C, contrastive),  label, Message):- attr(node, C, type, c_connector), attr(node, C, label, Message).
-% viz_attr(node, (N, contrastive), shape, point) :- attr(node, N, type, c_connector).
 %%%%%%%%%%%%%%%%%%%
 
 % ==== Handle empty hypothetical

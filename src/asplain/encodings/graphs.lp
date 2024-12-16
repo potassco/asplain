@@ -52,7 +52,7 @@ attr(edge,(Cause,Effect,RuleID),type,cause):- _direct_cause(RuleID, W, Effect, C
 in_both(A) :- _f_atom(real, A), _f_atom(hypothetical, A).
 
 r_edge(I1, I2, ((I1,I2),(C_Num,Vars))) :-
-    reciprocal_inhibitor(C_Num, Vars, I1, I2), % We take those that interact in integrity constraints.
+    _model_negators(C_Num, Vars, I1, I2), % We take those that interact in integrity constraints.
     not in_both(I1), not in_both(I2),
     _f_atom(real,I1), _f_atom(hypothetical,I2),  % We force one direction only
     node(I1), node(I2).
@@ -60,10 +60,3 @@ r_edge(I1, I2, ((I1,I2),(C_Num,Vars))) :-
 edge(I1, I2, EID) :- r_edge(I1, I2, EID).
 attr(edge, EID, type, reciprocal_inhibitor) :- r_edge(I1, I2, EID).
 attr(edge, ((I1,I2),(C_Num,Vars)), rule, (C_Num,Vars)) :- r_edge(I1, I2, ((I1,I2),(C_Num,Vars))).
-% attr(edge, (I1, C), type, reciprocal_inhibitor) :- __edge(C, I1, I2).
-% attr(edge, (I1, C), dir, back) :- __edge(C, I1, I2).
-% attr(edge, (C,I2), type, reciprocal_inhibitor) :- __edge(C, I1, I2).
-
-% node(C) :- __edge(C, I1, I2).
-% attr(node, C, type, c_connector) :- r_edge(I1, I2, EID).
-% attr(node, (C_Num,Vars), label, Message) :- __edge((C_Num,Vars), _, _), _constraint_meessage(C, Message).
