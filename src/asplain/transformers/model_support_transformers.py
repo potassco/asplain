@@ -193,7 +193,7 @@ class ExplainabilityReifier(GeneratorTransformer):
     def _generate_support_rule(
         self,
         supported_lit: ast.AST,
-        rule_body: ast.ASTSequence,
+        rule_body: Sequence[ast.AST],
     ) -> ast.AST:
         """
         Creates the support rule from an original rule.
@@ -272,9 +272,7 @@ class ExplainabilityReifier(GeneratorTransformer):
             body=[ModelLiteralTransformer.wrap_literal(lit) for lit in extra_body] + [support_literal],
         )
 
-    def _generate_fired_contrastive_constraint(
-        self, lit_sequecence: Sequence[ast.AST]
-    ) -> Generator[ast.AST, None, None]:
+    def _generate_fired_contrastive_constraint(self, lit_sequecence: Sequence[ast.AST]) -> ast.AST:
         """
         Creates a rule featuring the predicate _fired_contrastive_constraint/2.
           _fired_constrastive_constraint((ConstraintID, VariableValues), Atom)

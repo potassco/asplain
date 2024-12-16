@@ -1,5 +1,5 @@
 """
-Test cases for transformers .
+Test cases for transformers.
 """
 
 from unittest import TestCase
@@ -56,18 +56,11 @@ class TestExplainabilityReifier(TestCase):
         """
         self._test_case("test_choice_rule")
 
-    def test_ignore_constraints(self) -> None:
+    def test_constraints(self) -> None:
         """
-        Test that constraints are ignored. [tests/transformer_tests/test_ignore_constraints]
+        Test that constraints are ignored. [tests/transformer_tests/test_constraints]
         """
-        self._test_case("test_ignore_constraints")
-
-    def test_ignore_constraints2(self) -> None:
-        """
-        Test that constraints are ignored.
-        [tests/transformer_tests/test_ignore_constraints2]
-        """
-        self._test_case("test_ignore_constraints2")
+        self._test_case("test_constraints")
 
     def test_aggregates(self) -> None:
         """
