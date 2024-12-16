@@ -8,6 +8,9 @@ from asplain.transformers.transformer_pipeline import ModelSupportPipeline
 
 
 class ReifierTestCase(TestCase):
+    """
+    Base class for reifier test cases.
+    """
 
     maxDiff = None
     TEST_DIR = None  # Must be set in the child class
