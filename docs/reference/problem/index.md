@@ -19,16 +19,16 @@ Additionally it includes functions $f_N$ and $f_E$ to specify attributes to the 
 An explanation graph is defined in ASP via facts using predicates `node/1` `edge/2` and `attr/4`.
 
 - `node(N)` Adds a node to the graph identified by `N`
-- `edge(N1,N2)` Adds an edge to the graph from `N1` to `N2`
+- `edge(N1,N2,ID)` Adds an edge to the graph from `N1` to `N2` with the identifier `ID` (Identifiers are needed to allow multiple edges)
 - `attr(node,N,ATTR,VALUE)` Adds attribute `ATTR` with value `VALUE` to node `N`
-- `attr(edge,(N1,N2),ATTR,VALUE)` Adds attribute `ATTR` with value `VALUE` to edge `N1` to `N2`
+- `attr(edge,E,ATTR,VALUE)` Adds attribute `ATTR` with value `VALUE` to edge identified by E.
 
 !!! Example
 
     ``` prolog
     node(a).
     node(b).
-    edge(a,b).
+    edge(a,b,(a,b)).
     attr(node,a,type,fact).
     attr(edge,(a,b),rule,1).
     ```
