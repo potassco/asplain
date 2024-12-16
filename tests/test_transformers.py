@@ -2,11 +2,12 @@
 Test cases for transformers.
 """
 
-from typing import Type
+from typing import Type, Union
 
 from unittest import TestCase
 
 from asplain.transformers.transformer_pipeline import (
+    TransformerPipeline,
     ModelSupportPipeline,
     AbductionPipeline,
 )
@@ -21,8 +22,8 @@ class ReifierTestCase(TestCase):
     maxDiff = None
 
     # Mandatory attributes (Must be set in the child class)
-    TEST_DIR: str = None
-    TEST_PIPELINE_CLASS: Type = None
+    TEST_DIR: str = ""
+    TEST_PIPELINE_CLASS: Union[Type[TransformerPipeline], None] = None
 
     # Defaults
     TEST_PROGRAM_FILENAME: str = "prog.lp"
@@ -32,8 +33,13 @@ class ReifierTestCase(TestCase):
         """
         Loads the files for the given test case and asserts the results of pipeline.
         """
-        # Instantiate pipeline class
-        pipeline = self.TEST_PIPELINE_CLASS()
+        if self.TEST_PIPELINE_CLASS is None:
+            raise ValueError("TEST_PIPELINE_CLASS must be set in the child class")
+        else:
+            pipeline = self.TEST_PIPELINE_CLASS()  # Instantiate pipeline class
+
+        if self.TEST_DIR is None:
+            raise ValueError("TEST_DIR must be set in the child class")
 
         with open(f"{self.TEST_DIR}/{test_case}/{self.TEST_EXPECTED_FILENAME}", "r", encoding="utf-8") as f:
             expected = f.read()
@@ -132,6 +138,13 @@ class AbductionReifier(ReifierTestCase):
 
         """
         self._test_case("test_aggregates")
+
+    def test_aggregates_2(self) -> None:
+        """
+        Test that aggregates elements are correctly reified when within a comparison. [tests/support_reification_tests/test_aggregates_2]
+
+        """
+        self._test_case("test_aggregates_2")
 
     def test_choice_rule(self) -> None:
         """
