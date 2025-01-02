@@ -6,6 +6,7 @@ from typing import Any, Callable, Optional, Sequence
 from clingo import Application, ApplicationOptions, Control, Flag, Model
 
 from .explainers import ContrastiveExplainer
+from .llm.models import OllamaModel, ModelTag
 from .utils.logging import colored, configure_logging, get_logger
 
 log = get_logger("main")
@@ -22,6 +23,7 @@ class AsplainApp(Application):
         self._model = None
         self._query = None
         self._explanation_preference: Optional[Sequence[str]] = None
+        self._use_llm: Flag = Flag()
 
     def parse_log_level(self, log_level: str) -> bool:
         """
@@ -110,6 +112,17 @@ class AsplainApp(Application):
             argument="<query>",
         )
 
+        options.add_flag(
+            group,
+            "llm",
+            dedent(
+                """\
+                If active provides the user with an llm chat for explaining the query.
+                """
+            ),
+            self._use_llm,
+        )
+
     def _divide_query_string(self, query_string: str) -> tuple[list[str], list[str]]:
         """
         Divide the query string into atoms to include and exclude
@@ -164,3 +177,10 @@ class AsplainApp(Application):
 
         ctl.ground([("base", [])])
         ctl.solve()
+
+        if self._use_llm:
+            # print("EXP:", self._explainer.explain())
+            model = OllamaModel(ModelTag.LLAMA_3_2_1B)
+            response = model.prompt("What's 9 + 10?")
+            print("LLM: ", response)
+            return

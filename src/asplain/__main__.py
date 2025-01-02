@@ -9,7 +9,7 @@ from clingo import clingo_main
 from .app import AsplainApp
 from .llm.models import ModelTag, OllamaModel
 
-TEST_LLM = True
+TEST_LLM = False
 
 
 def main() -> None:
