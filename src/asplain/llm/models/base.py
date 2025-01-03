@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 
 from .tags import ModelTag
+from ..templates import Template
 
 
 class AbstractModel(ABC):
@@ -20,3 +21,12 @@ class AbstractModel(ABC):
     @abstractmethod
     def prompt(self, input_string: str) -> str:
         """Prompts the language model with the given input string"""
+
+    @abstractmethod
+    def prompt_template(self, template: Template) -> str:
+        """Explains an explanation graph"""
+
+    @staticmethod
+    @abstractmethod
+    def filter_output(unfiltered_output: str) -> str:
+        """Filters the direct model output string"""

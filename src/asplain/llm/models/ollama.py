@@ -4,6 +4,7 @@ from ollama import ChatResponse, Client, ProgressResponse
 
 from .base import AbstractModel
 from .tags import ModelTag
+from ..templates import Template
 
 
 class OllamaModel(AbstractModel):
@@ -23,7 +24,10 @@ class OllamaModel(AbstractModel):
                 {"role": "user", "content": input_string},
             ],
         )
-        return response.message.content
+        return self.filter_output(response.message.content)
+
+    def prompt_template(self, template: Template) -> str:
+        return self.prompt(template.compose())
 
     def _touch_model(self) -> None:
         """Checks if the requested model is locally available and if not pulls it"""
@@ -65,3 +69,12 @@ class OllamaModel(AbstractModel):
             else:
                 char = chars[-1]
         return char
+
+    @staticmethod
+    def filter_output(unfiltered_output: str) -> str:
+        filtered = unfiltered_output
+        if "Answer:" in filtered:
+            filtered = filtered.replace("Answer:", "", 1)
+        filtered = filtered.removeprefix('"')
+        filtered = filtered.removesuffix('"')
+        return filtered.strip()

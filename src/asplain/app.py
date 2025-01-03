@@ -7,6 +7,8 @@ from clingo import Application, ApplicationOptions, Control, Flag, Model
 
 from .explainers import ContrastiveExplainer
 from .llm.models import OllamaModel, ModelTag
+from .llm.templates import ExplainTemplate
+from .llm.utils import print_llm_message
 from .utils.logging import colored, configure_logging, get_logger
 
 log = get_logger("main")
@@ -162,6 +164,16 @@ class AsplainApp(Application):
         for i, g in enumerate(graphs):
             self._explainer.viz_explanation_graph(g, name=f"model-{model.number}-explanation-{i}")
 
+        if self._use_llm:
+            model = OllamaModel(ModelTag.LLAMA_3_2)
+            prompt_template = ExplainTemplate(
+                graphs=graphs,
+                answer_set=" ".join(model_symbols),
+                query=query,
+            )
+            response = model.prompt_template(prompt_template)
+            print_llm_message(response)
+
     def main(self, ctl: Control, files: Sequence[str]) -> None:
         """
         Main function ran on call
@@ -177,10 +189,3 @@ class AsplainApp(Application):
 
         ctl.ground([("base", [])])
         ctl.solve()
-
-        if self._use_llm:
-            # print("EXP:", self._explainer.explain())
-            model = OllamaModel(ModelTag.LLAMA_3_2_1B)
-            response = model.prompt("What's 9 + 10?")
-            print("LLM: ", response)
-            return
