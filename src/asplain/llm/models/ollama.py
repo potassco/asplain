@@ -74,7 +74,7 @@ class OllamaModel(AbstractModel):
     def filter_output(unfiltered_output: str) -> str:
         filtered = unfiltered_output
         if "Answer:" in filtered:
-            filtered = filtered.replace("Answer:", "", 1)
+            filtered = filtered.replace("Answer:", "", 1).strip()
         filtered = filtered.removeprefix('"')
         filtered = filtered.removesuffix('"')
-        return filtered.strip()
+        return filtered
