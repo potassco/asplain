@@ -1,0 +1,56 @@
+from typing import Iterable, List
+
+from .base import Template
+
+PROMPT = """
+You're an expert in explaining dependency graphs.
+
+Below you will receive a dependency graph which is represented over `node` and `edge` predicates. The predicates form 
+the graph you'll have to explain. Here `node(X)` represents a graph node with name `X` and `edge(X,Y,(X,Y,1))` 
+represents an edge between node `X` and node `Y`.
+
+Each node also is also located in at least one explanation realm, either the `real` world or the `hypothetical` world. 
+The location of each node is indicated over `attr(node,X,origin,W)`, where node `X` is located in world `W`. 
+
+You'll also receive an answer set which represents one valid configuration of a logic program that forms the basis of 
+the dependency graph. You'll also receive a query that indicates the element that needs t be explained.
+
+Example 1:
+
+- Graph:
+    ```
+    node(d) node(h) node(p) attr(edge,(d,p,1),type,cause) attr(edge,(d,p,1),rule,1) attr(edge,(d,p,1),origin,real) 
+    attr(node,p,query,exclude) attr(node,d,abduced,rm) attr(node,h,origin,hypothetical) attr(node,d,origin,real) 
+    attr(node,h,origin,real) attr(node,p,origin,real) edge(d,p,(d,p,1))
+    ```
+- Answer Set: `d p h`
+- Query: `-p`
+
+-> Answer: "For p to be false we have to abduce d from the answer set."
+
+Now follows the real problem that needs to be explained.
+Follow the examples above and answer the query in the same style.
+Only write the respective section that comes after `Answer:`.
+
+Here is the Problem:
+
+- Graph:
+    ```
+    {graph}
+    ```
+- Answer Set: `{answer_set}`
+- Query: `{query}`
+"""
+
+
+class ExplainTemplate(Template):
+
+    def __init__(self, graphs: Iterable[str], answer_set: str, query: str):
+        self._graphs: List[str] = list(graphs)
+        self._answer_set: str = answer_set
+        self._query: str = query
+
+    def compose(self) -> str:
+        graph = self._graphs[0].replace(".", "").replace("\n", "\n" + " " * 4)
+        prompt = PROMPT.format(graph=graph, answer_set=self._answer_set, query=self._query)
+        return prompt
