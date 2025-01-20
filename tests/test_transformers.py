@@ -102,6 +102,13 @@ class TestExplainabilityReifier(ReifierTestCase):
         """
         self._test_case("test_aggregates")
 
+    def test_annonymous_variable(self) -> None:
+        """
+        Test that annonymous variables are correctly renamed.
+        [tests/support_reification_tests/test_annonymous_variable]
+        """
+        self._test_case("test_annonymous_variable")
+
 
 class AbductionReifier(ReifierTestCase):
     """
@@ -155,7 +162,14 @@ class AbductionReifier(ReifierTestCase):
 
     def test_constraints(self) -> None:
         """
-        Test that constraints are correctly reified. [tests/support_reification_tests/test_constraints]
+        Test that constraints are correctly reified. [tests/abduction_reification_tests/test_constraints]
 
         """
         self._test_case("test_constraints")
+
+    def test_annonymous_variable(self) -> None:
+        """
+        Test that annonymous variables are correctly renamed.
+        [tests/abduction_reification_tests/test_annonymous_variable]
+        """
+        self._test_case("test_annonymous_variable")

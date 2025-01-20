@@ -179,3 +179,21 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
         """
 
         return HypotheticalLiteralsTransformer.wrap_literal(literal)
+
+
+class AnnonymousVariablesRenamerTransformer(CustomTransformer):
+
+    def __init__(self) -> None:
+        self.annon_count = 0
+
+    def visit_Variable(self, variable: ast.AST) -> ast.AST:
+        """
+        Renames the anonymous variables to avoid conflicts.
+        """
+
+        if variable.name == "_":
+            self.annon_count += 1
+            new_name = f"_Annon_{self.annon_count}"
+            return ast.Variable(location=variable.location, name=new_name)
+
+        return variable
