@@ -8,7 +8,11 @@ from typing import Sequence, Union
 from clingo import ast
 from clingo.ast import parse_files, parse_string
 
-from .abduction_transformers import AbducedRemovedTransformer, HypotheticalLiteralsTransformer
+from .abduction_transformers import (
+    AnnonymousVariablesRenamerTransformer,
+    AbducedRemovedTransformer,
+    HypotheticalLiteralsTransformer,
+)
 from .model_support_transformers import (
     CommentGenerator,
     ExplainabilityReifier,
@@ -72,6 +76,7 @@ class AbductionPipeline(TransformerPipeline):
     def __init__(self) -> None:
         super().__init__(
             [
+                AnnonymousVariablesRenamerTransformer(),
                 AbducedRemovedTransformer(),
                 HypotheticalLiteralsTransformer(),
             ]
@@ -86,6 +91,7 @@ class ModelSupportPipeline(TransformerPipeline):
     def __init__(self) -> None:
         super().__init__(
             [
+                AnnonymousVariablesRenamerTransformer(),
                 CommentGenerator(),
                 ExplainabilityReifier(),
                 ModelLiteralTransformer(),
