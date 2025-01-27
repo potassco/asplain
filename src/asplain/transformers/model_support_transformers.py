@@ -26,6 +26,98 @@ log = get_logger("main")
 # pylint: disable=C0103
 
 
+class ImplicitChoiceConstraintsTransformer(GeneratorTransformer):
+    def visit_Rule(self, rule: ast.AST) -> Generator[ast.AST, None, None]:
+        """
+        Generates the cardinality constraints for choice rules that are implicit.
+        Example:
+        ```
+        % Program
+        Lower { a; b } Upper :- conditions.
+
+        % Replacement
+        { a; b } :- conditions.
+        :- #count{a;b}>Upper, conditions.
+        :- #count{a;b}<Lower, conditions.
+        ```
+        """
+        # Any rule is returned as it is
+        yield rule
+
+        # If it is a choice rule, we generate the corresponding cardinality constraints
+        if rule.head.ast_type == ast.ASTType.Aggregate:
+            false_head = ast.Literal(
+                location=rule.head.location,
+                sign=False,  # Positive literal
+                atom=ast.BooleanConstant(0),
+            )
+
+            # Convert cond literals in body aggregate elements for correct body asts
+            agg_elements = [
+                ast.BodyAggregateElement(
+                    terms=[cond_lit.literal.atom],
+                    condition=cond_lit.condition,
+                )
+                for cond_lit in rule.head.elements
+            ]
+
+            if rule.head.left_guard is not None:
+                # Yield Constraint for Lower Bound
+                lower_bound = int(str(rule.head.left_guard.term))
+                lowerbound_count_literal = ast.Literal(
+                    location=rule.body[0].location,
+                    sign=False,  # Positive literal
+                    atom=ast.BodyAggregate(
+                        location=rule.body[0].location,
+                        elements=agg_elements,
+                        function=0,  # count type
+                        left_guard=ast.Guard(
+                            comparison=ast.ComparisonOperator.LessThan,
+                            term=ast.SymbolicTerm(
+                                location=rule.body[0].location,
+                                symbol=Number(lower_bound),
+                            ),
+                        ),
+                        right_guard=None,
+                    ),
+                )
+                lower_bound_constraint = ast.Rule(
+                    location=rule.location,
+                    head=false_head,
+                    body=[lowerbound_count_literal] + list(rule.body),
+                )
+                print(lower_bound_constraint)
+                yield lower_bound_constraint
+
+            if rule.head.right_guard is not None:
+                # Yield Constraint for Upper Bound
+                upper_bound = int(str(rule.head.right_guard.term))
+                upperbound_count_literal = ast.Literal(
+                    location=rule.body[0].location,
+                    sign=False,  # Positive literal
+                    atom=ast.BodyAggregate(
+                        location=rule.body[0].location,
+                        elements=agg_elements,
+                        function=0,  # count type
+                        left_guard=ast.Guard(
+                            comparison=ast.ComparisonOperator.GreaterThan,
+                            term=ast.SymbolicTerm(
+                                location=rule.body[0].location,
+                                symbol=Number(upper_bound),
+                            ),
+                        ),
+                        right_guard=None,
+                    ),
+                )
+                upper_bound_constraint = ast.Rule(
+                    location=rule.location,
+                    head=false_head,
+                    body=[upperbound_count_literal] + list(rule.body),
+                )
+                print(upper_bound_constraint)
+                yield upper_bound_constraint
+
+
 class WorldVariableSafetyTransformer(CustomTransformer):
     """
     Creates a literal `world(World)` in the body of each rule for safety.

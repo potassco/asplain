@@ -18,6 +18,7 @@ from .model_support_transformers import (
     ExplainabilityReifier,
     ModelLiteralTransformer,
     WorldVariableSafetyTransformer,
+    ImplicitChoiceConstraintsTransformer,
 )
 
 
@@ -93,6 +94,7 @@ class ModelSupportPipeline(TransformerPipeline):
             [
                 AnnonymousVariablesRenamerTransformer(),
                 CommentGenerator(),
+                ImplicitChoiceConstraintsTransformer(),
                 ExplainabilityReifier(),
                 ModelLiteralTransformer(),
                 WorldVariableSafetyTransformer(),
