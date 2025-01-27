@@ -12,9 +12,10 @@ class OllamaModel(AbstractModel):
 
     model_tag_key = "ollama"
 
-    def __init__(self, model_tag: ModelTag):
+    def __init__(self, model_tag: ModelTag, filter_thoughts: bool = True):
         super().__init__(model_tag)
         self._client = Client(host="http://localhost:11434")
+        self._filter_thoughts = filter_thoughts
 
     def prompt(self, input_string: str) -> str:
         self._touch_model()
@@ -24,7 +25,7 @@ class OllamaModel(AbstractModel):
                 {"role": "user", "content": input_string},
             ],
         )
-        return self.filter_output(response.message.content)
+        return self.filter_output(response.message.content, supress_thoughts=self._filter_thoughts)
 
     def prompt_template(self, template: Template) -> str:
         return self.prompt(template.compose())
