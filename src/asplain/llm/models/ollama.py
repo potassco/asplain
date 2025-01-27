@@ -71,10 +71,13 @@ class OllamaModel(AbstractModel):
         return char
 
     @staticmethod
-    def filter_output(unfiltered_output: str) -> str:
+    def filter_output(unfiltered_output: str, supress_thoughts: bool = True) -> str:
         filtered = unfiltered_output
         if "Answer:" in filtered:
             filtered = filtered.replace("Answer:", "", 1).strip()
         filtered = filtered.removeprefix('"')
         filtered = filtered.removesuffix('"')
+        # Only for deepseek r1 COT model to hide thought process
+        if supress_thoughts:
+            filtered = filtered.split("</think>")[1].strip()
         return filtered
