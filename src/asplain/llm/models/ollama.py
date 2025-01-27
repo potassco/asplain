@@ -1,6 +1,6 @@
 """Wrapper for the Ollama model"""
 
-from ollama import ChatResponse, Client, ProgressResponse
+from ollama import Client, ProgressResponsegit
 
 from .base import AbstractModel
 from .tags import ModelTag

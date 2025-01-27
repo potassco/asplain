@@ -7,7 +7,7 @@ from clingo import Application, ApplicationOptions, Control, Flag, Model
 
 from .explainers import ContrastiveExplainer
 from .llm.models import OllamaModel, ModelTag
-from .llm.templates import ExplainTemplate, ExplainLargeTemplate
+from .llm.templates import ExplainLargeTemplate
 from .llm.utils import print_llm_message
 from .utils.logging import colored, configure_logging, get_logger
 

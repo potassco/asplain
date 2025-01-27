@@ -7,7 +7,6 @@ import sys
 from clingo import clingo_main
 
 from .app import AsplainApp
-from .llm.models import ModelTag, OllamaModel
 
 
 def main() -> None:
