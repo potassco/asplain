@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional, Sequence
 from clingo import Application, ApplicationOptions, Control, Flag, Model
 
 from .explainers import ContrastiveExplainer
-from .llm.models import OllamaModel, ModelTag
+from .llm.models import ModelTag, OllamaModel
 from .llm.templates import ExplainLargeTemplate
 from .llm.utils import print_llm_message
 from .utils.logging import colored, configure_logging, get_logger

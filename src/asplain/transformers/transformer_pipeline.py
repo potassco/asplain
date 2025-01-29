@@ -9,8 +9,8 @@ from clingo import ast
 from clingo.ast import parse_files, parse_string
 
 from .abduction_transformers import (
-    AnnonymousVariablesRenamerTransformer,
     AbducedRemovedTransformer,
+    AnnonymousVariablesRenamerTransformer,
     HypotheticalLiteralsTransformer,
 )
 from .model_support_transformers import (

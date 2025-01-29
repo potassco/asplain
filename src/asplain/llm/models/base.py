@@ -2,8 +2,8 @@
 
 from abc import ABC, abstractmethod
 
-from .tags import ModelTag
 from ..templates import Template
+from .tags import ModelTag
 
 
 class AbstractModel(ABC):

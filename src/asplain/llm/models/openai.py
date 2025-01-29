@@ -4,9 +4,9 @@ import os
 
 from openai import OpenAI
 
+from ..templates import Template
 from .base import AbstractModel
 from .tags import ModelTag
-from ..templates import Template
 
 
 class OpenAIModel(AbstractModel):

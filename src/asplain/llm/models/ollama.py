@@ -1,10 +1,10 @@
 """Wrapper for the Ollama model"""
 
-from ollama import Client, ProgressResponsegit
+from ollama import Client, ProgressResponse
 
+from ..templates import Template
 from .base import AbstractModel
 from .tags import ModelTag
-from ..templates import Template
 
 
 class OllamaModel(AbstractModel):
