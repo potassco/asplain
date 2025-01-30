@@ -3,14 +3,9 @@ Test cases for transformers.
 """
 
 from typing import Type, Union
-
 from unittest import TestCase
 
-from asplain.transformers.transformer_pipeline import (
-    TransformerPipeline,
-    ModelSupportPipeline,
-    AbductionPipeline,
-)
+from asplain.transformers.transformer_pipeline import AbductionPipeline, ModelSupportPipeline, TransformerPipeline
 
 
 class ReifierTestCase(TestCase):

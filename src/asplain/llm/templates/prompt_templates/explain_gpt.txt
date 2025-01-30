@@ -1,0 +1,128 @@
+Contrastive Explanation Generation Task
+You will be given a contrastive explanation graph that represents the differences between two models: the real model (what actually happened) and the hypothetical model (what would have happened if the user's query were true). Your goal is to generate a short and intuitive natural language explanation that clearly communicates why the queried fact is or isn't part of the model.
+
+System Overview
+Input:
+
+A logic program that solves a problem.
+A stable model, which is a set of true atoms.
+A user query, stating what they expected to be true or false.
+An explanation preference, which determines what can be modified to make the query hold.
+A contrastive explanation graph, which shows the differences between the real and hypothetical models.
+The contrastive explanation graph consists of:
+
+node(A), representing atoms (facts).
+edge(N, N', ID), representing relationships between facts.
+attr(T, N, A, V), providing additional attributes.
+Graph Semantics & Attributes
+The contrastive explanation graph compares two models:
+
+The real model, which represents what actually happened.
+The hypothetical model, which represents what would have happened if the query were satisfied.
+Each node and edge has attributes:
+
+For Nodes (attr(node, A, ...)):
+
+origin=[real, hypothetical]: Indicates whether the fact is present in the real model, hypothetical model, or both.
+abduced=[add, rm]:
+If abduced=add, this fact had to be assumed true for the query to be satisfied.
+If abduced=rm, this fact had to be removed to satisfy the query.
+query=[include, exclude]:
+include: The user wanted this fact to be true.
+exclude: The user wanted this fact to be false.
+For Edges (attr(edge, ..., ...)):
+
+type=[cause, inhibitor, reciprocal_inhibitor]:
+cause: The first fact supports the second.
+inhibitor: The first fact prevents the second.
+reciprocal_inhibitor: The two facts mutually prevent each other.
+Explanation Generation Rules
+Your explanation should be a short and intuitive natural language summary of why the query is true or false, following these rules:
+
+Use Simple, Succinct Language
+
+The explanation should be one or two sentences.
+Use plain, natural language that anyone can understand.
+Example:
+Incorrect: "The real model contains X, but the hypothetical model required Y to be abduced for the query to hold."
+Correct: "For X to happen, we have to assume Y was true."
+
+Treat Abduced Facts as Necessary Assumptions
+
+If a fact has abduced=add, the explanation must treat it as something that was not originally true but had to be assumed in the hypothetical scenario for the query to be satisfied.
+The explanation should make this clear by using phrasing like "would have led to" or "would have caused" instead of directly stating that the fact happened.
+Example:
+Incorrect: "For Clare to be sentenced to prison, she must have resisted the authority, which led to her punishment."
+Correct: "For Clare to be sentenced to prison, she must have resisted the authority, which would have led to her punishment."
+
+If a fact had abduced=add, it did not actually happen in the real world but had to be introduced in the hypothetical world. This must be reflected in the wording:
+
+Use "would have led to" instead of "led to."
+Use "would have been necessary" instead of "was necessary."
+
+Ignore Unrelated Nodes
+
+Only explain facts that are connected to the query.
+Do not include isolated or irrelevant facts.
+
+Avoid Any Mention of Graph Structure or Formal Concepts
+
+Do NOT mention:
+Abduction, inhibitors, causal links
+Graph structure (nodes, edges)
+Rules, rule numbers, predicates with parentheses
+DO use clear, natural language explanations.
+
+
+Examples:
+
+Example 1: Removing a Cause
+Input Graph:
+    node(d).
+    node(p).
+    attr(edge, (d, p, 1), type, cause).
+    attr(node, p, query, exclude).
+    attr(node, d, abduced, rm).
+    edge(d, p, (d, p, 1)).
+Explanation:
+    "For James to not be poisoned, he would have to not have been drugged."
+
+Example 2: Adding an Assumed Fact
+Input Graph:
+    node(alcohol(clare)).
+    node(drive(clare)).
+    node(punish(clare)).
+    node(sentence(clare,prison)).
+    attr(edge, (alcohol(clare), punish(clare), 5), type, cause).
+    attr(edge, (punish(clare), sentence(clare, prison), 7), type, cause).
+    attr(node, sentence(clare, prison), query, include).
+    attr(node, alcohol(clare), abduced, add).
+    edge(alcohol(clare), punish(clare), 5).
+    edge(punish(clare), sentence(clare, prison), 7).
+Explanation:
+    "For Clare to be sentenced to prison, she must have consumed alcohol while driving, which would have led to her punishment."
+
+Example 3: No Changes Needed
+Input Graph:
+    node(d).
+    node(p).
+    attr(edge, (d, p, 1), type, cause).
+    attr(node, p, query, include).
+    edge(d, p, (d, p, 1)).
+Explanation:
+    "James was poisoned because he was drugged."
+
+
+Your Task
+
+You will be given a contrastive explanation graph along with an optional list of natural language predicate meanings.
+
+Your response should be a short, natural language explanation that follows all the rules above.
+
+Here is the Input:
+
+    - Graph:
+        {graph}
+
+    - Predicates:
+        {predicates}
