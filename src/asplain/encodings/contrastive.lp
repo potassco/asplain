@@ -50,12 +50,12 @@ _f_atom(W, Atom) :- _f(_, W, Atom, _).
 %=== Causes and inhibitors
 
 % Captures positive body for this graph
-_direct_cause(R, W, Effect, Cause) :-
+_direct_cause((R,Vars), W, Effect, Cause) :-
     _f(R, W, Effect, Vars),
     _depends(_sup(R, W, Effect, Vars), Cause).
 
 % Captures negative body for this graph
-_direct_inhibitor(R, W, Effect, Inhibitor) :-
+_direct_inhibitor((R,Vars), W, Effect, Inhibitor) :-
     _f(R, W, Effect, Vars),
     _prevents(_sup(R, W, Effect, Vars), Inhibitor).
 

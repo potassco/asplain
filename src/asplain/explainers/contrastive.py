@@ -98,6 +98,9 @@ class ContrastiveExplainer(Explainer):
                 contrastive_explanations.append(explanation_graph_prg)
         if len(contrastive_explanations) == 0:
             log.warning("No explanation found")
+
+        # TODO, replace edge ids for numbers for readability
+
         return contrastive_explanations
 
     def viz_explanation_graph(self, explanation_graph: str, name: str = "explanation") -> None:

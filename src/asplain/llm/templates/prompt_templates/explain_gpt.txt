@@ -9,33 +9,43 @@ A stable model, which is a set of true atoms.
 A user query, stating what they expected to be true or false.
 An explanation preference, which determines what can be modified to make the query hold.
 A contrastive explanation graph, which shows the differences between the real and hypothetical models.
+
 The contrastive explanation graph consists of:
 
 node(A), representing atoms (facts).
 edge(N, N', ID), representing relationships between facts.
-attr(T, N, A, V), providing additional attributes.
+attr(T, N, A, V), providing additional attributes,
+    where T is either node or edge, N is the identifier of the node or edge, A is the attribute name and V the value
+
 Graph Semantics & Attributes
+
 The contrastive explanation graph compares two models:
 
 The real model, which represents what actually happened.
 The hypothetical model, which represents what would have happened if the query were satisfied.
 Each node and edge has attributes:
 
-For Nodes (attr(node, A, ...)):
+For Nodes (attr(node, N, A, V)):
 
 origin=[real, hypothetical]: Indicates whether the fact is present in the real model, hypothetical model, or both.
 abduced=[add, rm]:
-If abduced=add, this fact had to be assumed true for the query to be satisfied.
-If abduced=rm, this fact had to be removed to satisfy the query.
+    If abduced=add, this fact had to be assumed true for the query to be satisfied.
+    If abduced=rm, this fact had to be removed to satisfy the query.
 query=[include, exclude]:
-include: The user wanted this fact to be true.
-exclude: The user wanted this fact to be false.
-For Edges (attr(edge, ..., ...)):
+    include: The user wanted this fact to be true.
+    exclude: The user wanted this fact to be false.
+
+For Edges (attr(edge, N, A, V)):
 
 type=[cause, inhibitor, reciprocal_inhibitor]:
-cause: The first fact supports the second.
-inhibitor: The first fact prevents the second.
-reciprocal_inhibitor: The two facts mutually prevent each other.
+    cause: The first fact supports the second.
+    inhibitor: The first fact prevents the second.
+    reciprocal_inhibitor: The two facts mutually prevent each other.
+rule_id=numeric identifier for the rule
+rule_vars=values that should substitute variables in rule_str
+rule_str=string representation of the original rule in ASP
+
+
 Explanation Generation Rules
 Your explanation should be a short and intuitive natural language summary of why the query is true or false, following these rules:
 
