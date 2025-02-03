@@ -34,6 +34,18 @@ asplain examples/dont_drive_drunk/encoding.lp --explanation-preference examples/
 asplain examples/catdog/encoding_constraints.lp  --explanation-preference examples/catdog/explanation_preference.lp 0 --model examples/catdog/model.lp --query 'assign("Susana",(1,2))'
 ```
 
+### LLMs
+
+To use OpenAI's ChatGPT you have to provide an OpenAI API Key.
+To do this you just have to set the environment variable `OPENAI_API_KEY` either directly or in a `.env` file.
+
+`.env` :
+```
+OPENAI_API_KEY=<ENTER-YOUR-KEY-HERE>
+```
+
+### Documentation 
+
 To generate the documentation, run
 
 ```bash
