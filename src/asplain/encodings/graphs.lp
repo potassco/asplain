@@ -41,13 +41,13 @@ attr(node,A,abduced,X):- node(A), _abduced(X,A).
 attr(node,A,query,X):- node(A), _query(X,A).
 
 %=== Edges
-edge(Cause,Effect,(Cause,Effect,RuleID)):-_direct_cause(RuleID, W, Effect, Cause).
-attr(edge,(Cause,Effect,RuleID),origin,W):-_direct_cause(RuleID, W, Effect, Cause).
-attr(edge,(Cause,Effect,RuleID),rule,RuleID):-_direct_cause(RuleID, W, Effect, Cause).
+edge(Cause,Effect,((Cause,Effect),(RuleID,VARS))):-_direct_cause((RuleID,VARS), W, Effect, Cause).
+attr(edge,((Cause,Effect),(RuleID,VARS)),origin,W):-_direct_cause((RuleID,VARS), W, Effect, Cause).
+% attr(edge,((Cause,Effect),(RuleID,VARS)),rule,RuleID):-_direct_cause((RuleID,VARS), W, Effect, Cause).
 
-edge(Cause,Effect,RuleID):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).
-attr(edge,(Cause,Effect,RuleID),type,inhibitor):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).
-attr(edge,(Cause,Effect,RuleID),type,cause):- _direct_cause(RuleID, W, Effect, Cause).
+edge(Cause,Effect,((Cause,Effect),(RuleID,VARS))):-_direct_inhibitor((RuleID,VARS), W, Effect, Cause), node(Effect), node(Cause).
+attr(edge,((Cause,Effect),(RuleID,VARS)),type,inhibitor):-_direct_inhibitor((RuleID,VARS), W, Effect, Cause), node(Effect), node(Cause).
+attr(edge,((Cause,Effect),(RuleID,VARS)),type,cause):- _direct_cause((RuleID,VARS), W, Effect, Cause).
 
 in_both(A) :- _f_atom(real, A), _f_atom(hypothetical, A).
 
@@ -59,4 +59,7 @@ r_edge(I1, I2, ((I1,I2),(C_Num,Vars))) :-
 
 edge(I1, I2, EID) :- r_edge(I1, I2, EID).
 attr(edge, EID, type, reciprocal_inhibitor) :- r_edge(I1, I2, EID).
-attr(edge, ((I1,I2),(C_Num,Vars)), rule, (C_Num,Vars)) :- r_edge(I1, I2, ((I1,I2),(C_Num,Vars))).
+% attr(edge, ((I1,I2),(C_Num,Vars)), rule, (C_Num,Vars)) :- r_edge(I1, I2, ((I1,I2),(C_Num,Vars))).
+attr(edge, ((I1,I2),(C_Num,Vars)), rule_id, C_Num) :- edge(I1, I2, ((I1,I2),(C_Num,Vars))), _rule(C_Num, LABEL).
+attr(edge, ((I1,I2),(C_Num,Vars)), rule_str, LABEL) :- edge(I1, I2, ((I1,I2),(C_Num,Vars))), _rule(C_Num, LABEL).
+attr(edge, ((I1,I2),(C_Num,Vars)), rule_vars, Vars) :- edge(I1, I2, ((I1,I2),(C_Num,Vars))), _rule(C_Num, LABEL).

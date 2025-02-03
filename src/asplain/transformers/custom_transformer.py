@@ -24,6 +24,17 @@ class CustomTransformer(ast.Transformer):
         )
         return "\n".join(out)
 
+    def parse_string(self, string: str) -> str:
+        """
+        Applies the transformer to the given program string.
+        """
+        out = []
+        ast.parse_string(
+            string,
+            lambda stm: out.append(str(self(stm))),
+        )
+        return "\n".join(out)
+
 
 class GeneratorTransformer(ast.Transformer):
     """

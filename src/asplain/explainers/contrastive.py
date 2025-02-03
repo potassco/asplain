@@ -8,6 +8,7 @@ from clingraph.clingo_utils import ClingraphContext  # type: ignore
 from clingraph.graphviz import compute_graphs, render  # type: ignore
 from clingraph.orm import Factbase  # type: ignore
 
+from ..transformers.graph_transformer import GraphTransformer
 from ..transformers.transformer_pipeline import AbductionPipeline, ModelSupportPipeline
 from ..utils.logging import get_logger
 from .base_explainer import Explainer
@@ -93,11 +94,13 @@ class ContrastiveExplainer(Explainer):
                 if not m.optimality_proven:
                     continue
                 explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
+                explanation_graph_prg = GraphTransformer().parse_string(explanation_graph_prg)
                 log.debug("----- Full Expanation \n%s", m.symbols(atoms=True))
                 log.info("----- Expanation \n%s", explanation_graph_prg)
                 contrastive_explanations.append(explanation_graph_prg)
         if len(contrastive_explanations) == 0:
             log.warning("No explanation found")
+
         return contrastive_explanations
 
     def viz_explanation_graph(self, explanation_graph: str, name: str = "explanation") -> None:

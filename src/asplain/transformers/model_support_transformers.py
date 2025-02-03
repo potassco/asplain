@@ -4,7 +4,7 @@ Transformers used for generating the 'model support' reification.
 
 from typing import Generator, Sequence, Union
 
-from clingo import Number, ast
+from clingo import Number, String, ast
 
 from asplain.utils.logging import get_logger
 
@@ -19,6 +19,7 @@ SUPPORT_RULE_PREDICATE_NAME = "_sup"
 DEPENDS_RULE_PREDICATE_NAME = "_depends"
 PREVENTS_RULE_PREDICATE_NAME = "_prevents"
 CONSTRAINTS_RULE_PREDICATE_NAME = "_constraints"
+RULE_ID_PREDICATE_NAME = "_rule"
 
 log = get_logger("main")
 
@@ -43,6 +44,7 @@ class WorldVariableSafetyTransformer(CustomTransformer):
             DEPENDS_RULE_PREDICATE_NAME,
             PREVENTS_RULE_PREDICATE_NAME,
             CONSTRAINTS_RULE_PREDICATE_NAME,
+            RULE_ID_PREDICATE_NAME,
         ]:
             return rule
 
@@ -187,19 +189,17 @@ class ExplainabilityReifier(GeneratorTransformer):
     """
 
     def __init__(self) -> None:
-        self.rule_count = 0
-        self.constraint_count = 0
+        self.rules = {}
 
     def _generate_support_rule(
         self,
         supported_lit: ast.AST,
         rule_body: Sequence[ast.AST],
+        rule_id: int,
     ) -> ast.AST:
         """
         Creates the support rule from an original rule.
         """
-        # Increments rule count
-        self.rule_count += 1
 
         # Creates new head _sup(RuleID, World, SupportedAtom, VariableValues)
         xclingo_sup_literal = ast.Literal(
@@ -211,7 +211,7 @@ class ExplainabilityReifier(GeneratorTransformer):
                 arguments=[
                     ast.SymbolicTerm(
                         location=rule_body[0].location if len(rule_body) > 0 else supported_lit.location,
-                        symbol=Number(self.rule_count),
+                        symbol=Number(rule_id),
                     ),
                     ast.Variable(
                         location=rule_body[0].location if len(rule_body) > 0 else supported_lit.location,
@@ -272,7 +272,7 @@ class ExplainabilityReifier(GeneratorTransformer):
             body=[ModelLiteralTransformer.wrap_literal(lit) for lit in extra_body] + [support_literal],
         )
 
-    def _generate_fired_contrastive_constraint(self, lit_sequecence: Sequence[ast.AST]) -> ast.AST:
+    def _generate_fired_contrastive_constraint(self, lit_sequecence: Sequence[ast.AST], rule_id: int) -> ast.AST:
         """
         Creates a rule featuring the predicate _fired_contrastive_constraint/2.
           _fired_constrastive_constraint((ConstraintID, VariableValues), Atom)
@@ -284,7 +284,6 @@ class ExplainabilityReifier(GeneratorTransformer):
               the constraint.
         """
         # Increments the constraint count
-        self.constraint_count += 1
 
         loc = lit_sequecence[0].location
         head = ast.Literal(
@@ -300,7 +299,7 @@ class ExplainabilityReifier(GeneratorTransformer):
                         arguments=[
                             ast.SymbolicTerm(
                                 location=loc,
-                                symbol=Number(self.constraint_count),
+                                symbol=Number(rule_id),
                             ),
                             ast.Function(
                                 location=loc,
@@ -324,12 +323,50 @@ class ExplainabilityReifier(GeneratorTransformer):
             body=[ModelLiteralTransformer.wrap_literal(lit, hybrid_worlds=True) for lit in lit_sequecence],
         )
 
+    def _generate_rule_id(self, rule: ast.AST) -> ast.AST:
+        """
+        Generates the rule ID for a given rule.
+        """
+        rule_id = len(self.rules) + 1
+        self.rules[rule_id] = rule.__hash__()
+        rule_name = ast.Literal(
+            location=rule.location,
+            sign=False,  # Positive Literal
+            atom=ast.Function(
+                location=rule.location,
+                name=RULE_ID_PREDICATE_NAME,
+                arguments=[
+                    ast.SymbolicTerm(
+                        location=rule.location,
+                        symbol=Number(rule_id),
+                    ),
+                    ast.SymbolicTerm(
+                        location=rule.location,
+                        symbol=String(str(rule)),
+                    ),
+                ],
+                external=False,
+            ),
+        )
+
+        # Creates the new support rule
+        rule_id_rule = ast.Rule(
+            location=rule.location,
+            head=rule_name,
+            body=[],
+        )
+
+        return rule_id, rule_id_rule
+
     def visit_Rule(self, rule: ast.AST) -> Generator[ast.AST, None, None]:
         """
         Generates the support rule, and every needed depends and prevents rules.
         """
         supported_atoms = []
         additional_causes = []
+
+        rule_id, rule_predicate = self._generate_rule_id(rule)
+        yield rule_predicate
 
         if rule.head.ast_type == ast.ASTType.Aggregate:  # Choices
             for conditional_lit in rule.head.elements:
@@ -350,9 +387,9 @@ class ExplainabilityReifier(GeneratorTransformer):
         for lit, choice_condition in zip(supported_atoms, additional_causes):
             # Constraints
             if lit.atom.ast_type == ast.ASTType.BooleanConstant:
-                yield self._generate_fired_contrastive_constraint(rule.body)
+                yield self._generate_fired_contrastive_constraint(rule.body, rule_id=rule_id)
             else:
-                support_rule = self._generate_support_rule(lit, list(rule.body) + choice_condition)
+                support_rule = self._generate_support_rule(lit, list(rule.body) + choice_condition, rule_id=rule_id)
 
                 # Yield Support Rule
                 yield support_rule

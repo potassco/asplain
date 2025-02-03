@@ -9,33 +9,43 @@ A stable model, which is a set of true atoms.
 A user query, stating what they expected to be true or false.
 An explanation preference, which determines what can be modified to make the query hold.
 A contrastive explanation graph, which shows the differences between the real and hypothetical models.
+
 The contrastive explanation graph consists of:
 
 node(A), representing atoms (facts).
 edge(N, N', ID), representing relationships between facts.
-attr(T, N, A, V), providing additional attributes.
+attr(T, N, A, V), providing additional attributes,
+    where T is either node or edge, N is the identifier of the node or edge, A is the attribute name and V the value
+
 Graph Semantics & Attributes
+
 The contrastive explanation graph compares two models:
 
 The real model, which represents what actually happened.
 The hypothetical model, which represents what would have happened if the query were satisfied.
 Each node and edge has attributes:
 
-For Nodes (attr(node, A, ...)):
+For Nodes (attr(node, N, A, V)):
 
 origin=[real, hypothetical]: Indicates whether the fact is present in the real model, hypothetical model, or both.
 abduced=[add, rm]:
-If abduced=add, this fact had to be assumed true for the query to be satisfied.
-If abduced=rm, this fact had to be removed to satisfy the query.
+    If abduced=add, this fact had to be assumed true for the query to be satisfied.
+    If abduced=rm, this fact had to be removed to satisfy the query.
 query=[include, exclude]:
-include: The user wanted this fact to be true.
-exclude: The user wanted this fact to be false.
-For Edges (attr(edge, ..., ...)):
+    include: The user wanted this fact to be true.
+    exclude: The user wanted this fact to be false.
+
+For Edges (attr(edge, N, A, V)):
 
 type=[cause, inhibitor, reciprocal_inhibitor]:
-cause: The first fact supports the second.
-inhibitor: The first fact prevents the second.
-reciprocal_inhibitor: The two facts mutually prevent each other.
+    cause: The first fact supports the second.
+    inhibitor: The first fact prevents the second.
+    reciprocal_inhibitor: The two facts mutually prevent each other.
+rule_id=numeric identifier for the rule
+rule_vars=values that should substitute variables in rule_str
+rule_str=string representation of the original rule in ASP using clingos syntax
+
+
 Explanation Generation Rules
 Your explanation should be a short and intuitive natural language summary of why the query is true or false, following these rules:
 
@@ -79,39 +89,165 @@ Examples:
 Example 1: Removing a Cause
 Input Graph:
     node(d).
+    node(h).
     node(p).
-    attr(edge, (d, p, 1), type, cause).
-    attr(node, p, query, exclude).
-    attr(node, d, abduced, rm).
-    edge(d, p, (d, p, 1)).
+    attr(edge,0,rule_vars,()).
+    attr(edge,0,rule_str,"p :- d; not a.").
+    attr(edge,0,rule_id,1).
+    attr(edge,0,type,cause).
+    attr(edge,0,origin,real).
+    attr(node,p,query,exclude).
+    attr(node,d,abduced,rm).
+    attr(node,h,origin,hypothetical).
+    attr(node,d,origin,real).
+    attr(node,h,origin,real).
+    attr(node,p,origin,real).
+    edge(d,p,0).
+Predicates:
+    p: James was poisoned
+    d: James drank the drinks
+    h: James was on holiday
+    a: James was administered the antidote
+
 Explanation:
-    "For James to not be poisoned, he would have to not have been drugged."
+    "If James hadn't been poisoned would not have been drugged"
 
 Example 2: Adding an Assumed Fact
 Input Graph:
     node(alcohol(clare)).
+    node(alcohol(gabriel)).
+    node(person(gabriel)).
+    node(person(clare)).
+    node(drive(gabriel)).
     node(drive(clare)).
     node(punish(clare)).
+    node(punish(gabriel)).
+    node(sentence(gabriel,prison)).
     node(sentence(clare,prison)).
-    attr(edge, (alcohol(clare), punish(clare), 5), type, cause).
-    attr(edge, (punish(clare), sentence(clare, prison), 7), type, cause).
-    attr(node, sentence(clare, prison), query, include).
-    attr(node, alcohol(clare), abduced, add).
-    edge(alcohol(clare), punish(clare), 5).
-    edge(punish(clare), sentence(clare, prison), 7).
+    node(sentence(clare,innocent)).
+    attr(edge,0,rule_vars,(clare,)).
+    attr(edge,1,rule_vars,(clare,)).
+    attr(edge,2,rule_vars,(gabriel,)).
+    attr(edge,3,rule_vars,(gabriel,)).
+    attr(edge,4,rule_vars,(gabriel,)).
+    attr(edge,5,rule_vars,(gabriel,)).
+    attr(edge,6,rule_vars,(clare,)).
+    attr(edge,7,rule_vars,(clare,)).
+    attr(edge,8,rule_vars,(clare,)).
+    attr(edge,9,rule_vars,(clare,)).
+    attr(edge,0,rule_str,"sentence(P,innocent) :- person(P); not punish(P).").
+    attr(edge,1,rule_str,"sentence(P,prison) :- punish(P).").
+    attr(edge,2,rule_str,"sentence(P,prison) :- punish(P).").
+    attr(edge,3,rule_str,"punish(P) :- drive(P); alcohol(P); person(P).").
+    attr(edge,4,rule_str,"punish(P) :- drive(P); alcohol(P); person(P).").
+    attr(edge,5,rule_str,"punish(P) :- drive(P); alcohol(P); person(P).").
+    attr(edge,6,rule_str,"punish(P) :- drive(P); alcohol(P); person(P).").
+    attr(edge,7,rule_str,"punish(P) :- drive(P); alcohol(P); person(P).").
+    attr(edge,8,rule_str,"punish(P) :- drive(P); alcohol(P); person(P).").
+    attr(edge,9,rule_str,"sentence(P,innocent) :- person(P); not punish(P).").
+    attr(edge,0,rule_id,8).
+    attr(edge,1,rule_id,7).
+    attr(edge,2,rule_id,7).
+    attr(edge,3,rule_id,5).
+    attr(edge,4,rule_id,5).
+    attr(edge,5,rule_id,5).
+    attr(edge,6,rule_id,5).
+    attr(edge,7,rule_id,5).
+    attr(edge,8,rule_id,5).
+    attr(edge,9,rule_id,8).
+    attr(edge,0,type,cause).
+    attr(edge,1,type,cause).
+    attr(edge,2,type,cause).
+    attr(edge,3,type,cause).
+    attr(edge,4,type,cause).
+    attr(edge,5,type,cause).
+    attr(edge,6,type,cause).
+    attr(edge,7,type,cause).
+    attr(edge,8,type,cause).
+    attr(edge,9,type,inhibitor).
+    attr(edge,1,origin,hypothetical).
+    attr(edge,2,origin,hypothetical).
+    attr(edge,3,origin,hypothetical).
+    attr(edge,4,origin,hypothetical).
+    attr(edge,5,origin,hypothetical).
+    attr(edge,6,origin,hypothetical).
+    attr(edge,7,origin,hypothetical).
+    attr(edge,8,origin,hypothetical).
+    attr(edge,3,origin,real).
+    attr(edge,4,origin,real).
+    attr(edge,5,origin,real).
+    attr(edge,0,origin,real).
+    attr(edge,2,origin,real).
+    attr(node,sentence(clare,prison),query,include).
+    attr(node,alcohol(clare),abduced,add).
+    attr(node,alcohol(clare),origin,hypothetical).
+    attr(node,alcohol(gabriel),origin,hypothetical).
+    attr(node,person(gabriel),origin,real).
+    attr(node,person(gabriel),origin,hypothetical).
+    attr(node,person(clare),origin,real).
+    attr(node,person(clare),origin,hypothetical).
+    attr(node,drive(gabriel),origin,real).
+    attr(node,drive(gabriel),origin,hypothetical).
+    attr(node,alcohol(gabriel),origin,real).
+    attr(node,drive(clare),origin,real).
+    attr(node,drive(clare),origin,hypothetical).
+    attr(node,punish(clare),origin,hypothetical).
+    attr(node,punish(gabriel),origin,hypothetical).
+    attr(node,sentence(gabriel,prison),origin,hypothetical).
+    attr(node,sentence(clare,prison),origin,hypothetical).
+    attr(node,sentence(clare,innocent),origin,real).
+    attr(node,punish(gabriel),origin,real).
+    attr(node,sentence(gabriel,prison),origin,real).
+    edge(person(clare),sentence(clare,innocent),0).
+    edge(punish(clare),sentence(clare,prison),1).
+    edge(punish(gabriel),sentence(gabriel,prison),2).
+    edge(drive(gabriel),punish(gabriel),3).
+    edge(alcohol(gabriel),punish(gabriel),4).
+    edge(person(gabriel),punish(gabriel),5).
+    edge(drive(clare),punish(clare),6).
+    edge(alcohol(clare),punish(clare),7).
+    edge(person(clare),punish(clare),8).
+    edge(punish(clare),sentence(clare,innocent),9).
 Explanation:
-    "For Clare to be sentenced to prison, she must have consumed alcohol while driving, which would have led to her punishment."
+    "If Clare had consumed alcohol, she would have been punished and sent to prison"
 
-Example 3: No Changes Needed
+Example 3: No Changes Needed (Direct inference)
 Input Graph:
     node(d).
+    node(h).
     node(p).
-    attr(edge, (d, p, 1), type, cause).
-    attr(node, p, query, include).
-    edge(d, p, (d, p, 1)).
+    attr(edge,0,rule_vars,()).
+    attr(edge,0,rule_str,"p :- d; not a.").
+    attr(edge,0,rule_id,1).
+    attr(edge,0,type,cause).
+    attr(edge,0,origin,real).
+    attr(edge,0,origin,hypothetical).
+    attr(node,p,query,include).
+    attr(node,d,origin,hypothetical).
+    attr(node,h,origin,hypothetical).
+    attr(node,p,origin,hypothetical).
+    attr(node,d,origin,real).
+    attr(node,h,origin,real).
+    attr(node,p,origin,real).
+    edge(d,p,0).
 Explanation:
     "James was poisoned because he was drugged."
 
+Example 3: Prevented via constraint
+Input Graph:
+    node(sit).
+    node(stand).
+    attr(edge,0,rule_vars,()).
+    attr(edge,0,rule_str,"#false :- sit; stand.").
+    attr(edge,0,rule_id,3).
+    attr(edge,0,type,reciprocal_inhibitor).
+    attr(node,stand,query,include).
+    attr(node,sit,abduced,rm).
+    attr(node,stand,origin,hypothetical).
+    attr(node,sit,origin,real).
+    edge(sit,stand,0).
+Explanation:
+    "You would have to remove sit to be able to stand since they can't happen at the same time"
 
 Your Task
 
