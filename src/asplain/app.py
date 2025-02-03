@@ -27,6 +27,7 @@ class AsplainApp(Application):
         self._query = None
         self._explanation_preference: Optional[Sequence[str]] = None
         self._predicates_file: Optional[Sequence[str]] = None
+        self._model_tag = None
         self._use_llm: Flag = Flag()
 
     def parse_log_level(self, log_level: str) -> bool:
@@ -126,6 +127,17 @@ class AsplainApp(Application):
             ),
             self._use_llm,
         )
+        options.add(
+            group,
+            "model-tag",
+            dedent(
+                """\
+                Specifies which LLM model is used if the llm feature is active.
+                """
+            ),
+            self.parse_general("_model_tag"),
+            argument="<model-tag>",
+        )
 
         options.add(
             group,
@@ -182,8 +194,17 @@ class AsplainApp(Application):
             if self._predicates_file:
                 with open(self._predicates_file, "r") as f:
                     predicates = " ".join(f.readlines())
-            model = OpenAIModel(ModelTag.GPT_4O_MINI)
-            # model = OllamaModel(ModelTag.DEEPSEEK_R1_14B)
+
+            if self._model_tag == "openai":
+                # OPEN AI
+                model = OpenAIModel(ModelTag.GPT_4O_MINI)
+            elif self._model_tag == "deepseek":
+                # DEEPSEEK
+                model = OllamaModel(ModelTag.DEEPSEEK_R1_14B)
+            else:
+                # DEFAULT LLAMA
+                model = OllamaModel(ModelTag.LLAMA_3_2_1B)
+
             # prompt_template = ExplainTemplate(
             #     graphs=graphs,
             #     answer_set=" ".join(model_symbols),

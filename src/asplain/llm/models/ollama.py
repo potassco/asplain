@@ -25,7 +25,9 @@ class OllamaModel(AbstractModel):
                 {"role": "user", "content": input_string},
             ],
         )
-        return self.filter_output(response.message.content, supress_thoughts=self._filter_thoughts)
+        return self.filter_output(
+            response.message.content, supress_thoughts=self._filter_thoughts and "deepseek" in self.model_tag
+        )
 
     def prompt_template(self, template: Template) -> str:
         return self.prompt(template.compose())
