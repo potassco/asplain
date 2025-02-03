@@ -7,6 +7,7 @@ from clingo import Application, ApplicationOptions, Control, Flag, Model
 
 from .explainers import ContrastiveExplainer
 from .llm.models import ModelTag, OllamaModel
+from .llm.models.openai import OpenAIModel
 from .llm.templates import ExplainLargeTemplate
 from .llm.utils import print_llm_message
 from .utils.logging import colored, configure_logging, get_logger
@@ -181,7 +182,8 @@ class AsplainApp(Application):
             if self._predicates_file:
                 with open(self._predicates_file, "r") as f:
                     predicates = " ".join(f.readlines())
-            model = OllamaModel(ModelTag.DEEPSEEK_R1_14B)
+            model = OpenAIModel(ModelTag.GPT_4O_MINI)
+            # model = OllamaModel(ModelTag.DEEPSEEK_R1_14B)
             # prompt_template = ExplainTemplate(
             #     graphs=graphs,
             #     answer_set=" ".join(model_symbols),
