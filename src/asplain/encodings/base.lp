@@ -58,7 +58,12 @@ Computes the contrastive graphs using abduction. A contrastive graph will compar
 #include "abduction.lp".
 #include "contrastive.lp".
 #include "graphs.lp".
+#include "reachable.lp".
 
-#show node/1.
-#show edge/3.
-#show attr/4.
+% #show node/1.
+% #show edge/3.
+% #show attr/4.
+#show .
+#show node(N):node(N), reachable(node,N).
+#show edge(N,N',ID):edge(N,N',ID), reachable(edge,ID).
+#show attr(T,ID,A,N):attr(T,ID,A,N), reachable(T,ID).

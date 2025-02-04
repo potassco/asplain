@@ -28,7 +28,6 @@ class OpenAIModel(AbstractModel):
             ],
             model=self.model_tag,
         )
-        print(response, type(response))
         response_message = response.choices[0].message.content
         return OpenAIModel.filter_output(response_message)
 
