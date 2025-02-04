@@ -214,7 +214,7 @@ class AsplainApp(Application):
                     raise ValueError(f"Model tag invalid: {self._model_tag}")
 
                 prompt_template = ExplainLargeTemplate(
-                    graphs=graphs,
+                    graph=g,
                     predicates=predicates,
                 )
                 llm_response = llm_model.prompt_template(prompt_template)

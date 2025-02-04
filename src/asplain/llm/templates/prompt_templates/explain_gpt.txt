@@ -59,6 +59,7 @@ Your explanation should be a short and intuitive natural language summary of why
 
 * Treat Abduced Facts as Necessary Assumptions
 
+    All abduced facts must be referenced in the explanation since they are necessary for the query to hold.
     If a fact has abduced=add, the explanation must treat it as something that was not originally true but had to be assumed in the hypothetical scenario for the query to be satisfied.
     The explanation should make this clear by using phrasing like "would have led to" or "would have caused" instead of directly stating that the fact happened.
     Example:

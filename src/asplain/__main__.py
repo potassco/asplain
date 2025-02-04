@@ -2,7 +2,6 @@
 The main entry point for the application.
 """
 
-import os
 import sys
 
 from clingo import clingo_main

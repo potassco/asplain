@@ -36,22 +36,26 @@ asplain examples/catdog/encoding_constraints.lp  --explanation-preference exampl
 
 ### LLMs
 
-To use OpenAI's ChatGPT you have to provide an OpenAI API Key.
-To do this you just have to set the environment variable `OPENAI_API_KEY` either directly or in a `.env` file.
+To use OpenAI's ChatGPT you have to provide an OpenAI API Key. To do this you
+just have to set the environment variable `OPENAI_API_KEY` either directly or
+in a `.env` file.
 
 `.env` :
+
 ```
 OPENAI_API_KEY=<ENTER-YOUR-KEY-HERE>
 ```
 
 To get LLM Explanations use the `--llm` argument.
 
-To specify the LLM Model you use use the `--model-tag` argument. You can choose between:
-+ DEFAULT: LLAMA3.2:1B over Ollama
-+ `openai`: Over online API
-+ `deepsek`: Locally over Ollam
+To specify the LLM Model you use use the `--model-tag` argument. You can choose
+between:
 
-### Documentation 
+- DEFAULT: LLAMA3.2:1B over Ollama
+- `openai`: Over online API
+- `deepsek`: Locally over Ollam
+
+### Documentation
 
 To generate the documentation, run
 

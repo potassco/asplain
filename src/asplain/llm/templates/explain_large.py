@@ -1,7 +1,6 @@
 """Large Explanation Prompt Template"""
 
 from pathlib import Path
-from typing import Iterable, List
 
 from .base import Template
 
@@ -17,12 +16,12 @@ log = get_logger("main")
 class ExplainLargeTemplate(Template):
     """Large Explanation Prompt Template"""
 
-    def __init__(self, graphs: Iterable[str], predicates: str):
-        self._graphs: List[str] = list(graphs)
+    def __init__(self, graph: str, predicates: str):
+        self._graph: str = graph
         self._predicates: str = predicates
 
     def compose(self) -> str:
-        graph = self._graphs[0].replace(".", "").replace("\n", "\n" + " " * 4)
+        graph = self._graph.replace(".", "").replace("\n", "\n" + " " * 4)
         with open(Path(__file__).parent / PROMPT_FILE, "r", encoding="utf-8") as prompt_file:
             prompt_template = prompt_file.read()
         jinja_template = JinjaTemplate(prompt_template)
