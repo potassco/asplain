@@ -1,4 +1,5 @@
-#const reachable=true.
+% #const reachable=true.
+#const reachable=false.
 
 reachable(node,A):-reachable!=true, node(A).
 reachable(edge,ID):-reachable!=true, edge(X,Y,ID).

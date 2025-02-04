@@ -14,7 +14,7 @@ p :- d, not a.
 a :- not h.
 
 % Bond drinks d and is not on a holiday.
-% d.
-% h.
+d.
+h.
 
 % Only model {d, h, p}

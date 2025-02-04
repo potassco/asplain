@@ -75,6 +75,21 @@ Your explanation should be a short and intuitive natural language summary of why
     Example:
     Correct: "For Clare to be innocent, she should not have drunk alcohol."
 
+* Treat cases for hypothetical model
+
+    If all nodes are in both models (real and hypothetical), then the query is already entailed in the current model.
+    In this case you MUST mentioned this is "already" the case.
+    Example:
+    Correct: "James was already poisoned because he was drugged."
+    Incorrect: "James could be poisoned if he was drugged"
+
+    If there are no abduced facts but not all nodes are in both models, then the query is possible in an alternative model without the need for changes.
+    In this case you MUST mention explicitly that this is "an alternative option" which is possible without changing things.
+    Example:
+    Correct: "As an alternative, James could have also been poisoned because he was drugged."
+    Incorrect: "For James to be poisoned we would have to be drugged."
+
+
 * Mention query in text
 
     Is important to mention the query in the text to let the user know what they asked.
@@ -206,9 +221,42 @@ Input Graph:
     attr(node,p,origin,real).
     edge(d,p,0).
 Explanation:
-    "James was poisoned because he was drugged."
+    "James was already poisoned because he was drugged."
 
-Example 3: Prevented via constraint
+Example 3: Alternative model
+Input Graph:
+
+    attr(node,stand(anna),query,include).
+    attr(node,stand(anna),origin,hypothetical).
+    attr(node,person(anna),origin,real).
+    attr(node,person(anna),origin,hypothetical).
+    attr(node,sit(anna),origin,real).
+    attr(edge,0,origin,hypothetical).
+    attr(edge,0,type,cause).
+    attr(edge,0,rule_id,1).
+    attr(edge,0,rule_str,"{ sit(P); stand(P) } :- person(P).").
+    attr(edge,0,rule_vars,(anna,)).
+    attr(edge,1,type,reciprocal_inhibitor).
+    attr(edge,1,rule_id,2).
+    attr(edge,1,rule_str,"#false :- sit(P); stand(P'); P = P'.").
+    attr(edge,1,rule_vars,(anna,anna)).
+    attr(edge,2,origin,real).
+    attr(edge,2,type,cause).
+    attr(edge,2,rule_id,1).
+    attr(edge,2,rule_str,"{ sit(P); stand(P) } :- person(P).").
+    attr(edge,2,rule_vars,(anna,)).
+    edge(person(anna),stand(anna),0).
+    edge(sit(anna),stand(anna),1).
+    edge(person(anna),sit(anna),2).
+    node(stand(anna)).
+    node(person(anna)).
+    node(sit(anna)).
+
+Explanation:
+    "Anna could alternatively choose to stand instead of sit."
+
+
+Example 4: Prevented via constraint
 Input Graph:
     node(sit(anna)).
     node(stand(anna)).
@@ -237,7 +285,7 @@ Explanation:
     "For Anna to stand, she would need to stop sitting, since the same person cannot do both at the same time."
 
 
-Example 4: Prevented via constraint
+Example 5: Prevented via constraint
 Input Graph:
     node(stand(anna)).
     node(age(anna,94)).

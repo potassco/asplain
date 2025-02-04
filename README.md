@@ -65,3 +65,13 @@ nox -s doc
 
 Instructions to install and use `nox` can be found in
 [DEVELOPMENT.md](./DEVELOPMENT.md)
+
+## TODOS/Questions
+
+- For some cases the reachable graph is better (like catdog) But reachability
+  might be wrong because the config example does not work.
+
+- Maybe we want to talk about chosing something.
+
+- Make the LLM be more explicit for alternative models and current model
+  (causal explanation)

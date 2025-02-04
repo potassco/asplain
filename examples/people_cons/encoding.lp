@@ -7,4 +7,4 @@
 % Input facts
 % sit(anna).
 person(anna).
-age(anna,94).
+age(anna,50).
