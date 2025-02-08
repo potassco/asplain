@@ -53,7 +53,14 @@ viz_attr(node, (N,contrastive), penwidth, "5") :- attr(node, N, query, _).
 viz_edge(((N,contrastive),(N',contrastive),ID), contrastive):-edge(N,N',ID).
 viz_edge(((N,G),(N',G),ID),G):-edge(N,N',ID), attr(edge, ID,origin,G).
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), style, dashed):-attr(edge,ID,type,inhibitor), edge(N,N',ID).
-viz_attr(edge, ((N,contrastive),(N',contrastive),ID), label, R):-attr(edge,ID,rule,R), edge(N,N',ID).
+% viz_attr(edge, ((N,contrastive),(N',contrastive),ID), label, ID):-attr(edge,ID,rule_str,R), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), label, "{{rule}} := [{{vars}}]"):-attr(edge,ID,rule_str,R), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), (label,rule), R):-attr(edge,ID,rule_str,R), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), (label,vars), V):-attr(edge,ID,rule_vars,V), edge(N,N',ID).
+% viz_attr(edge, ((N,contrastive),(N',contrastive),(T,(RULE_ID,Vars))), (label,vars), Vars):-edge(N,N',(T,(RULE_ID,Vars))).
+% viz_attr(edge, ((N,contrastive),(N',contrastive),ID), (label,vars), ID):-edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), fontsize, 8):-attr(edge,ID,rule_str,R), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), fontcolor, gray):-attr(edge,ID,rule_str,R), edge(N,N',ID).
 
 %%%%%%%%%%%%%%%%%%%
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), style, dashed) :- attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
