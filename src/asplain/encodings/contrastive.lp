@@ -60,4 +60,4 @@ _direct_inhibitor(R, W, Effect, Inhibitor) :-
     _prevents(_sup(R, W, Effect, Vars), Inhibitor).
 
 _model_negators(C, Vars,  A1, A2) :-
-    _constraints((C, Vars), A1), _constraints((C, Vars), A2), A1!=A2.
+    _constraints(_sup_constraint(C, Vars), A1), _constraints(_sup_constraint(C, Vars), A2), A1!=A2.
