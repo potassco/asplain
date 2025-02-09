@@ -74,8 +74,12 @@ class ContrastiveExplainer(Explainer):
         ctl = Control(["0", "--opt-mode=optN"])
         ctl.add("base", [], self._abduction_prg)
         ctl.add("base", [], self._support_prg)
-        for f in self._explanation_preference_files:
-            ctl.load(f)
+        if self._explanation_preference_files == [None]:
+            with path("asplain.encodings", "default_explanation_preference.lp") as default_explanation_preference:
+                ctl.load(str(default_explanation_preference))
+        else:
+            for f in self._explanation_preference_files:
+                ctl.load(f)
         with path("asplain.encodings", "base.lp") as base_encoding:
             ctl.load(str(base_encoding))
 
