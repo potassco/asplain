@@ -10,7 +10,14 @@ requires-python = ">=3.9"
 license = { file = "LICENSE" }
 dynamic = ["version"]
 readme = "README.md"
-dependencies = ["clingo>=5.7.1", "clingraph", "ollama", "openai"]
+dependencies = [
+    "clingo>=5.7.1",
+    "clingraph",
+    "ollama",
+    "openai",
+    "python-dotenv",
+    "jinja2",
+]
 
 [project.urls]
 Homepage = "https://github.com/potassco/asplain.git/"

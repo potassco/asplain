@@ -71,7 +71,7 @@ class ContrastiveExplainer(Explainer):
         )
         self.assert_is_model(model_symbols)
 
-        ctl = Control(["0", "--opt-mode=optN"])
+        ctl = Control(["0", "--opt-mode=optN", "--warn=none"])
         ctl.add("base", [], self._abduction_prg)
         ctl.add("base", [], self._support_prg)
         for f in self._explanation_preference_files:
@@ -96,14 +96,15 @@ class ContrastiveExplainer(Explainer):
                 explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
                 explanation_graph_prg = GraphTransformer().parse_string(explanation_graph_prg)
                 log.debug("----- Full Expanation \n%s", m.symbols(atoms=True))
-                log.info("----- Expanation \n%s", explanation_graph_prg)
                 contrastive_explanations.append(explanation_graph_prg)
         if len(contrastive_explanations) == 0:
             log.warning("No explanation found")
 
         return contrastive_explanations
 
-    def viz_explanation_graph(self, explanation_graph: str, name: str = "explanation") -> None:
+    def viz_explanation_graph(
+        self, explanation_graph: str, name: str = "explanation", natural_language_explanation: str = None
+    ) -> None:
         """
         Visualize the explanation graph using cligraph
 
@@ -117,6 +118,12 @@ class ContrastiveExplainer(Explainer):
         ctl = Control(["--warn=none"])
         ctx = ClingraphContext()
         ctl.add("base", [], explanation_graph)
+        if natural_language_explanation:
+            natural_language_explanation = natural_language_explanation.replace('"', "")
+            prg = f"""
+            viz_attr(graph,explanation,label,"{natural_language_explanation}").
+            """
+            ctl.add("base", [], prg)
         with path("asplain.encodings", "clingraph.lp") as clingraph_encoding:
             ctl.load(str(clingraph_encoding))
         enable_python()

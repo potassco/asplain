@@ -30,6 +30,9 @@ pip-delete-this-directory.txt
 dmypy.json
 *egg-info*
 
+# environment variables
+.env
+
 # unclassified
 dist
 build

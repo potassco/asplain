@@ -7,6 +7,7 @@ from clingo import Application, ApplicationOptions, Control, Flag, Model
 
 from .explainers import ContrastiveExplainer
 from .llm.models import ModelTag, OllamaModel
+from .llm.models.openai import OpenAIModel
 from .llm.templates import ExplainLargeTemplate
 from .llm.utils import print_llm_message
 from .utils.logging import colored, configure_logging, get_logger
@@ -26,6 +27,7 @@ class AsplainApp(Application):
         self._query = None
         self._explanation_preference: Optional[Sequence[str]] = None
         self._predicates_file: Optional[Sequence[str]] = None
+        self._model_tag = "openai"
         self._use_llm: Flag = Flag()
 
     def parse_log_level(self, log_level: str) -> bool:
@@ -125,6 +127,17 @@ class AsplainApp(Application):
             ),
             self._use_llm,
         )
+        options.add(
+            group,
+            "model-tag",
+            dedent(
+                """\
+                Specifies which LLM model is used if the llm feature is active.
+                """
+            ),
+            self.parse_general("_model_tag"),
+            argument="<model-tag>",
+        )
 
         options.add(
             group,
@@ -153,6 +166,7 @@ class AsplainApp(Application):
             sys.stdout.write(f"{sym} ")
         sys.stdout.write("\n")
 
+        # -------- Interactive query --------
         if self._query:
             query = self._query
         else:
@@ -170,29 +184,46 @@ class AsplainApp(Application):
             if query.lower() == "":
                 print("pass")
                 return
+
+        # -------- Explain with Contrastive --------
         include, exclude = self._divide_query_string(query)
         model_symbols = [str(s) for s in model.symbols(atoms=True, shown=True, theory=True)]
         graphs = self._explainer.explain(model_symbols, include, exclude)
-        for i, g in enumerate(graphs):
-            self._explainer.viz_explanation_graph(g, name=f"model-{model.number}-explanation-{i}")
 
-        if self._use_llm:
-            predicates = ""
-            if self._predicates_file:
-                with open(self._predicates_file, "r") as f:
-                    predicates = " ".join(f.readlines())
-            model = OllamaModel(ModelTag.DEEPSEEK_R1_14B)
-            # prompt_template = ExplainTemplate(
-            #     graphs=graphs,
-            #     answer_set=" ".join(model_symbols),
-            #     query=query,
-            # )
-            prompt_template = ExplainLargeTemplate(
-                graphs=graphs,
-                predicates=predicates,
+        for i, g in enumerate(graphs):
+            log.info("Explanation %d\n%s", i, g)
+
+            # -------- Explain with LLM --------
+            llm_response = None
+            if self._use_llm:
+                predicates = ""
+                if self._predicates_file:
+                    with open(self._predicates_file, "r") as f:
+                        predicates = " ".join(f.readlines())
+
+                if self._model_tag == "openai":
+                    # OPEN AI
+                    llm_model = OpenAIModel(ModelTag.GPT_4O_MINI)
+                elif self._model_tag == "deepseek":
+                    # DEEPSEEK
+                    llm_model = OllamaModel(ModelTag.DEEPSEEK_R1_14B)
+                elif self._model_tag == "llama":
+                    # DEFAULT LLAMA
+                    llm_model = OllamaModel(ModelTag.LLAMA_3_2_1B)
+                else:
+                    raise ValueError(f"Model tag invalid: {self._model_tag}")
+
+                prompt_template = ExplainLargeTemplate(
+                    graph=g,
+                    predicates=predicates,
+                )
+                llm_response = llm_model.prompt_template(prompt_template)
+                print_llm_message(llm_response)
+
+            # -------- Visualize Explanation --------
+            self._explainer.viz_explanation_graph(
+                g, name=f"model-{model.number}-explanation-{i}", natural_language_explanation=llm_response
             )
-            response = model.prompt_template(prompt_template)
-            print_llm_message(response)
 
     def main(self, ctl: Control, files: Sequence[str]) -> None:
         """

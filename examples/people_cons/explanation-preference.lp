@@ -4,8 +4,9 @@
 %     In this case, atoms `d` and `h` can be either removed or added from the reference model
 %     to find the hypothetical model
 
-_abducible((rm;add),sit).
-_abducible((rm;add),stand).
+_abducible((rm;add),sit(P)):-_model(real, person(P)).
+_abducible((rm;add),stand(P)):-_model(real, person(P)).
+_abducible((rm;add),age(P,E)):-_model(real, age(P,E)).
 
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.

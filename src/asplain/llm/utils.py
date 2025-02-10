@@ -21,6 +21,6 @@ def print_typewriter(message: str, speed: float = 1.0) -> None:
 
 def print_llm_message(message: str, author: str = "LLM", speed: float = 1.0) -> None:
     """stylized output function for llm messages"""
-    print(colored("BLUE", f"\n{author}:"))
+    print(colored("CYAN", f"\n{author}:"))
     print_typewriter(colored("GREY", message) + "\n", speed)
     print()
