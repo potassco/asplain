@@ -49,7 +49,11 @@ class ContrastiveExplainer(Explainer):
             log.info("Support encoding saved in " + f.name)
 
     def explain(
-        self, model_symbols: Sequence[str], query_include: Sequence[str], query_exclude: Sequence[str]
+        self,
+        model_symbols: Sequence[str],
+        query_include: Sequence[str],
+        query_exclude: Sequence[str],
+        prune: bool = False,
     ) -> Sequence[str]:
         """
         Explain the given model and queries.
@@ -70,10 +74,16 @@ class ContrastiveExplainer(Explainer):
             ", why not".join([""] + [str(q) for q in query_exclude]),
         )
         self.assert_is_model(model_symbols)
+        ctl_args = ["0", "--opt-mode=optN", "--warn=none"]
 
-        ctl = Control(["0", "--opt-mode=optN", "--warn=none"])
+        prune_prg = "true" if prune else "false"
+        ctl_args.append("-c")
+        ctl_args.append(f"reachable={prune_prg}")
+
+        ctl = Control(ctl_args)
         ctl.add("base", [], self._abduction_prg)
         ctl.add("base", [], self._support_prg)
+        print(self._explanation_preference_files)
         for f in self._explanation_preference_files:
             ctl.load(f)
         with path("asplain.encodings", "base.lp") as base_encoding:

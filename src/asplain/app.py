@@ -25,10 +25,11 @@ class AsplainApp(Application):
         self._log_level = "WARNING"
         self._model = None
         self._query = None
-        self._explanation_preference: Optional[Sequence[str]] = None
+        self._explanation_preference: Optional[Sequence[str]] = []
         self._predicates_file: Optional[Sequence[str]] = None
         self._model_tag = "openai"
         self._use_llm: Flag = Flag()
+        self._prune: Flag = Flag()
 
     def parse_log_level(self, log_level: str) -> bool:
         """
@@ -40,7 +41,7 @@ class AsplainApp(Application):
 
         return True
 
-    def parse_file(self, attr_name: str) -> Callable[[str], bool]:
+    def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
         """
         Parse file attributes
         """
@@ -48,7 +49,16 @@ class AsplainApp(Application):
         def setter(value: Any) -> bool:
             if not os.path.isfile(value):
                 raise ValueError(f"File '{value}' does not exist.")
-            self.__setattr__(attr_name, value)
+            if not multi:
+                self.__setattr__(attr_name, value)
+            else:
+                current_value = getattr(self, attr_name, [])
+                if not isinstance(current_value, list):
+                    log.error("Attribute %s is not a list", attr_name)
+                    log.error("Setting value to list")
+                    current_value = [current_value]
+                current_value.append(value)
+                self.__setattr__(attr_name, current_value)
             return True
 
         return setter
@@ -89,8 +99,9 @@ class AsplainApp(Application):
                 """\
                 Preference file for explanations."""
             ),
-            self.parse_file("_explanation_preference"),
+            self.parse_file("_explanation_preference", multi=True),
             argument="<explanation-preference>",
+            multi=True,
         )
         options.add(
             group,
@@ -115,6 +126,17 @@ class AsplainApp(Application):
             ),
             self.parse_general("_query"),
             argument="<query>",
+        )
+
+        options.add_flag(
+            group,
+            "prune",
+            dedent(
+                """\
+                If active responds the pruned graph, where only nodes and edges connected to the query are shown.
+                """
+            ),
+            self._prune,
         )
 
         options.add_flag(
@@ -188,7 +210,7 @@ class AsplainApp(Application):
         # -------- Explain with Contrastive --------
         include, exclude = self._divide_query_string(query)
         model_symbols = [str(s) for s in model.symbols(atoms=True, shown=True, theory=True)]
-        graphs = self._explainer.explain(model_symbols, include, exclude)
+        graphs = self._explainer.explain(model_symbols, include, exclude, prune=self._prune)
 
         for i, g in enumerate(graphs):
             log.info("Explanation %d\n%s", i, g)
@@ -231,7 +253,7 @@ class AsplainApp(Application):
         """
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
-        self._explainer = ContrastiveExplainer(files, [self._explanation_preference])  # type: ignore
+        self._explainer = ContrastiveExplainer(files, self._explanation_preference)  # type: ignore
         if self._model:
             ctl.load(self._model)
         else:
