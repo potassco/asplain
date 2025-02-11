@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from clingo import clingo_main
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from .app import AsplainApp
 
