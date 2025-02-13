@@ -24,16 +24,27 @@ person("Susana",cat). person("Alexander",cat). person("Torsten",dog).
 seat((1,1..2)). seat((2,1..2)).
 
 % ---- encoding
-
 1{assign(P,S):seat(S)}1:- person(P,A).
 
-error  :- person(P,A), assign(P, S), assign(P', S), P' != P.
-error  :- person(P,A), assign(P, S), assign(P', S), P' != P.
-error  :- assign(P,S), assign(P',S), P'>P.
-error  :- assign(P,(T,C)), assign(P',(T,C')), person(P,cat), person(P',dog).
+:- assign(P,S), assign(P',S), P'>P.  % no two people in the same seat
+:- assign(P,(T,C)), assign(P',(T,C')), person(P,cat), person(P',dog). % no cat and dog people in the same seat
 
-:- error.
+%% Interaction 1:
+% query:
+% why torsten and susana cannot be in the same table?
+% q :- assign("Susana",(T,_)), assign("Torsten",(T,_)), table(T).
+% :- not q.b
+
+%% Interaction 2:
+% promted:
+% assign("Torsten", (1,1)) not assign("Susana", (1,2))
+% query:
+% why Susana is not with Torsten in table 1?
+% q :- assign("Susana", (1,_)).
+% :- not q.
 
 % ---- assumed
 
 assign("Torsten", (1,1)).
+% query
+% assign("Susana",(1,2))

@@ -100,10 +100,96 @@ Instructions to install and use `nox` can be found in
 
 ## TODOS/Questions
 
-- For some cases the reachable graph is better (like catdog) But reachability
-  might be wrong because the config example does not work.
+### Examples
+
+- Generally update examples to use assumptions so that we get less models
+
+- Sudoku example
+
+- Elevator example
+
+### Explanation preference
+
+- Parts of the graph that should always be mentioned.(Add them to the
+  reachable)
+
+- Explanation preference, include this atoms always
+
+  - What to always include and what to not mention % \_mention(contraint(C)):-
+    \_abduced(rm, constraint(C)).
+
+### Pruning
+
+- Add the abduced to the reachable
+- Add the mentioned to the reachable
+
+### Prompt changes/ideas
+
+- Instructions to construct the prompt: "Start from the abduced and find a path
+  to the query..."
 
 - Maybe we want to talk about chosing something.
 
-- Make the LLM be more explicit for alternative models and current model
-  (causal explanation)
+- Make the LLM be more explicit for alternative models
+
+- Improve the understading of light blue nodes
+
+- An example with a constraint not connected
+
+- Example with multiple reasons in the contrastive graph
+
+  - LLM can use just one of them
+
+- Example with multiple abduced.
+
+- Be explicit that we don't need the light blue nodes
+
+  - We might not even need to mention these nodes unless they are on the path
+    to the query, or abduced. Or maybe because it is an alternative model?
+
+### Extra ideas if prompt fails
+
+- ASP encoding for preprocessing information. info(graph_type, hypothetical).
+  info(graph_type, alternative).
+
+- Order with comments:
+
+  ```
+  %-----  This was the query
+  attr(node,p,query,exclude).
+
+  %----- This is in the real model where the query might or might not be
+  node(d).
+  node(h).
+  node(p).
+  edge(d,p,0).
+  attr(node,d,origin,real).
+  attr(node,h,origin,real).
+  attr(node,p,origin,real).
+  attr(edge,0,origin,real).
+  attr(edge,0,rule_vars,()).
+  attr(edge,0,rule_str,"p :- d; not a.").
+  attr(edge,0,rule_id,1).
+  attr(edge,0,type,cause).
+
+  %----- (Direct changes) This changes must be made to satisfy query
+  %----- You must mention them!
+  attr(node,d,abduced,rm).
+
+  %----- This is in the new model
+  info(model, alternative/hypo/found).
+  attr(node,h,origin,hypothetical).
+
+  %-----  Real - Hypothetical
+  %----- Indirect changes (Effects)
+  %----- Things that
+  info(p, node, real_not_hypo).
+  info(d, node, real_not_hypo).
+  info(0, edge, real_not_hypo).
+
+  %----- Extra info for LLM
+
+  attr(node,d,real_not_hypo).
+  attr(node,d,hypo_not_real).
+  attr(node,d,hypo_and_real).
+  ```
