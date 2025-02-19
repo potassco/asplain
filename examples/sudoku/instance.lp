@@ -1,7 +1,6 @@
 initial(5,1,8).
 initial(6,2,7).
 initial(7,1,4).
-initial(8,2,2).
 initial(8,1,6).
 initial(9,2,9).
 initial(3,3,9).
@@ -15,7 +14,6 @@ initial(4,4,4).
 initial(7,4,9).
 initial(8,4,3).
 initial(2,5,3).
-initial(3,5,2).
 initial(4,5,8).
 initial(7,5,7).
 initial(9,5,5).
@@ -33,3 +31,5 @@ initial(2,8,7).
 initial(3,8,3).
 initial(4,8,6).
 initial(5,8,9).
+initial(8,2,2).
+initial(3,5,2).
