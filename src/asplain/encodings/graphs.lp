@@ -39,6 +39,7 @@ node(A):-_f_atom(W, A).
 attr(node,A,origin,W):- _f_atom(W, A).
 attr(node,A,abduced,X):- node(A), _abduced(X,A).
 attr(node,A,query,X):- node(A), _query(X,A).
+attr(node,A,input,X):- node(A), _input(X,A).
 
 %=== Edges
 edge(Cause,Effect,((Cause,Effect),(RuleID,VARS))):-_direct_cause((RuleID,VARS), W, Effect, Cause).

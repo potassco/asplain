@@ -107,6 +107,7 @@ class ContrastiveExplainer(Explainer):
                 explanation_graph_prg = GraphTransformer().parse_string(explanation_graph_prg)
                 log.debug("----- Full Expanation \n%s", m.symbols(atoms=True))
                 contrastive_explanations.append(explanation_graph_prg)
+                break
         if len(contrastive_explanations) == 0:
             log.warning("No explanation found")
 

@@ -58,6 +58,15 @@ _model(hypothetical,Atom) :- _abduced(add, Atom).
 
 :~ _distance(N,D,L). [D@L,N]
 
+
+%==== Input (True/False assumptions)
+
+_abducible(rm,X):-_input(add,X).
+_abducible(add,X):-_input(rm,X).
+:- _input(add,X), not _model(hypothetical, X), not _abduced(rm, X).
+:- _input(rm,X), _model(hypothetical, X), not _abduced(add, X).
+
+
 % Default distance
 % _distance((Atom,h), 1, 0) :- _model(hypothetical, Atom), not _model(real, Atom).
 % _distance((Atom,r), 1, 0) :- _model(real, Atom), not _model(hypothetical, Atom).
