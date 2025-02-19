@@ -1,0 +1,240 @@
+
+****************** Preamble
+
+A user is given a solution to an ASP (Answer set programming) program.
+They ask something about this solution (which we call "real model") in the form of a query,
+which might already be true and they want to know why is there,
+or the solution does not include something they expected and want to know
+what would need to be changed to have it in a solution.
+
+Our system takes care of finding the new solution (which we call "hypothetical model") that satisfies the query.
+The result will be a graph in form of facts that represents a contrastive explanation.
+Your task is to interpret this graph and generate a natural language explanation for the user. To help understand the meaning of the predicates, you will also be provided with their meaning.
+
+I will explain to you how to interpret the facts representing the graph by going trough several examples annotated with comments (after %). You must do the same type of reasoning for the graph I provide you and output a JSON with a short intuitive natural language explanation.
+
+
+****************** Examples
+
+------ EXAMPLE 1: (Remove cause)
+
+- Cause edges
+- Query excluded
+- Irrelevant disconnected nodes
+
+```
+asplain examples/james-bond/encoding.lp  --explanation-preference examples/james-bond/explanation-preference.lp 0  --query "-p"
+```
+
+Predicates:
+
+p: James was poisoned
+d: James drank the drink
+h: James was on holiday
+a: James was administered the antidote
+
+Contrastive Graph:
+
+node(d). % d is a node
+node(h). % h is a node
+node(p). % p is a node
+attr(node,d,abduced,rm). % d had to be removed from the real model to satisfy the query in the hypothetical model (Must be mentioned in explanation)
+attr(node,d,origin,real). % d is in the real model
+attr(node,h,origin,hypothetical). % h is in the hypothetical model
+attr(node,h,origin,real). % h is in the real model
+attr(node,p,query,exclude). % the user wants p to not be in the hypothetical model
+attr(node,p,origin,real). % p is in the real model
+edge(d,p,0). % edge 0 connects from node d to node p
+attr(edge,0,origin,real).  % edge 0 is in the real model
+attr(edge,0,type,cause). % edge 0 is a cause, so d is a cause of p
+attr(edge,0,rule_id,1). % (This is not relevant for you)
+attr(edge,0,rule_str,"p :- d; not a."). % edge 0 comes from the ASP rule "p :- d; not a."
+attr(edge,0,rule_vars,()). % The variables used in the rule for edge 0. (In this case no variables are needed)
+
+
+Interpretation of the graph:
+
+Starting on the abduced, we know that d was removed from the real model and it is not part of the hypothetical model,
+so it must be mentioned in the start of the explanation.
+This means that we have to remove the fact that James drank the drink.
+Since there is a cause edge from d to p in the real model, it means that drinking the drink was causing the poisoning of James.
+With this we reached the query of not having p (james not being poisoned).
+Since h is in both the real and hypothetical and it is not connected to the rest, this did not change and it is irrelevant so should not be mentioned.
+
+Expected output:
+
+{
+    "explanation": "If James hadn't drunk his drink, he would not have been poisoned."
+}
+
+
+------ EXAMPLE 2:
+
+- Inhibitor edges
+- Multiple inhibitor steps
+- Cause in real that is not in hypothetical
+
+```
+asplain examples/james-bond/encoding.lp  --explanation-preference examples/james-bond/explanation-preference.lp 0  --query "-p"
+```
+
+Predicates:
+
+p: James was poisoned
+d: James drank the drink
+h: James was on holiday
+a: James was administered the antidote
+
+Contrastive Graph:
+
+node(d). % d is a node
+node(h). % h is a node
+node(p). % p is a node
+node(a). % a is a node
+attr(node,d,origin,hypothetical). % d is in the hypothetical model
+attr(node,d,origin,real). % d is in the real model
+attr(node,h,abduced,rm). % h had to be removed from the real model to satisfy the query in the hypothetical model (Must be mentioned in explanation)
+attr(node,h,origin,real). % h is in the real model
+attr(node,p,query,exclude). % the user wants p to not be in the hypothetical model
+attr(node,p,origin,real). % p is in the real model
+attr(node,a,origin,hypothetical). % a is in the hypothetical model
+edge(d,p,0). % edge 0 connects from node d to node p
+edge(a,p,1). % edge 1 connects from node a to node p
+edge(h,a,2). % edge 2 connects from node h to node a
+attr(edge,0,origin,real). % edge 0 is in the real model
+attr(edge,0,type,cause).  % edge 0 is a cause, so d is a cause of p
+attr(edge,0,rule_id,1). % Irrelevant
+attr(edge,0,rule_str,"p :- d; not a."). % edge 0 comes from the ASP rule "p :- d; not a."
+attr(edge,0,rule_vars,()). % The variables used in the rule for edge 0. (In this case no variables are needed)
+attr(edge,1,type,inhibitor). % edge 1 is an inhibitor, so a inhibits p
+attr(edge,1,rule_id,1). % Irrelevant
+attr(edge,1,rule_str,"p :- d; not a."). % edge 1 comes from the ASP rule "p :- d; not a."
+attr(edge,1,rule_vars,()). % The variables used in the rule for edge 1. (In this case no variables are needed)
+attr(edge,2,type,inhibitor). % edge 2 is an inhibitor, so h inhibits a
+attr(edge,2,rule_id,2). % Irrelevant
+attr(edge,2,rule_str,"a :- not h."). % edge 2 comes from the ASP rule "a :- not h."
+attr(edge,2,rule_vars,()). % The variables used in the rule for edge 2. (In this case no variables are needed)
+
+
+Interpretation of the graph:
+
+Starting on the abduced, we know that h was removed from the real model and it is not part of the hypothetical model,
+so it must be mentioned in the start of the explanation.
+This means that we have to remove the fact that James was on holiday.
+From h there is an edge 2 that takes us to a.
+This edge is an inhibitor, this means that h was preventing a in the real model and
+since h is not in the hypothetical then a can be true.
+There is an edge 1 from a to p which is also an inhibitor.
+Because a is true in the hypothetical then the p can't be true in the hypothetical since it is inhibited by a.
+This reaches the query of not having p.
+The edge 0 is saying that d is a cause of p, but since it is only in the real model and p is not in the hypothetical model, d is no longer enough to make p true. In this case, it was inhibited by a. This can be mentioned in the explanation but is not as relevant as the inhibitor.
+
+Expected output:
+
+{
+    "explanation": "If James hadn't been on holiday he would had gotten the antidote.
+    So even if he had drank the drink he would not have been poisoned."
+}
+
+
+
+
+------ EXAMPLE 3:
+
+- Alternative=Hypothetical
+- Nothing abduced
+- Positive query
+
+```
+asplain examples/james-bond/encoding.lp  --explanation-preference examples/james-bond/explanation-preference.lp 0  --query "p"
+```
+
+Predicates:
+
+p: James was poisoned
+d: James drank the drink
+h: James was on holiday
+a: James was administered the antidote
+
+
+Contrastive Graph:
+
+node(d). % d is a node
+node(h). % h is a node
+node(p). % p is a node
+attr(node,d,origin,hypothetical). % d is in the hypothetical model
+attr(node,d,origin,real). % d is in the real model
+attr(node,h,origin,hypothetical). % h is in the hypothetical model
+attr(node,h,origin,real). % h is in the real model
+attr(node,p,origin,hypothetical). % p is in the hypothetical model
+attr(node,p,origin,real). % p is in the real model
+attr(node,p,query,include). % the user wants p to be in the hypothetical model
+edge(d,p,0).
+edge(d,p,0). % edge 0 connects from node d to node p
+attr(edge,0,type,cause).  % edge 0 is a cause, so d is a cause of p
+attr(edge,0,rule_id,1). % Irrelevant
+attr(edge,0,rule_str,"p :- d; not a."). % edge 0 comes from the ASP rule "p :- d; not a."
+attr(edge,0,rule_vars,()). % The variables used in the rule for edge 0. (In this case no variables are needed)
+attr(edge,0,origin,real). % edge 0 is in the real model
+attr(edge,0,origin,hypothetical). % edge 0 is in the hypothetical model
+
+
+
+Interpretation of the graph:
+
+We start by noticing that nothing was abduced.
+This means that there is no need make changes to fulfil the query.
+We see also that all of the nodes and edges are in both models,
+which means that the real and hypothetical models are the same.
+Therefore the query is already satisfied in the original model and
+the explanation is just supposed to explain why it was originally true
+while stating that it is already the case.
+So we work from the query which is that p is included in the model.
+We see due to edge 0 that the cause for p is d.
+And since there is no cause for d, this is given.
+
+Expected output:
+
+{
+    "explanation": "James was already poisoned because he was drugged."
+}
+
+
+------ EXAMPLE 4:
+
+- Alternative model
+- Nothing abduced
+
+
+------ EXAMPLE 5:
+
+- Multiple causes
+- User input
+
+
+
+------ EXAMPLE 6 (Brais):
+
+- Constraints
+- Reciprocal edges
+- Multiple constraints/reasons
+- Not connected abduced/constraint
+- rule_str and rule_var
+
+
+------ EXAMPLE 7 (Hannes):
+
+- Blue nodes are irrelevant
+
+- Multiple things abduced
+
+
+****************** Input graph for you to explain
+
+Predicates:
+
+{{predicates}}
+
+Graph:
+
+{{graph}}

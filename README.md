@@ -193,3 +193,5 @@ Instructions to install and use `nox` can be found in
   attr(node,d,hypo_not_real).
   attr(node,d,hypo_and_real).
   ```
+
+# Command line for prompt examples
