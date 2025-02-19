@@ -8,10 +8,10 @@ or the solution does not include something they expected and want to know
 what would need to be changed to have it in a solution.
 
 Our system takes care of finding the new solution (which we call "hypothetical model") that satisfies the query.
-The result will be a graph in form of facts that represents a contrastive explanation.
+The result will be a graph in form of un-ordered facts that represents a contrastive explanation.
 Your task is to interpret this graph and generate a natural language explanation for the user. To help understand the meaning of the predicates, you will also be provided with their meaning.
 
-I will explain to you how to interpret the facts representing the graph by going trough several examples annotated with comments (after %). You must do the same type of reasoning for the graph I provide you and output a JSON with a short intuitive natural language explanation.
+I will explain to you how to interpret the facts representing the graph by going trough several examples with some additional annotations to introduce new concepts using with comments (after %). You must do the same type of reasoning for the graph I provide you and output a JSON with a short intuitive natural language explanation.
 
 
 ****************** Examples
@@ -205,11 +205,155 @@ Expected output:
 - Alternative model
 - Nothing abduced
 
+```
+asplain examples/cleaning/encoding.lp  --explanation-preference examples/cleaning/explanation-preference.lp 0  --log info --query "-dirty(3)" --model examples/cleaning/model.lp --prune
+```
+
+Predicates:
+
+time(T): T is a time
+tired(T): I was tired at time T
+rain(T): It rain at time T
+dirty(T): Floor is dirty at time T
+do(clean,T): Floor is cleaned at time T
+
+
+Contrastive graph:
+
+node(dirty(3)).
+node(dirty(2)).
+node(rain(1)).
+attr(node,dirty(3),query,exclude). % user wants dirty(3) to not be in the hypothetical model
+attr(node,dirty(3),origin,real). % dirty(3) is in the real model
+attr(node,dirty(2),origin,real). % dirty(2) is in the real model
+attr(node,rain(1),origin,real). % rain(1) is in the real model
+attr(edge,0,origin,real). % edge 0 is in the real model
+attr(edge,0,type,cause). % edge 0 is a cause so dirty(2) is a cause for dirty(3)
+attr(edge,0,rule_id,6). % irrelevant
+attr(edge,0,rule_str,"dirty((T+1)) :- dirty(T); not do(clean,T); time((T+1)).").  % edge 0 comes from the ASP rule "dirty((T+1)) :- dirty(T); not do(clean,T); time((T+1))."
+attr(edge,0,rule_vars,(2,)). % edge 0 replaces the variables in the rule with a 2, this would be "dirty((2+1)) :- dirty(2); not do(clean,2); time((2+1))"
+attr(edge,1,origin,real). % edge 1 is in the real model
+attr(edge,1,type,cause). % edge 1 is in the real model
+attr(edge,1,rule_id,4). % irrelevant
+attr(edge,1,rule_str,"dirty((T+1)) :- rain(T); time((T+1))."). % edge 0 comes from the ASP rule "dirty((T+1)) :- rain(T); time((T+1))."
+attr(edge,1,rule_vars,(1,)).  % edge 0 replaces the variables in the rule with a 2, this would be "dirty((1+1)) :- rain(1); time((1+1))."
+edge(dirty(2),dirty(3),0). % edge 0 connects dirty(2) to dirty(3)
+edge(rain(1),dirty(2),1). % edge 0 connects rain(1) to dirty(2)
+
+
+Interpretation of the graph:
+
+We start by noticing that nothing was abduced.
+This means that there is no need make changes to fulfil the query.
+In this case, we see that there are nodes that are not in both models:
+Nodes dirty(3), dirty(2) and rain(1) are not in the hypothetical but are in the real.
+This means that the query can be satisfied in an alternative model, so there was another
+solution to the current program where the query was true.
+So you must just state the relevant differences and say that this was an alternative.
+Since nothing is abduced, we work staring from the query.
+dirty(3) was a consequence of dirty(2) in the real model,
+but now dirty(2) is not true so dirty(2) is no longer a cause.
+dirty(2) was a consequence of rain(1) in the real model but now rain(1) is not in the hypothetical model.
+Since nothing had to be changed for rain(1) to be removed from the real model, we can just say that rain(1)
+could just not have happened.
+
+
+Expected output:
+
+{
+    "explanation": "Alternatively, it could have been that it did not rain in time 1, so the floor would not have been dirty in time 2 and therefore it would not have been dirty in time 3."
+}
+
 
 ------ EXAMPLE 5:
 
-- Multiple causes
 - User input
+
+```
+asplain examples/cleaning/{encoding.lp,instance.lp}  --explanation-preference examples/cleaning/explanation-preference.lp --explanation-preference examples/cleaning/input.lp 0  --log info --query "-dirty(3)" --model examples/cleaning/model.lp --prune
+```
+
+Predicates:
+
+time(T): T is a time
+tired(T): I was tired at time T
+rain(T): It rain at time T
+dirty(T): Floor is dirty at time T
+do(clean,T): Floor is cleaned at time T
+
+
+Contrastive graph:
+
+node(tired(2)).
+node(dirty(3)).
+node(dirty(2)).
+node(do(clean,2)).
+node(rain(1)).
+attr(node,tired(2),abduced,rm). % tied(2) had to be removed from the real model to satisfy the query in the hypothetical model
+attr(node,tired(2),origin,real).
+attr(node,tired(2),input,add). % user decided to add as input that it was tired at time 2
+attr(node,dirty(3),query,exclude). % user wants dirty(3) to not be in the hypothetical model
+attr(node,dirty(3),origin,real).
+attr(node,dirty(2),origin,hypothetical).
+attr(node,dirty(2),origin,real).
+attr(node,do(clean,2),origin,hypothetical).
+attr(node,rain(1),origin,real).
+attr(node,rain(1),origin,hypothetical).
+attr(edge,0,origin,real).
+attr(edge,0,type,cause).
+attr(edge,0,rule_id,7).
+attr(edge,0,rule_str,"dirty((T+1)) :- dirty(T); not do(clean,T); time((T+1)).").
+attr(edge,0,rule_vars,(2,)).
+attr(edge,1,type,inhibitor).
+attr(edge,1,rule_id,7).
+attr(edge,1,rule_str,"dirty((T+1)) :- dirty(T); not do(clean,T); time((T+1)).").
+attr(edge,1,rule_vars,(2,)).
+attr(edge,2,origin,real).
+attr(edge,2,origin,hypothetical).
+attr(edge,2,type,cause).
+attr(edge,2,rule_id,5).
+attr(edge,2,rule_str,"dirty((T+1)) :- rain(T); time((T+1)).").
+attr(edge,2,rule_vars,(1,)).
+attr(edge,3,origin,hypothetical).
+attr(edge,3,type,cause).
+attr(edge,3,rule_id,6).
+attr(edge,3,rule_str,"do(clean,T) :- dirty(T); not tired(T).").
+attr(edge,3,rule_vars,(2,)).
+attr(edge,4,type,inhibitor).
+attr(edge,4,rule_id,6).
+attr(edge,4,rule_str,"do(clean,T) :- dirty(T); not tired(T).").
+attr(edge,4,rule_vars,(2,)).
+edge(dirty(2),dirty(3),0).
+edge(do(clean,2),dirty(3),1).
+edge(rain(1),dirty(2),2).
+edge(dirty(2),do(clean,2),3).
+edge(tired(2),do(clean,2),4).
+
+
+
+
+Interpretation of the graph:
+
+We start by noticing that it had to be removed tired(2) to obtain the query.
+We also notice that tired(2) as a user input, this means that the user decided that this should be added/assumed/included.
+We work from there to the query which is to exclude dirty(3).
+Edge 4 is an inhibitor edge from tired(2) to do(clean,2),
+this means when tired(2) was true in the real model it was inhibiting do(clean,2) in the real model.
+If the input of tired(2) is removed then it would not longer inhibit do(clean,2).
+Then, edge 3 is a cause from dirty(2) to do(clean,2), so dirty(2) is the reason for do(clean,2)
+in the hypothetical model now that tired(2) is not longer preventing it.
+We notice that edge 2 is a cause for dirty(2) coming from rain(1).
+Edge 1 is an inhibitor from do(clean,2) to dirty(3),
+which means that having do(clean,2) in the hypothetical model prevents dirty(3) to be true in the hypothetical model.
+We notice also that edge 0 is a cause from dirty(2) to dirty(3),
+however, this edge is only in the real model but not in the hypothetical, so it used to be the cause but now that do(clean,2) is present, it not longer causes dirty(3).
+
+Expected output:
+
+{
+    "explanation": "If the assumption that I was tired in time 2 is removed, then I would have cleaned the floor in time 2, which was dirty in time 2 because it rained in time 1. And if I had cleaned the floor in time 2 then it wouldn't had been dirty in time 3."
+}
+
 
 
 

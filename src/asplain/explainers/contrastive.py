@@ -74,7 +74,7 @@ class ContrastiveExplainer(Explainer):
             ", why not".join([""] + [str(q) for q in query_exclude]),
         )
         self.assert_is_model(model_symbols)
-        ctl_args = ["0", "--opt-mode=optN", "--warn=none"]
+        ctl_args = ["0", "--opt-mode=optN", "--warn=none", "--project=show"]
 
         prune_prg = "true" if prune else "false"
         ctl_args.append("-c")
@@ -83,7 +83,6 @@ class ContrastiveExplainer(Explainer):
         ctl = Control(ctl_args)
         ctl.add("base", [], self._abduction_prg)
         ctl.add("base", [], self._support_prg)
-        print(self._explanation_preference_files)
         for f in self._explanation_preference_files:
             ctl.load(f)
         with path("asplain.encodings", "base.lp") as base_encoding:
@@ -107,7 +106,7 @@ class ContrastiveExplainer(Explainer):
                 explanation_graph_prg = GraphTransformer().parse_string(explanation_graph_prg)
                 log.debug("----- Full Expanation \n%s", m.symbols(atoms=True))
                 contrastive_explanations.append(explanation_graph_prg)
-                break
+                # break
         if len(contrastive_explanations) == 0:
             log.warning("No explanation found")
 

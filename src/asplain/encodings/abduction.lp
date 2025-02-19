@@ -58,6 +58,8 @@ _model(hypothetical,Atom) :- _abduced(add, Atom).
 
 :~ _distance(N,D,L). [D@L,N]
 
+_distance(1,1,9999). %Default distance to assure there is always a minimization
+
 
 %==== Input (True/False assumptions)
 
