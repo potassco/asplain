@@ -399,15 +399,15 @@ attr(node,assign(2,wall_color,red),origin,hypothetical).
 attr(node,assign(2,roof_color,green),origin,real).
 attr(node,assign(2,wall_color,green),origin,real).
 edge(assign(2,roof_color,green),assign(2,wall_color,red),0).
-edge(assign(3,wall_color,red),assign(2,wall_color,red),1).
+edge(assign(3,wall_color,red),assign(2,wall_color,red),1). % This Edge (1) goes from an abduced node to the query node
 edge(assign(2,wall_color,green),assign(2,wall_color,red),2).
 edge(assign(2,wall_color,green),assign(2,wall_color,red),3).
-edge(assign(1,wall_color,red),assign(2,wall_color,red),4).
+edge(assign(1,wall_color,red),assign(2,wall_color,red),4). % This Edge (4) goes from an abduced node to the query node
 attr(edge,0,type,reciprocal_inhibitor).
 attr(edge,0,rule_id,11).
 attr(edge,0,rule_str,"#false :- assign(A,wall_color,C1); assign(A,roof_color,C2); C1 != C2.").
 attr(edge,0,rule_vars,(2,red,green)).
-attr(edge,1,type,reciprocal_inhibitor).
+attr(edge,1,type,reciprocal_inhibitor). % Edge 1 is an inhibitor
 attr(edge,1,rule_id,10).
 attr(edge,1,rule_str,"#false :- assign(A,wall_color,C); assign(B,wall_color,C); neighbours(A,B); A < B.").
 attr(edge,1,rule_vars,(2,3,red)).
@@ -419,7 +419,7 @@ attr(edge,3,type,reciprocal_inhibitor).
 attr(edge,3,rule_id,6).
 attr(edge,3,rule_str,"#false :- house(H); assign(H,wall_color,C1); assign(H,wall_color,C2); C1 != C2.").
 attr(edge,3,rule_vars,(green,red,2)).
-attr(edge,4,type,reciprocal_inhibitor).
+attr(edge,4,type,reciprocal_inhibitor). % Edge 4 is an inhibitor
 attr(edge,4,rule_id,10).
 attr(edge,4,rule_str,"#false :- assign(A,wall_color,C); assign(B,wall_color,C); neighbours(A,B); A < B.").
 attr(edge,4,rule_vars,(1,2,red)).
@@ -430,11 +430,12 @@ Starting on the abduced, we know that both assign(1,wall_color,red) and assign(3
 so it must be mentioned in the start of the explanation.
 We also notice that assign(1,wall_color,red) and assign(3,wall_color,red) are user input, this means that the user decided that this should be added/assumed/included.
 We work from there to the query which is to include assign(2,wall_color,red).
-
 Edge 1 is an inhibitor edge from assign(3,wall_color,red) to assign(2,wall_color,red),
 this means when assign(3,wall_color,red) was true in the real model it was inhibiting assign(2,wall_color,red) in the real model.
+When looking at the ASP rule_str of this edge we can see that the reason for this is a constraint prohibiting two neighbouring houses to have the same wall_color.
 Edge 4 is an inhibitor edge from assign(1,wall_color,red) to assign(2,wall_color,red),
 this means when assign(1,wall_color,red) was true in the real model it was inhibiting assign(2,wall_color,red) in the real model.
+When looking at the ASP rule_str of this edge we can see that the reason for this is also a constraint prohibiting two neighbouring houses to have the same wall_color.
 If both the inputs of assign(3,wall_color,red) and assign(1,wall_color,red) are removed together then they would no longer inhibit assign(2,wall_color,red).
 This reaches the query of having assign(2,wall_color,red).
 We notice that even though there were more inhibiting edges to assign(2,wall_color,red) (Edge 0, Edge 2, Edge 3),
@@ -443,7 +444,7 @@ We also notice that since both abduced nodes are connected to the query they are
 
 Expected output:
 {
-    "explanation": "The user assumptions of house 1 having red walls and house 3 having red walls would need to both be removed in order for house 1 being able to be assigned red walls."
+    "explanation": "The user assumptions of house 1 having red walls and house 3 having red walls would need to both be removed in order for house 1 being able to be assigned red walls. This is because neighbouring houses are not allowed to have the same wall_color assigned."
 }
 
 
