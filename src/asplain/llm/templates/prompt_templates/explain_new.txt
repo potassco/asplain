@@ -434,8 +434,234 @@ Expected output:
 - Multiple constraints/reasons
 - Not connected abduced/constraint
 
+Predicates:
 
------- EXAMPLE 7:
+val(N): N is a valid number for sudoku between 0 and 9
+pos(X,Y): cell (X,Y) is a cell in the sudoku
+initial(X,Y,V): initial number V in the cell (X,Y) of the sudoku
+sudoku(X, Y, V): there is a V (number between 1 and 9) in cell (X, Y) where X is the column and Y is the row
+
+Contrastive graph:
+
+attr(node,initial(4,3,3),abduced,rm). % Indicates that the atom initial(4,3,3) was removed from the real model by abduction.
+attr(node,sudoku(6,4,2),query,include). % Indicates that the atom sudoku(6,4,2) is required to be included in the hypothetical model (user query).
+attr(node,initial(4,3,3),origin,real). % Specifies that the atom initial(4,3,3) originates from the real model.
+attr(node,dim(3),origin,real). % Indicates that the node dim(3) (dimension 3) is present in the real model.
+attr(node,dim(3),origin,hypothetical). % Indicates that the node dim(3) (dimension 3) is present in the hypothetical model.
+attr(node,val(6),origin,hypothetical). % Indicates that the value 6 (val(6)) is available in the hypothetical model.
+attr(node,val(5),origin,hypothetical). % Indicates that the value 5 (val(5)) is available in the hypothetical model.
+attr(node,val(4),origin,hypothetical). % Indicates that the value 4 (val(4)) is available in the hypothetical model.
+attr(node,val(2),origin,hypothetical). % Indicates that the value 2 (val(2)) is available in the hypothetical model.
+attr(node,val(1),origin,hypothetical). % Indicates that the value 1 (val(1)) is available in the hypothetical model.
+attr(node,val(6),origin,real). % Indicates that the value 6 (val(6)) is available in the real model.
+attr(node,val(5),origin,real). % Indicates that the value 5 (val(5)) is available in the real model.
+attr(node,val(4),origin,real). % Indicates that the value 4 (val(4)) is available in the real model.
+attr(node,val(2),origin,real). % Indicates that the value 2 (val(2)) is available in the real model.
+attr(node,val(1),origin,real). % Indicates that the value 1 (val(1)) is available in the real model.
+attr(node,pos(6,4),origin,hypothetical). % Indicates that the position (6,4) (pos(6,4)) is present in the hypothetical model.
+attr(node,pos(6,1),origin,hypothetical). % Indicates that the position (6,1) (pos(6,1)) is present in the hypothetical model.
+attr(node,pos(5,4),origin,hypothetical). % Indicates that the position (5,4) (pos(5,4)) is present in the hypothetical model.
+attr(node,pos(6,4),origin,real). % Indicates that the position (6,4) (pos(6,4)) is present in the real model.
+attr(node,pos(6,1),origin,real). % Indicates that the position (6,1) (pos(6,1)) is present in the real model.
+attr(node,pos(5,4),origin,real). % Indicates that the position (5,4) (pos(5,4)) is present in the real model.
+attr(node,sudoku(6,4,2),origin,hypothetical). % Specifies that the atom sudoku(6,4,2) is part of the hypothetical model.
+attr(node,sudoku(6,4,1),origin,real). % Specifies that the atom sudoku(6,4,1) is part of the real model.
+attr(node,sudoku(6,1,2),origin,real). % Specifies that the atom sudoku(6,1,2) is part of the real model.
+attr(node,sudoku(5,4,2),origin,real). % Specifies that the atom sudoku(5,4,2) is part of the real model.
+
+attr(edge,0,origin,real). % Indicates that edge 0 belongs to the real model.
+attr(edge,1,origin,real). % Indicates that edge 1 belongs to the real model.
+attr(edge,2,origin,real). % Indicates that edge 2 belongs to the real model.
+attr(edge,3,origin,real). % Indicates that edge 3 belongs to the real model.
+attr(edge,4,origin,real). % Indicates that edge 4 belongs to the real model.
+attr(edge,0,origin,hypothetical). % Indicates that edge 0 is also present in the hypothetical model.
+attr(edge,1,origin,hypothetical). % Indicates that edge 1 is also present in the hypothetical model.
+attr(edge,2,origin,hypothetical). % Indicates that edge 2 is also present in the hypothetical model.
+attr(edge,3,origin,hypothetical). % Indicates that edge 3 is also present in the hypothetical model.
+attr(edge,4,origin,hypothetical). % Indicates that edge 4 is also present in the hypothetical model.
+attr(edge,5,origin,real). % Indicates that edge 5 belongs to the real model.
+attr(edge,6,origin,real). % Indicates that edge 6 belongs to the real model.
+attr(edge,7,origin,real). % Indicates that edge 7 belongs to the real model.
+attr(edge,8,origin,real). % Indicates that edge 8 belongs to the real model.
+attr(edge,9,origin,real). % Indicates that edge 9 belongs to the real model.
+attr(edge,10,origin,real). % Indicates that edge 10 belongs to the real model.
+attr(edge,5,origin,hypothetical). % Indicates that edge 5 is also present in the hypothetical model.
+attr(edge,6,origin,hypothetical). % Indicates that edge 6 is also present in the hypothetical model.
+attr(edge,7,origin,hypothetical). % Indicates that edge 7 is also present in the hypothetical model.
+attr(edge,8,origin,hypothetical). % Indicates that edge 8 is also present in the hypothetical model.
+attr(edge,9,origin,hypothetical). % Indicates that edge 9 is also present in the hypothetical model.
+attr(edge,10,origin,hypothetical). % Indicates that edge 10 is also present in the hypothetical model.
+attr(edge,11,origin,real). % Indicates that edge 11 belongs to the real model.
+attr(edge,12,origin,real). % Indicates that edge 12 belongs to the real model.
+attr(edge,13,origin,real). % Indicates that edge 13 belongs to the real model.
+attr(edge,14,origin,real). % Indicates that edge 14 belongs to the real model.
+attr(edge,15,origin,real). % Indicates that edge 15 belongs to the real model.
+attr(edge,16,origin,real). % Indicates that edge 16 belongs to the real model.
+attr(edge,17,origin,hypothetical). % Indicates that edge 17 is present in the hypothetical model.
+attr(edge,18,origin,hypothetical). % Indicates that edge 18 is present in the hypothetical model.
+
+attr(edge,0,type,cause). % Edge 0 is of type 'cause'.
+attr(edge,1,type,cause). % Edge 1 is of type 'cause'.
+attr(edge,2,type,cause). % Edge 2 is of type 'cause'.
+attr(edge,3,type,cause). % Edge 3 is of type 'cause'.
+attr(edge,4,type,cause). % Edge 4 is of type 'cause'.
+attr(edge,5,type,cause). % Edge 5 is of type 'cause'.
+attr(edge,6,type,cause). % Edge 6 is of type 'cause'.
+attr(edge,7,type,cause). % Edge 7 is of type 'cause'.
+attr(edge,8,type,cause). % Edge 8 is of type 'cause'.
+attr(edge,9,type,cause). % Edge 9 is of type 'cause'.
+attr(edge,10,type,cause). % Edge 10 is of type 'cause'.
+attr(edge,11,type,cause). % Edge 11 is of type 'cause'.
+attr(edge,12,type,cause). % Edge 12 is of type 'cause'.
+attr(edge,13,type,cause). % Edge 13 is of type 'cause'.
+attr(edge,14,type,cause). % Edge 14 is of type 'cause'.
+attr(edge,15,type,cause). % Edge 15 is of type 'cause'.
+attr(edge,16,type,cause). % Edge 16 is of type 'cause'.
+attr(edge,17,type,cause). % Edge 17 is of type 'cause'.
+attr(edge,18,type,cause). % Edge 18 is of type 'cause'.
+
+attr(edge,19,type,reciprocal_inhibitor). % Edge 19 is of type 'reciprocal_inhibitor'.
+attr(edge,20,type,reciprocal_inhibitor). % Edge 20 is of type 'reciprocal_inhibitor'.
+attr(edge,21,type,reciprocal_inhibitor). % Edge 21 is of type 'reciprocal_inhibitor'.
+attr(edge,22,type,reciprocal_inhibitor). % Edge 22 is of type 'reciprocal_inhibitor'.
+
+attr(edge,0,rule_id,38). % Associates edge 0 with rule ID 38.
+attr(edge,1,rule_id,38). % Associates edge 1 with rule ID 38.
+attr(edge,2,rule_id,38). % Associates edge 2 with rule ID 38.
+attr(edge,3,rule_id,38). % Associates edge 3 with rule ID 38.
+attr(edge,4,rule_id,38). % Associates edge 4 with rule ID 38.
+attr(edge,5,rule_id,39). % Associates edge 5 with rule ID 39.
+attr(edge,6,rule_id,39). % Associates edge 6 with rule ID 39.
+attr(edge,7,rule_id,39). % Associates edge 7 with rule ID 39.
+attr(edge,8,rule_id,39). % Associates edge 8 with rule ID 39.
+attr(edge,9,rule_id,39). % Associates edge 9 with rule ID 39.
+attr(edge,10,rule_id,39). % Associates edge 10 with rule ID 39.
+attr(edge,11,rule_id,41). % Associates edge 11 with rule ID 41.
+attr(edge,12,rule_id,41). % Associates edge 12 with rule ID 41.
+attr(edge,13,rule_id,41). % Associates edge 13 with rule ID 41.
+attr(edge,14,rule_id,41). % Associates edge 14 with rule ID 41.
+attr(edge,15,rule_id,41). % Associates edge 15 with rule ID 41.
+attr(edge,16,rule_id,41). % Associates edge 16 with rule ID 41.
+attr(edge,17,rule_id,41). % Associates edge 17 with rule ID 41.
+attr(edge,18,rule_id,41). % Associates edge 18 with rule ID 41.
+attr(edge,19,rule_id,42). % Associates edge 19 with rule ID 42.
+attr(edge,21,rule_id,44). % Associates edge 21 with rule ID 44.
+attr(edge,20,rule_id,45). % Associates edge 20 with rule ID 45.
+attr(edge,22,rule_id,46). % Associates edge 22 with rule ID 46.
+
+attr(edge,0,rule_str,"val((1..(D*D))) :- dim(D)."). % Edge 0 uses the rule "val((1..(D*D))) :- dim(D)."
+attr(edge,1,rule_str,"val((1..(D*D))) :- dim(D)."). % Edge 1 uses the rule "val((1..(D*D))) :- dim(D)."
+attr(edge,2,rule_str,"val((1..(D*D))) :- dim(D)."). % Edge 2 uses the rule "val((1..(D*D))) :- dim(D)."
+attr(edge,3,rule_str,"val((1..(D*D))) :- dim(D)."). % Edge 3 uses the rule "val((1..(D*D))) :- dim(D)."
+attr(edge,4,rule_str,"val((1..(D*D))) :- dim(D)."). % Edge 4 uses the rule "val((1..(D*D))) :- dim(D)."
+attr(edge,5,rule_str,"pos(X,Y) :- val(X); val(Y)."). % Edge 5 uses the rule "pos(X,Y) :- val(X); val(Y)."
+attr(edge,6,rule_str,"pos(X,Y) :- val(X); val(Y)."). % Edge 6 uses the rule "pos(X,Y) :- val(X); val(Y)."
+attr(edge,7,rule_str,"pos(X,Y) :- val(X); val(Y)."). % Edge 7 uses the rule "pos(X,Y) :- val(X); val(Y)."
+attr(edge,8,rule_str,"pos(X,Y) :- val(X); val(Y)."). % Edge 8 uses the rule "pos(X,Y) :- val(X); val(Y)."
+attr(edge,9,rule_str,"pos(X,Y) :- val(X); val(Y)."). % Edge 9 uses the rule "pos(X,Y) :- val(X); val(Y)."
+attr(edge,10,rule_str,"pos(X,Y) :- val(X); val(Y)."). % Edge 10 uses the rule "pos(X,Y) :- val(X); val(Y)."
+attr(edge,11,rule_str,"1 <= { sudoku(X,Y,V): val(V) } <= 1 :- pos(X,Y)."). % Edge 11 uses the rule enforcing that each cell gets exactly one value.
+attr(edge,12,rule_str,"1 <= { sudoku(X,Y,V): val(V) } <= 1 :- pos(X,Y)."). % Edge 12 uses the same rule to ensure a unique assignment in each cell.
+attr(edge,13,rule_str,"1 <= { sudoku(X,Y,V): val(V) } <= 1 :- pos(X,Y)."). % Edge 13 uses the rule enforcing a unique assignment in the cell.
+attr(edge,14,rule_str,"1 <= { sudoku(X,Y,V): val(V) } <= 1 :- pos(X,Y)."). % Edge 14 uses the rule to guarantee a unique assignment in the cell.
+attr(edge,15,rule_str,"1 <= { sudoku(X,Y,V): val(V) } <= 1 :- pos(X,Y)."). % Edge 15 uses the rule that guarantees a unique assignment in the cell.
+attr(edge,16,rule_str,"1 <= { sudoku(X,Y,V): val(V) } <= 1 :- pos(X,Y)."). % Edge 16 uses the rule to guarantee a unique assignment in the cell.
+attr(edge,17,rule_str,"1 <= { sudoku(X,Y,V): val(V) } <= 1 :- pos(X,Y)."). % Edge 17 uses the rule to guarantee a unique assignment in the cell.
+attr(edge,18,rule_str,"1 <= { sudoku(X,Y,V): val(V) } <= 1 :- pos(X,Y)."). % Edge 18 uses the rule to guarantee a unique assignment in the cell.
+attr(edge,19,rule_str,"#false :- 1 < #count { sudoku(X,Y,V): sudoku(X,Y,V), val(V) }; pos(X,Y)."). % Edge 19 uses the rule that enforces the uniqueness of values in a cell.
+attr(edge,21,rule_str,"#false :- sudoku(X,Y,V); sudoku(X',Y,V); X > X'."). % Edge 21 uses the rule that prevents duplicates in the same row (by comparing columns).
+attr(edge,20,rule_str,"#false :- sudoku(X,Y,V); sudoku(X,Y',V); Y > Y'."). % Edge 20 uses the rule that prevents duplicates in the same column (by comparing rows).
+attr(edge,22,rule_str,"#false :- sudoku(X,Y,V); sudoku(X',Y',V); subgrid(X,Y,S); subgrid(X',Y',S); (X,Y) > (X',Y')."). % Edge 22 uses the rule that prevents duplicates within the same subgrid.
+
+attr(edge,0,rule_vars,(3,)). % The rule parameters for edge 0, with D = 3.
+attr(edge,1,rule_vars,(3,)). % The rule parameters for edge 1, with D = 3.
+attr(edge,2,rule_vars,(3,)). % The rule parameters for edge 2, with D = 3.
+attr(edge,3,rule_vars,(3,)). % The rule parameters for edge 3, with D = 3.
+attr(edge,4,rule_vars,(3,)). % The rule parameters for edge 4, with D = 3.
+attr(edge,5,rule_vars,(5,4)). % The rule parameters for edge 5, indicating position (5,4).
+attr(edge,6,rule_vars,(5,4)). % The rule parameters for edge 6, indicating position (5,4).
+attr(edge,7,rule_vars,(6,1)). % The rule parameters for edge 7, indicating position (6,1).
+attr(edge,8,rule_vars,(6,1)). % The rule parameters for edge 8, indicating position (6,1).
+attr(edge,9,rule_vars,(6,4)). % The rule parameters for edge 9, indicating position (6,4).
+attr(edge,10,rule_vars,(6,4)). % The rule parameters for edge 10, indicating position (6,4).
+attr(edge,11,rule_vars,(2,5,4)). % The rule parameters for edge 11, indicating that cell (5,4) is assigned the value 2.
+attr(edge,12,rule_vars,(2,5,4)). % The rule parameters for edge 12, indicating that cell (5,4) is assigned the value 2.
+attr(edge,13,rule_vars,(2,6,1)). % The rule parameters for edge 13, indicating that cell (6,1) is assigned the value 2.
+attr(edge,14,rule_vars,(2,6,1)). % The rule parameters for edge 14, indicating that cell (6,1) is assigned the value 2.
+attr(edge,15,rule_vars,(1,6,4)). % The rule parameters for edge 15, indicating that cell (6,4) was originally assigned the value 1.
+attr(edge,16,rule_vars,(1,6,4)). % The rule parameters for edge 16, indicating that cell (6,4) was originally assigned the value 1.
+attr(edge,17,rule_vars,(2,6,4)). % The rule parameters for edge 17, indicating that cell (6,4) is reassigned the value 2.
+attr(edge,18,rule_vars,(2,6,4)). % The rule parameters for edge 18, indicating that cell (6,4) is reassigned the value 2.
+attr(edge,19,rule_vars,(6,4)). % The rule parameters for edge 19, related to the uniqueness in cell (6,4).
+attr(edge,21,rule_vars,(2,6,5,4)). % The rule parameters for edge 21, linking restrictions in the same row.
+attr(edge,20,rule_vars,(2,6,4,1)). % The rule parameters for edge 20, linking restrictions in the same column.
+attr(edge,22,rule_vars,(4,2,6,5,4,4)). % The rule parameters for edge 22, linking restrictions within the same subgrid.
+
+edge(dim(3),val(1),0). % Connects the node dim(3) to the node val(1) via edge 0, establishing 1 as a valid value.
+edge(dim(3),val(2),1). % Connects the node dim(3) to the node val(2) via edge 1, establishing 2 as a valid value.
+edge(dim(3),val(4),2). % Connects the node dim(3) to the node val(4) via edge 2, establishing 4 as a valid value.
+edge(dim(3),val(5),3). % Connects the node dim(3) to the node val(5) via edge 3, establishing 5 as a valid value.
+edge(dim(3),val(6),4). % Connects the node dim(3) to the node val(6) via edge 4, establishing 6 as a valid value.
+edge(val(5),pos(5,4),5). % Connects the node val(5) to the node pos(5,4) via edge 5, assigning value 5 to position (5,4).
+edge(val(4),pos(5,4),6). % Connects the node val(4) to the node pos(5,4) via edge 6, assigning value 4 to position (5,4).
+edge(val(6),pos(6,1),7). % Connects the node val(6) to the node pos(6,1) via edge 7, assigning value 6 to position (6,1).
+edge(val(1),pos(6,1),8). % Connects the node val(1) to the node pos(6,1) via edge 8, assigning value 1 to position (6,1).
+edge(val(6),pos(6,4),9). % Connects the node val(6) to the node pos(6,4) via edge 9, assigning value 6 to position (6,4).
+edge(val(4),pos(6,4),10). % Connects the node val(4) to the node pos(6,4) via edge 10, assigning value 4 to position (6,4).
+edge(pos(5,4),sudoku(5,4,2),11). % Connects the node pos(5,4) to the atom sudoku(5,4,2) via edge 11, assigning value 2 to cell (5,4).
+edge(val(2),sudoku(5,4,2),12). % Connects the node val(2) to the atom sudoku(5,4,2) via edge 12, indicating that cell (5,4) is assigned value 2.
+edge(pos(6,1),sudoku(6,1,2),13). % Connects the node pos(6,1) to the atom sudoku(6,1,2) via edge 13, assigning value 2 to cell (6,1).
+edge(val(2),sudoku(6,1,2),14). % Connects the node val(2) to the atom sudoku(6,1,2) via edge 14, indicating that cell (6,1) is assigned value 2.
+edge(pos(6,4),sudoku(6,4,1),15). % Connects the node pos(6,4) to the atom sudoku(6,4,1) via edge 15, showing the original assignment in cell (6,4).
+edge(val(1),sudoku(6,4,1),16). % Connects the node val(1) to the atom sudoku(6,4,1) via edge 16, indicating that cell (6,4) originally had value 1.
+edge(pos(6,4),sudoku(6,4,2),17). % Connects the node pos(6,4) to the atom sudoku(6,4,2) via edge 17, showing the new assignment in cell (6,4).
+edge(val(2),sudoku(6,4,2),18). % Connects the node val(2) to the atom sudoku(6,4,2) via edge 18, indicating that cell (6,4) is assigned value 2 in the hypothetical model.
+edge(sudoku(6,4,1),sudoku(6,4,2),19). % Connects the atom sudoku(6,4,1) to the atom sudoku(6,4,2) via edge 19, reflecting the change in the assignment of cell (6,4).
+edge(sudoku(6,1,2),sudoku(6,4,2),20). % Connects the atom sudoku(6,1,2) to the atom sudoku(6,4,2) via edge 20, reinforcing the propagation of constraints.
+edge(sudoku(5,4,2),sudoku(6,4,2),21). % Connects the atom sudoku(5,4,2) to the atom sudoku(6,4,2) via edge 21, ensuring consistency with constraints.
+edge(sudoku(5,4,2),sudoku(6,4,2),22). % Connects the atom sudoku(5,4,2) to the atom sudoku(6,4,2) via edge 22, reinforcing consistency with constraints.
+
+node(initial(4,3,3)). % Declares the node initial(4,3,3), representing the initial clue in cell (4,3) with value 3.
+node(sudoku(6,4,2)). % Declares the node sudoku(6,4,2), representing the desired assignment of value 2 in cell (6,4) in the hypothetical model.
+node(pos(6,4)). % Declares the node pos(6,4), representing the position of cell (6,4).
+node(val(2)). % Declares the node val(2), representing the value 2 in sudoku.
+node(val(6)). % Declares the node val(6), representing the value 6 in sudoku.
+node(val(5)). % Declares the node val(5), representing the value 5 in sudoku.
+node(val(4)). % Declares the node val(4), representing the value 4 in sudoku.
+node(val(1)). % Declares the node val(1), representing the value 1 in sudoku.
+node(sudoku(6,4,1)). % Declares the node sudoku(6,4,1), representing the original assignment in cell (6,4) in the real model.
+node(sudoku(6,1,2)). % Declares the node sudoku(6,1,2), representing the assignment of value 2 in cell (6,1) in the real model.
+node(sudoku(5,4,2)). % Declares the node sudoku(5,4,2), representing the assignment of value 2 in cell (5,4) in the real model.
+node(dim(3)). % Declares the node dim(3), representing the sudoku dimension (3x3 subgrids, implying a 9x9 board).
+node(pos(5,4)). % Declares the node pos(5,4), representing the position of cell (5,4).
+node(pos(6,1)). % Declares the node pos(6,1), representing the position of cell (6,1).
+
+
+Interpretation of the graph:
+
+All nodes that are true in both the real and hypothetical models are not relevant for the explanation (dim(3), val(6), val(5), val(4), val(2), val(1), pos(6,4), pos(6,1), and pos(5,4)).
+The user query forces a 2 in cell (6,4) in the hypothetical model.
+On one hand, it is crucial that the atom initial(4,3,3) has been removed from the real model through abduction.
+On the other hand, we observe multiple reciprocal_inhibitor edges connected to the query.
+This indicates that the graph highlights different reasons that explain the query.
+Even though the atom is not connected to the query by any edge path, the abduction of initial(4,3,3) was necessary to obtain the query. 
+This could be considered an explanation for the question: "What prevents placing the number 2 in cell (6,4)?".
+One reciprocal_inhibitor edge originates from the atom sudoku(6,4,1). 
+The associated constraint indicates that the 1 in cell (6,4) in the real model is incompatible with the 2 that the query enforces in the same cell.
+However, this is not a very significant reason, as it is the most obvious one.
+Another reciprocal_inhibitor edge runs from sudoku(6,1,2) to sudoku(6,4,2), 
+showing that the 2 in cell (6,1) in the real model is in the same column (6), which prevents placing a 2 in cell (6,4).
+There are two additional reciprocal_inhibitor edges from sudoku(5,4,2) to sudoku(6,4,2).
+One indicates that the 2 in cell (5,4) in the real model is in the same row (4), preventing the placement of a 2 in cell (6,4).
+The other means that the 2 in cell (5,4) is in the same subgrid, thus blocking the 2 in cell (6,4) (the query).
+In total, we have four different reasons explaining the query. The best approach is either to highlight the most important one or to summarize all of them concisely.
+
+Expected output:
+{
+    "explanation": "A number 2 cannot be in cell (6,4) because it conflicts with the 2 in the cell (5,4) (same subgrid and row), and with the 2 in cell (6,1) (same column).A solution where a 2 is placed in cell (6,4) can be obtained by removing the initial number 3 in position 4,3."
+}
+
+------ EXAMPLE 9:
 
 - Blue nodes are irrelevant + user input
 
