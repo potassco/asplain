@@ -368,9 +368,84 @@ Expected output:
 
 ------ EXAMPLE 7 (Hannes):
 
-- Blue nodes are irrelevant
+- Blue nodes are irrelevant + user input
 
-- Multiple things abduced
+```
+asplain examples/neighbours/encoding.lp --explanation-preference examples/neighbours/explanation-preference.lp --explanation-preference examples/neighbours/input.lp --log=info --query 'assign(2,wall_color,red)' --prune
+```
+
+Predicates:
+
+house(H): H is a house
+color(C): C is a color
+neighbours(A,B): A and B are both houses which are neighbouring each other
+assign(H,P,C): C is a color which is assigned to a property P of house H
+
+Contrastive Graph:
+
+node(assign(1,wall_color,red)).
+node(assign(3,wall_color,red)).
+node(assign(2,wall_color,red)).
+node(assign(2,roof_color,green)).
+node(assign(2,wall_color,green)).
+attr(node,assign(1,wall_color,red),abduced,rm). % assign(1,wall_color,red) had to be removed from the real model to satisfy the query in the hypothetical model
+attr(node,assign(1,wall_color,red),origin,real).
+attr(node,assign(1,wall_color,red),input,add). % user decided to add as input that the wall color of house 1 is red
+attr(node,assign(3,wall_color,red),abduced,rm). % assign(3,wall_color,red) had to be removed from the real model to satisfy the query in the hypothetical model
+attr(node,assign(3,wall_color,red),origin,real).
+attr(node,assign(3,wall_color,red),input,add). % user decided to add as input that the wall color of house 3 is red
+attr(node,assign(2,wall_color,red),query,include). % user wants assign(2,wall_color,red) to be in the hypothetical model
+attr(node,assign(2,wall_color,red),origin,hypothetical).
+attr(node,assign(2,roof_color,green),origin,real).
+attr(node,assign(2,wall_color,green),origin,real).
+edge(assign(2,roof_color,green),assign(2,wall_color,red),0).
+edge(assign(3,wall_color,red),assign(2,wall_color,red),1). % This Edge (1) goes from an abduced node to the query node
+edge(assign(2,wall_color,green),assign(2,wall_color,red),2).
+edge(assign(2,wall_color,green),assign(2,wall_color,red),3).
+edge(assign(1,wall_color,red),assign(2,wall_color,red),4). % This Edge (4) goes from an abduced node to the query node
+attr(edge,0,type,reciprocal_inhibitor).
+attr(edge,0,rule_id,11).
+attr(edge,0,rule_str,"#false :- assign(A,wall_color,C1); assign(A,roof_color,C2); C1 != C2.").
+attr(edge,0,rule_vars,(2,red,green)).
+attr(edge,1,type,reciprocal_inhibitor). % Edge 1 is an inhibitor
+attr(edge,1,rule_id,10).
+attr(edge,1,rule_str,"#false :- assign(A,wall_color,C); assign(B,wall_color,C); neighbours(A,B); A < B.").
+attr(edge,1,rule_vars,(2,3,red)).
+attr(edge,2,type,reciprocal_inhibitor).
+attr(edge,2,rule_id,6).
+attr(edge,2,rule_str,"#false :- house(H); assign(H,wall_color,C1); assign(H,wall_color,C2); C1 != C2.").
+attr(edge,2,rule_vars,(red,green,2)).
+attr(edge,3,type,reciprocal_inhibitor).
+attr(edge,3,rule_id,6).
+attr(edge,3,rule_str,"#false :- house(H); assign(H,wall_color,C1); assign(H,wall_color,C2); C1 != C2.").
+attr(edge,3,rule_vars,(green,red,2)).
+attr(edge,4,type,reciprocal_inhibitor). % Edge 4 is an inhibitor
+attr(edge,4,rule_id,10).
+attr(edge,4,rule_str,"#false :- assign(A,wall_color,C); assign(B,wall_color,C); neighbours(A,B); A < B.").
+attr(edge,4,rule_vars,(1,2,red)).
+
+Interpretation of the graph:
+
+Starting on the abduced, we know that both assign(1,wall_color,red) and assign(3,wall_color,red) were removed from the real model and they're not part of the hypothetical model,
+so it must be mentioned in the start of the explanation.
+We also notice that assign(1,wall_color,red) and assign(3,wall_color,red) are user input, this means that the user decided that this should be added/assumed/included.
+We work from there to the query which is to include assign(2,wall_color,red).
+Edge 1 is an inhibitor edge from assign(3,wall_color,red) to assign(2,wall_color,red),
+this means when assign(3,wall_color,red) was true in the real model it was inhibiting assign(2,wall_color,red) in the real model.
+When looking at the ASP rule_str of this edge we can see that the reason for this is a constraint prohibiting two neighbouring houses to have the same wall_color.
+Edge 4 is an inhibitor edge from assign(1,wall_color,red) to assign(2,wall_color,red),
+this means when assign(1,wall_color,red) was true in the real model it was inhibiting assign(2,wall_color,red) in the real model.
+When looking at the ASP rule_str of this edge we can see that the reason for this is also a constraint prohibiting two neighbouring houses to have the same wall_color.
+If both the inputs of assign(3,wall_color,red) and assign(1,wall_color,red) are removed together then they would no longer inhibit assign(2,wall_color,red).
+This reaches the query of having assign(2,wall_color,red).
+We notice that even though there were more inhibiting edges to assign(2,wall_color,red) (Edge 0, Edge 2, Edge 3),
+they can be disregarded for the explanation since they are not on a direct path from an abduced to the query.
+We also notice that since both abduced nodes are connected to the query they are both needed for the explanation.
+
+Expected output:
+{
+    "explanation": "The user assumptions of house 1 having red walls and house 3 having red walls would need to both be removed in order for house 1 being able to be assigned red walls. This is because neighbouring houses are not allowed to have the same wall_color assigned."
+}
 
 
 ****************** Input graph for you to explain

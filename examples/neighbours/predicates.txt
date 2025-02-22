@@ -1,0 +1,4 @@
+house(H): H is a house
+color(C): C is a color
+neighbours(A,B): A and B are both houses which are neighbouring each other
+assign(H,P,C): C is a color which is assigned to a property P of house H
