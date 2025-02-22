@@ -1,10 +1,9 @@
 
-{sit(P);stand(P)}:-person(P).
+1{sit(P);stand(P)}1:-person(P).
 
-:- sit(P), stand(P'), P=P'.
 :- stand(P), age(P,E), E>90.
 
 % Input facts
 % sit(anna).
 person(anna).
-age(anna,50).
+age(anna,95).

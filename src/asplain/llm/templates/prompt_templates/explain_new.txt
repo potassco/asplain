@@ -334,7 +334,7 @@ edge(tired(2),do(clean,2),4).
 
 Interpretation of the graph:
 
-We start by noticing that it had to be removed tired(2) to obtain the query.
+We start by noticing that tired(2) had to be removed to satisfy the query in the hypothetical model.
 We also notice that tired(2) as a user input, this means that the user decided that this should be added/assumed/included.
 We work from there to the query which is to exclude dirty(3).
 Edge 4 is an inhibitor edge from tired(2) to do(clean,2),
@@ -355,18 +355,87 @@ Expected output:
 }
 
 
+------ EXAMPLE 6
 
-
------- EXAMPLE 6 (Brais):
-
-- Constraints
-- Reciprocal edges
-- Multiple constraints/reasons
-- Not connected abduced/constraint
+- Constraints + Reciprocal edges
 - rule_str and rule_var
 
+```
+asplain examples/people_cons/encoding.lp --explanation-preference examples/people_cons/explanation-preference.lp 0 --query "stand(anna)"  --log info --prune
+```
+Predicates:
 
------- EXAMPLE 7 (Hannes):
+person(P): P is a person.
+age(P,A): P is A years old.
+sit(P): P is sitting.
+stand(P): P is standing.
+
+node(sit(anna)).
+node(stand(anna)).
+node(age(anna,95)).
+node(person(anna)).
+attr(node,age(anna,95),abduced,rm).    % age(anna,95) had to be removed from the real model to satisfy the user query
+attr(node,stand(anna),query,include).  % The user wants stand(anna) to be true in the hypothetical model
+attr(node,stand(anna),origin,hypothetical). % stand(anna) is in the hypothetical model 
+attr(node,person(anna),origin,real).          % person(anna) is in the real model
+attr(node,person(anna),origin,hypothetical).  % person(anna) is in the hypothetical model
+attr(node,age(anna,95),origin,real).          % age(anna,95) is in the real model
+attr(node,sit(anna),origin,real).             % sit(anna) is in the real model
+edge(person(anna),sit(anna),0).   % edge 0 goes from person(anna) to sit(anna)
+attr(edge,0,type,cause).          % edge 0 is a cause, which means that person(anna) is a cause of sit(anna)
+attr(edge,0,origin,real).         % edge 0 is in the explanation of the real model
+attr(edge,0,rule_id,1).
+attr(edge,0,rule_str,"1 <= { sit(P); stand(P) } <= 1 :- person(P).").  % edge 0 comes from the ASP rule "1 <= { sit(P); stand(P) } <= 1 :- person(P)." (a choice rule)
+attr(edge,0,rule_vars,(anna,)).   % for enabling the rule of edge 0 (rule 1), its first variable (P) took the value "anna"
+edge(person(anna),stand(anna),2). % edge 2 goes from person(anna) to stand(anna)
+attr(edge,2,type,cause).          % edge 2 is a cause, which means that person(anna) is a cause of stand(anna)
+attr(edge,2,origin,hypothetical). % edge 2 is in the explanation of the hypothetical model
+attr(edge,2,rule_id,1). 
+attr(edge,2,rule_str,"1 <= { sit(P); stand(P) } <= 1 :- person(P).").  % edge 2 comes from the ASP rule "1 <= { sit(P); stand(P) } <= 1 :- person(P)." (a choice rule)
+attr(edge,2,rule_vars,(anna,)).   % for enabling the rule of edge 2 (rule 1), its first variable (P) took the value "anna"
+edge(age(anna,95),stand(anna),3). % edge 3 goes from age(anna,95) to stand(anna)
+attr(edge,3,type,reciprocal_inhibitor).  % edge 3 is a reciprocal_inhibitor, which means that age(anna,95) cannot be in the hypothetical for stand(anna) to be in the hypothetical model (due to some constraint)
+attr(edge,3,rule_id,4).
+attr(edge,3,rule_str,"#false :- stand(P); age(P,E); E > 90.").  % edge 3 comes from the ASP constraint "#false :- stand(P); age(P,E); E > 90."
+attr(edge,3,rule_vars,(95,anna)).   % the constraint of edge 3 would had be enabled if its first two variables P and E took the values 95 and anna respectively
+edge(sit(anna),stand(anna),4).           % edge 4 goes from sit(anna) to stand(anna)
+attr(edge,4,type,reciprocal_inhibitor).  % edge 4 is a reciprocal_inhibitor, which means that sit(anna) cannot be in the hypothetical for stand(anna) to be in the hypothetical model (due to some constraint)
+attr(edge,4,rule_id,2).
+attr(edge,4,rule_str,"#false :- 1 < #count { sit(P): sit(P); stand(P): stand(P) }; person(P).").  % edge 4 comes from the ASP constraint "#false :- 1 < #count { sit(P): sit(P); stand(P): stand(P) }; person(P)."
+attr(edge,4,rule_vars,(anna,)).  % the constraint of edge 3 would had be enabled if its first variable P took the value anna 
+
+
+Interpretation of the graph:
+
+We start by noticing that age(anna,95) had to be removed from the real model to satisfy the query in the hypothetical model. This atom will be important for the explanation.
+We notice as well that atom sit(anna) was in the real model but its not in the hypothetical anymore. This atom could some importance for the explanation.
+Atoms (person(brais), person(anna), age(brais,50) and stand(brais)) are in both models. Those atoms will probably not be important for the explanation.
+We work from there to the query which is to include stand(anna).
+Starting from age(anna,95), the reciprocal_inhibitor Edge 3 points to stand(anna), the query of the user,
+which means that age(anna,95) which was true in the real model, cannot be part of the same model than stand(anna).
+In the constraint associated with Edge 3 ("#false :- stand(P); age(P,E); E > 90.") we can read that a person P older than 90 cannnot stand.
+That is, anna cannot stand because she is older than 90.
+This is enough to give a good explanation.
+Additionally, we see another reciprocal_inhibitor Edge 4 from sit(anna) to stand(anna),
+which means that sit(anna) which was true in the real model, cannot be part of the same model than stand(anna).
+In the constraint associated with Edge 3 (#false :- 1 < #count { sit(P): sit(P); stand(P): stand(P) }; person(P).") we can read that a person P must be either standing or sitting, but not both.
+However, unlike age(anna,95) that had to be removed to make the query true, making sit(anna) false in the hypothetical was an alternative (wasn't removed by abdcution),
+BUT ONLY in the case that age(anna,95) is removed.
+That is, reciprocal_inhibitor coming from age(anna,95) should be used as the main reason in the explanation.
+
+Expected output:
+
+{
+    "explanation": "Anna cannot stand because she is older than 90."
+}
+
+------ EXAMPLE 8:
+
+- Multiple constraints/reasons
+- Not connected abduced/constraint
+
+
+------ EXAMPLE 7:
 
 - Blue nodes are irrelevant + user input
 
