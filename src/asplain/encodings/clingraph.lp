@@ -70,6 +70,12 @@ viz_attr(edge, ((N,contrastive),(N',contrastive),ID), (label,vars), V):-attr(edg
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), fontsize, 8):-attr(edge,ID,rule_str,R), edge(N,N',ID).
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), fontcolor, gray):-attr(edge,ID,rule_str,R), edge(N,N',ID).
 
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), color, _color_blue):-attr(edge,ID,origin,real), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), color, _color_blue):-attr(edge,ID,type,inhibitor), edge(N,N',ID), node(N,real).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), color, _color_green):-attr(edge,ID,origin,hypothetical), edge(N,N',ID).
+viz_attr(edge, ((N,contrastive),(N',contrastive),ID), color, _color_green):-attr(edge,ID,type,inhibitor), edge(N,N',ID), node(N,hypothetical).
+
+
 %%%%%%%%%%%%%%%%%%%
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), style, dashed) :- attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
 viz_attr(edge, ((N,contrastive),(N',contrastive),ID), color, red) :-  attr(edge, ID, type, reciprocal_inhibitor), edge(N,N',ID).
