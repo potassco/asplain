@@ -34,7 +34,9 @@ viz_node((N,G), G):-node(N, G).
 viz_attr(node,(N,G),style,filled):-node(N,G).
 
 viz_attr(node,(N,G),fontname,"Baskerville"):-node(N,G).
-viz_attr(node,(N,(real;hypothetical)),label,N):-node(N,(real;hypothetical)).
+viz_attr(node,(N,(real;hypothetical)),label,N):-node(N,(real;hypothetical)), not attr(node,N,input,_).
+viz_attr(node,(N,real),label,@concat("<<b>",N,"</b>>")):-node(N,real), attr(node,N,input,add).
+viz_attr(node,(N,hypothetical),label,@concat("<<b>",N,"</b>>")):-node(N,hypothetical), attr(node,N,input,rm).
 
 viz_attr(node,(N,contrastive),label,N):-node(N,contrastive), not attr(node,N,abduced,_), not attr(node,N, type, c_connector).
 viz_attr(node,(N,contrastive),label,@concat("<<s>",N,"</s>>")):-node(N,contrastive), attr(node,N,abduced,rm), not attr(node,N, type, c_connector).
@@ -47,6 +49,12 @@ viz_attr(node,(N,contrastive),fillcolor, @concat(_color_blue,";0.5:",_color_gree
 viz_attr(node,(N,contrastive),fillcolor, _color_green):-node(N, hypothetical), not node(N, real).
 viz_attr(node,(N,contrastive),fillcolor, @concat(_color_blue,"30")):-not node(N, hypothetical), node(N, real).
 viz_attr(node, (N,contrastive), (fontcolor;color), "#11111130") :- not node(N, hypothetical), node(N, real).
+% viz_attr(node, (N,contrastive), (fontcolor;color), "#7A1C0360") :- not node(N, hypothetical), node(N, real), attr(node,N,input,rm).
+% viz_attr(node, (N,contrastive), (fontcolor;color), "#037A2C60") :- not node(N, hypothetical), node(N, real), attr(node,N,input,add).
+% viz_attr(node, (N,contrastive), (fontcolor;color), "#037A2C") :- node(N, hypothetical), node(N, real), attr(node,N,input,add).
+% viz_attr(node, (N,real), fontcolor, "#037A2C") :- node(N, real), attr(node,N,input,add).
+% viz_attr(node, (N,real), penwidth, 5) :- node(N, real), attr(node,N,input,add).
+
 viz_attr(node, (N,contrastive), penwidth, "5") :- attr(node, N, query, _).
 
 % ===== Edges

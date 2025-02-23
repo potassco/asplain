@@ -1,0 +1,15 @@
+last(N): Last time step must be N.
+n(N): There is N total blocks.
+
+time(T): The time step T.
+step(T): The time step T.
+block(B): The block B.
+location(L): The location L is any block (block(B)) or the constant 'table'.
+
+h(on(B),L,T): Block B is on L at time step T. L can be a number representing another block if B is on top of block L, or the constant 'table' if B is at the foot of a pile.
+h(on(B),L,0): Block B is INNITIALLY (at time 0) on location L.
+
+g(on(B), L): Represent the goal states for the blocks. That is, at the LAST timestep (given by last(N)) the block B must be on the location (block/table) L.
+unclear(C,T): Block C is covered by any other block. That is, for any block B that is on the top of any pile at timestep T, 'unclear(B,T)' IS NOT TRUE.
+action(move(B,L)): Represent the action of moving block B to position L.
+o(move(B,L),T): Block B is moved from its actual position to its new position L (block/table) at timestep T.

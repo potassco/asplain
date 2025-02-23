@@ -1,0 +1,16 @@
+h(on(4),1,0).
+h(on(1),3,0).
+h(on(2),table,0).
+h(on(3),table,0).
+h(on(3),table,1).
+h(on(1),3,1).
+h(on(2),table,1).
+h(on(4),table,1).
+h(on(2),table,2).
+h(on(3),table,2).
+h(on(4),table,2).
+h(on(1),4,2).
+h(on(3),table,3).
+h(on(4),table,3).
+h(on(2),1,3).
+h(on(1),4,3).
