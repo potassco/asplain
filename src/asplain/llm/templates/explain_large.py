@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .base import Template
 
-PROMPT_FILE = "prompt_templates/explain_gpt.txt"
+PROMPT_FILE = "prompt_templates/explain_new.txt"
 
 from jinja2 import Template as JinjaTemplate
 

@@ -1,0 +1,7 @@
+
+domain(T,V): V is a valid value of type T
+value(X,V):  variable X takes value V
+variable(X,T): X is a variable of type T
+constraint(C): C is a text describing (and identifying) the constraint. A valid solution must meet what the text says. This text is useful to give explanations when the constraint is involved.
+binary(C,L,O,R): The condition of constraint C is a binary comparison, where O is the operator and L and R the left and right operators.
+satisfied(C): The constraint C is not violated.

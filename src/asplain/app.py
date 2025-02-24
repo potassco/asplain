@@ -12,6 +12,8 @@ from .llm.templates import ExplainLargeTemplate
 from .llm.utils import print_llm_message
 from .utils.logging import colored, configure_logging, get_logger
 
+import json
+
 log = get_logger("main")
 
 
@@ -240,12 +242,23 @@ class AsplainApp(Application):
                     predicates=predicates,
                 )
                 llm_response = llm_model.prompt_template(prompt_template)
-                print_llm_message(llm_response)
-
-            # -------- Visualize Explanation --------
-            self._explainer.viz_explanation_graph(
-                g, name=f"model-{model.number}-explanation-{i}", natural_language_explanation=llm_response
-            )
+                log.debug("LLM Response: %s", llm_response)
+                llm_explanation = None
+                try:
+                    llm_response_json = json.loads(llm_response)
+                    if not llm_response_json["explanation"]:
+                        log.error("LLM response does not contain explantion key")
+                    else:
+                        llm_explanation = llm_response_json["explanation"]
+                        print_llm_message(llm_explanation)
+                        # -------- Visualize Explanation --------
+                        self._explainer.viz_explanation_graph(
+                            g,
+                            name=f"model-{model.number}-explanation-{i}",
+                            natural_language_explanation=llm_explanation,
+                        )
+                except json.JSONDecodeError:
+                    log.error("Failed to parse LLM response as JSON.\nExplanation:\n{llm_response}")
 
     def main(self, ctl: Control, files: Sequence[str]) -> None:
         """
