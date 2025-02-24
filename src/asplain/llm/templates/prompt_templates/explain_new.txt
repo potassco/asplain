@@ -754,3 +754,5 @@ Predicates:
 Graph:
 
 {{graph}}
+
+Now provide a solution in the same JSON format as in the examples provided.
