@@ -5,13 +5,14 @@
 
 
 _distance(Atom, 1, 2) :-
-    _abduced(_, Atom), _input(Atom).
+    _abduced(_, Atom), _input(_,Atom).
 _distance(Atom, 1, 1) :-
-    _abduced(_, Atom), not _input(Atom).
+    _abduced(_, Atom), not _input(_,Atom).
 
 
 _domain(variable(V,T)):- _model(real,variable(V,T)).
 _domain(domain(T,D)):- _model(real,domain(T,D)).
-% --- General code for assumptions
-_abducible((rm;add),X):-_input(X).
-:- _input(X), not _model(hypothetical, X), not _abduced(rm, X).
+
+_abducible(rm,value("frontWheel",18)).
+_abducible(rm,value("rearWheel",18)).
+_abducible(rm,value("color","Red")).
