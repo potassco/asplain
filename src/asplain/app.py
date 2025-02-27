@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from textwrap import dedent
@@ -11,8 +12,6 @@ from .llm.models.openai import OpenAIModel
 from .llm.templates import ExplainLargeTemplate
 from .llm.utils import print_llm_message
 from .utils.logging import colored, configure_logging, get_logger
-
-import json
 
 log = get_logger("main")
 
@@ -218,7 +217,7 @@ class AsplainApp(Application):
             log.info("Explanation %d\n%s", i, g)
 
             # -------- Explain with LLM --------
-            llm_response = None
+            explanation_text = ""
             if self._use_llm:
                 predicates = ""
                 if self._predicates_file:
@@ -242,23 +241,24 @@ class AsplainApp(Application):
                     predicates=predicates,
                 )
                 llm_response = llm_model.prompt_template(prompt_template)
-                log.debug("LLM Response: %s", llm_response)
-                llm_explanation = None
+                log.info("LLM Response: %s", llm_response)
                 try:
+                    llm_response = llm_response.strip("```json").strip("```")
                     llm_response_json = json.loads(llm_response)
                     if not llm_response_json["explanation"]:
                         log.error("LLM response does not contain explantion key")
                     else:
-                        llm_explanation = llm_response_json["explanation"]
-                        print_llm_message(llm_explanation)
+                        explanation_text = llm_response_json["explanation"]
+                        print_llm_message(explanation_text)
                         # -------- Visualize Explanation --------
-                        self._explainer.viz_explanation_graph(
-                            g,
-                            name=f"model-{model.number}-explanation-{i}",
-                            natural_language_explanation=llm_explanation,
-                        )
                 except json.JSONDecodeError:
-                    log.error("Failed to parse LLM response as JSON.\nExplanation:\n{llm_response}")
+                    log.error(f"Failed to parse LLM response as JSON.\nExplanation:\n{llm_response}")
+
+            self._explainer.viz_explanation_graph(
+                g,
+                name=f"model-{model.number}-explanation-{i}",
+                natural_language_explanation=explanation_text,
+            )
 
     def main(self, ctl: Control, files: Sequence[str]) -> None:
         """

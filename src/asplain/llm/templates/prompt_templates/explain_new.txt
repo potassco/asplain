@@ -68,7 +68,69 @@ Expected output:
 }
 
 
------- EXAMPLE 2:
+------ EXAMPLE 2: (Abduced add)
+
+```
+asplain examples/james-bond/encoding.lp  --explanation-preference examples/james-bond/explanation-preference.lp 0  --query "p" --log info
+```
+
+Predicates:
+
+p: James was poisoned
+d: James drank the drink
+h: James was on holiday
+a: James was administered the antidote
+
+Contrastive Graph:
+
+node(d). % d is a node
+node(h). % h is a node
+node(p). % p is a node
+node(a). % a is a node
+attr(node,h,abduced,add). % h had to be ADDED to satisfy the query in the hypothetical model (Must be mentioned in explanation)
+attr(node,p,query,include). % the user wants p to be in the hypothetical model
+attr(node,d,origin,hypothetical). % d is in the hypothetical model
+attr(node,h,origin,hypothetical). % h is in the hypothetical model
+attr(node,p,origin,hypothetical). % p is in the hypothetical model
+attr(node,a,origin,real). % a is in the hypothetical model
+attr(node,d,origin,real). % d is in the hypothetical model
+edge(d,p,0). % edge 0 connects from node d to node p
+edge(a,p,1). % edge 1 connects from node a to node p
+edge(h,a,2). % edge 2 connects from node h to node a
+attr(edge,0,origin,hypothetical). % edge 0 is in the hypothetical model
+attr(edge,1,type,inhibitor). % edge 1 is an inhibitor, so a inhibits p
+attr(edge,2,type,inhibitor). % edge 1 is an inhibitor, so h inhibits a
+attr(edge,0,type,cause).  % edge 0 is a cause, so d is a cause of p
+attr(edge,0,rule_id,1). % (This is not relevant for you)
+attr(edge,1,rule_id,1). % (This is not relevant for you)
+attr(edge,2,rule_id,2). % (This is not relevant for you)
+attr(edge,0,rule_str,"p :- d; not a."). % edge 0 comes from the ASP rule "p :- d; not a."
+attr(edge,1,rule_str,"p :- d; not a."). % edge 1 comes from the ASP rule "p :- d; not a."
+attr(edge,2,rule_str,"a :- not h."). % edge,2 comes from the ASP rule "a :- not h."
+attr(edge,0,rule_vars,()).% The variables used in the rule for edge 0. (In this case no variables are needed)
+attr(edge,1,rule_vars,()).% The variables used in the rule for edge 1. (In this case no variables are needed)
+attr(edge,2,rule_vars,()).% The variables used in the rule for edge 2. (In this case no variables are needed)
+
+Interpretation of the graph:
+
+Starting on the abduced, we know that h was to be added and it is now part of the hypothetical model,
+so it must be mentioned in the start of the explanation.
+This means that we have to add the fact that James was on holiday.
+Since there is an an inhibitor edge (2) for h to a, it means that James being on holiday was preventig the administered antidote.
+Since there is an an inhibitor edge (1) for a to p, it means that having `a` was preventing having `p`
+With this we reached the query of having p (james being poisoned).
+Notice that since there are two inhibitor edges this means that `h` becomes a cause of `p`. This is the case for any even number,
+whereas odd numbers imply an inhibitor relation.
+Since d is in both the real and hypothetical, this did not change and it is irrelevant so should not be mentioned.
+
+Expected output:
+
+{
+    "explanation": "If James had been in holiday, he would not had taken the antidote and this would had not longer prevented his poisoning. Therefor being on holiday would had cause his punishment"
+}
+
+
+------ EXAMPLE 3:
 
 - Inhibitor edges
 - Multiple inhibitor steps
@@ -139,7 +201,7 @@ Expected output:
 
 
 
------- EXAMPLE 3:
+------ EXAMPLE 4:
 
 - Alternative=Hypothetical
 - Nothing abduced
@@ -200,7 +262,7 @@ Expected output:
 }
 
 
------- EXAMPLE 4:
+------ EXAMPLE 5:
 
 - Alternative model
 - Nothing abduced
@@ -265,7 +327,7 @@ Expected output:
 }
 
 
------- EXAMPLE 5:
+------ EXAMPLE 6:
 
 - User input
 
@@ -355,7 +417,7 @@ Expected output:
 }
 
 
------- EXAMPLE 6
+------ EXAMPLE 7
 
 - Constraints + Reciprocal edges
 - rule_str and rule_var
@@ -376,7 +438,7 @@ node(age(anna,95)).
 node(person(anna)).
 attr(node,age(anna,95),abduced,rm).    % age(anna,95) had to be removed from the real model to satisfy the user query
 attr(node,stand(anna),query,include).  % The user wants stand(anna) to be true in the hypothetical model
-attr(node,stand(anna),origin,hypothetical). % stand(anna) is in the hypothetical model 
+attr(node,stand(anna),origin,hypothetical). % stand(anna) is in the hypothetical model
 attr(node,person(anna),origin,real).          % person(anna) is in the real model
 attr(node,person(anna),origin,hypothetical).  % person(anna) is in the hypothetical model
 attr(node,age(anna,95),origin,real).          % age(anna,95) is in the real model
@@ -390,7 +452,7 @@ attr(edge,0,rule_vars,(anna,)).   % for enabling the rule of edge 0 (rule 1), it
 edge(person(anna),stand(anna),2). % edge 2 goes from person(anna) to stand(anna)
 attr(edge,2,type,cause).          % edge 2 is a cause, which means that person(anna) is a cause of stand(anna)
 attr(edge,2,origin,hypothetical). % edge 2 is in the explanation of the hypothetical model
-attr(edge,2,rule_id,1). 
+attr(edge,2,rule_id,1).
 attr(edge,2,rule_str,"1 <= { sit(P); stand(P) } <= 1 :- person(P).").  % edge 2 comes from the ASP rule "1 <= { sit(P); stand(P) } <= 1 :- person(P)." (a choice rule)
 attr(edge,2,rule_vars,(anna,)).   % for enabling the rule of edge 2 (rule 1), its first variable (P) took the value "anna"
 edge(age(anna,95),stand(anna),3). % edge 3 goes from age(anna,95) to stand(anna)
@@ -402,7 +464,7 @@ edge(sit(anna),stand(anna),4).           % edge 4 goes from sit(anna) to stand(a
 attr(edge,4,type,reciprocal_inhibitor).  % edge 4 is a reciprocal_inhibitor, which means that sit(anna) cannot be in the hypothetical for stand(anna) to be in the hypothetical model (due to some constraint)
 attr(edge,4,rule_id,2).
 attr(edge,4,rule_str,"#false :- 1 < #count { sit(P): sit(P); stand(P): stand(P) }; person(P).").  % edge 4 comes from the ASP constraint "#false :- 1 < #count { sit(P): sit(P); stand(P): stand(P) }; person(P)."
-attr(edge,4,rule_vars,(anna,)).  % the constraint of edge 3 would had be enabled if its first variable P took the value anna 
+attr(edge,4,rule_vars,(anna,)).  % the constraint of edge 3 would had be enabled if its first variable P took the value anna
 
 
 Interpretation of the graph:
@@ -644,12 +706,12 @@ The user query forces a 2 in cell (6,4) in the hypothetical model.
 On one hand, it is crucial that the atom initial(4,3,3) has been removed from the real model through abduction.
 On the other hand, we observe multiple reciprocal_inhibitor edges connected to the query.
 This indicates that the graph highlights different reasons that explain the query.
-Even though the atom is not connected to the query by any edge path, the abduction of initial(4,3,3) was necessary to obtain the query. 
+Even though the atom is not connected to the query by any edge path, the abduction of initial(4,3,3) was necessary to obtain the query.
 This could be considered an explanation for the question: "What prevents placing the number 2 in cell (6,4)?".
-One reciprocal_inhibitor edge originates from the atom sudoku(6,4,1). 
+One reciprocal_inhibitor edge originates from the atom sudoku(6,4,1).
 The associated constraint indicates that the 1 in cell (6,4) in the real model is incompatible with the 2 that the query enforces in the same cell.
 However, this is not a very significant reason, as it is the most obvious one.
-Another reciprocal_inhibitor edge runs from sudoku(6,1,2) to sudoku(6,4,2), 
+Another reciprocal_inhibitor edge runs from sudoku(6,1,2) to sudoku(6,4,2),
 showing that the 2 in cell (6,1) in the real model is in the same column (6), which prevents placing a 2 in cell (6,4).
 There are two additional reciprocal_inhibitor edges from sudoku(5,4,2) to sudoku(6,4,2).
 One indicates that the 2 in cell (5,4) in the real model is in the same row (4), preventing the placement of a 2 in cell (6,4).
@@ -744,6 +806,14 @@ Expected output:
     "explanation": "The user assumptions of house 1 having red walls and house 3 having red walls would need to both be removed in order for house 1 being able to be assigned red walls. This is because neighbouring houses are not allowed to have the same wall_color assigned."
 }
 
+****************** Last reminders
+
+- Make sure the output is a JSON with a single key "explanation"
+- Make sure the explanation is simple and concise without inventing new information.
+- Make sure the query is mentioned
+- Make sure abduced atoms (added and removed) are mentioned, and that it is clear that those are the only things that need changing.
+- Don't explain any other alternative situation that is not stated in the graph
+- Don't include atoms or nodes that are not connected to the reason for the query, only paths in the graph from abduced to query.
 
 ****************** Input graph for you to explain
 

@@ -11,4 +11,3 @@ h(on(2),table,0).   h(on(3),table,0).
                     g(on(2),1).
                     g(on(1),4).
 g(on(3),table).     g(on(4),table).
-

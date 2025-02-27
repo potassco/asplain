@@ -18,7 +18,7 @@ _abducible(add, h(on(Block),table,0)) :-
 :- _abduced(rm, h(on(Block), _, 0)), not _abduced(add, h(on(Block), _, 0)).
 
 % If query asks about new step limits then you can abduce new step limits
-_abducible((rm;add), last(Last)) :- 
+_abducible((rm;add), last(Last)) :-
     Last=1..30.
 
 %%%%%%%%%%%%%%% SITUATION

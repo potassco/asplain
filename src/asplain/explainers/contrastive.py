@@ -98,7 +98,7 @@ class ContrastiveExplainer(Explainer):
         with ctl.solve(yield_=True) as handle:
             for m in handle:
                 if not m.optimality_proven:
-                    print("non optimal :(")
+                    log.debug("Skipped non-optimal model")
                     continue
                 explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
                 explanation_graph_prg = GraphTransformer().parse_string(explanation_graph_prg)
@@ -115,12 +115,12 @@ class ContrastiveExplainer(Explainer):
                     ),
                 )
 
-                log.debug("----- Full Expanation \n%s", m.symbols(atoms=True))
+                log.debug("----- Full Explanation \n%s", m.symbols(atoms=True))
                 contrastive_explanations.append(explanation_graph_prg)
                 # break
+
         if len(contrastive_explanations) == 0:
             log.warning("No explanation found")
-
         return contrastive_explanations
 
     def viz_explanation_graph(

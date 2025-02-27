@@ -9,6 +9,9 @@ _distance(Atom, 1, 2) :-
 _distance(Atom, 1, 1) :-
     _abduced(_, Atom), not _input(Atom).
 
+
+_domain(variable(V,T)):- _model(real,variable(V,T)).
+_domain(domain(T,D)):- _model(real,domain(T,D)).
 % --- General code for assumptions
 _abducible((rm;add),X):-_input(X).
 :- _input(X), not _model(hypothetical, X), not _abduced(rm, X).
