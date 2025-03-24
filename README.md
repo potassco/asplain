@@ -42,8 +42,16 @@ in a `.env` file.
 
 `.env` :
 
+OpenAI:
 ```
 OPENAI_API_KEY=<ENTER-YOUR-KEY-HERE>
+```
+
+Azure: 
+
+```
+AZURE_OPENAI_API_KEY=<ENTER-YOUR-KEY-HERE>
+AZURE_OPENAI_ENDPOINT=<ENTER-YOUR-ENDPOINT-HERE>
 ```
 
 To get LLM Explanations use the `--llm` argument.

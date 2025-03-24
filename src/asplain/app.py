@@ -8,7 +8,7 @@ from clingo import Application, ApplicationOptions, Control, Flag, Model
 
 from .explainers import ContrastiveExplainer
 from .llm.models import ModelTag, OllamaModel
-from .llm.models.openai import OpenAIModel
+from .llm.models.openai_azure import OpenAIAzureModel
 from .llm.templates import ExplainLargeTemplate
 from .llm.utils import print_llm_message
 from .utils.logging import colored, configure_logging, get_logger
@@ -226,7 +226,7 @@ class AsplainApp(Application):
 
                 if self._model_tag == "openai":
                     # OPEN AI
-                    llm_model = OpenAIModel(ModelTag.GPT_4O_MINI)
+                    llm_model = OpenAIAzureModel(ModelTag.GPT_4O)
                 elif self._model_tag == "deepseek":
                     # DEEPSEEK
                     llm_model = OllamaModel(ModelTag.DEEPSEEK_R1_14B)
