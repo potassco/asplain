@@ -73,10 +73,10 @@ tab(enabler,   inhibitor, inhibitor).
 _skip(World, (RID,Vars), (Cause, Effect), cause) :- _direct_cause((RID, Vars), World, Effect, Cause), not visible(Cause).
 _skip(World, (RID,Vars), (Cause, Effect), cause) :- _direct_cause((RID, Vars), World, Effect, Cause), not visible(Effect).
 %
-_reach(World, (X, Y), cause) :- _direct_cause((RID, Vars), World, Y, X), not _skip(World, (RID,Vars), (X, Y), cause).  % Base
-_reach(World, (Cause, TransitiveEffect), cause) :- _skip(World, RULE, (Cause, TransitiveEffect), cause).  % Base
-_reach(World, (X, Z), cause) :-       % transitivity
-    _reach(World, (X, Y), cause),     
+_reach(World, (RID, Vars), (X, Y), cause) :- _direct_cause((RID, Vars), World, Y, X), not _skip(World, (RID,Vars), (X, Y), cause).  % Base
+_reach(World, RULE, (Cause, TransitiveEffect), cause) :- _skip(World, RULE, (Cause, TransitiveEffect), cause).  % Base
+_reach(World, RULE, (X, Z), cause) :-       % transitivity
+    _reach(World, RULE, (X, Y), cause),     
     skip(World, RULE, (Y, Z), cause).  
 %
 
@@ -95,24 +95,24 @@ _skip(contrastive, (RID,Vars), (Inhibitor, Effect), inhibitor) :-
 
 % Contrastive reach
 %
-_reach(contrastive, (X, Y), cause) :-       % Inherit causes from other two graphs
-    _reach(_, (X, Y), cause).
+_reach(contrastive, RULE, (X, Y), cause) :-       % Inherit causes from other two graphs
+    _reach(_, RULE, (X, Y), cause).
 %
-_reach(contrastive, (Inhibitor, Effect), inhibitor) :-   % include the edge if not skip
+_reach(contrastive, (RID, Vars), (Inhibitor, Effect), inhibitor) :-   % include the edge if not skip
     _direct_inhibitor((RID, Vars), World1, Effect, Inhibitor),   % Effect its true in World1, Inhibitor inhibits it in World2
     _f_atom(World1, Effect), _f_atom(World2, Inhibitor), World1 != World2,
     not _skip(contrastive, (RID,Vars), (Inhibitor, Effect), inhibitor).  % Base
 %
-_reach(contrastive, (Cause, TransitiveEffect), inhibitor) :- _skip(contrastive, RULE, (Cause, TransitiveEffect), inhibitor).  % Base
+_reach(contrastive, RULE, (Cause, TransitiveEffect), inhibitor) :- _skip(contrastive, RULE, (Cause, TransitiveEffect), inhibitor).  % Base
 %
-_reach(contrastive, (X, Z), FinalType) :-       % transitivity
-    _reach(contrastive, (X, Y), Type1),     
-    _skip(contrastive, RULE, (Y, Z), Type2),
+_reach(contrastive, RULE2, (X, Z), FinalType) :-       % transitivity
+    _reach(contrastive, RULE, (X, Y), Type1),     
+    _skip(contrastive, RULE2, (Y, Z), Type2),
     tab(Type1, Type2, FinalType).  
 %
 
 %
-_edge(World, (X, Y), Type) :- visible(X), visible(Y), _reach(World, (X, Y), Type).
+_edge(World, RULE, (X, Y), Type) :- visible(X), visible(Y), _reach(World, RULE, (X, Y), Type).
 _node(World, Atom) :- _f_atom(World, Atom), visible(Atom).
 _node(contrastive, Atom) :- _f_atom(World, Atom), visible(Atom).
 %
@@ -123,16 +123,11 @@ attr(node,A,origin,W):- _node(W,A).
 attr(node,A,abduced,X):- node(A), _abduced(X,A).
 attr(node,A,query,X):- node(A), _query(X,A).
 
-#show edge/3.
-
 %=== Edges
-% edge(Cause,Effect,((Cause,Effect),(RuleID,VARS))):- _edge((RuleID,VARS), W, Effect, Cause).
-% attr(edge,((Cause,Effect),(RuleID,VARS)),origin,W):- _direct_cause((RuleID,VARS), W, Effect, Cause).
-% attr(edge,((Cause,Effect),(RuleID,VARS)),rule,RuleID):-_direct_cause((RuleID,VARS), W, Effect, Cause).
-edge(Cause,Effect,((Cause,Effect),W)):-       _edge(W, (Cause, Effect), Type).
-attr(edge,((Cause,Effect),W),origin,W):-      _edge(W, (Cause, Effect), Type).
-% attr(edge,((Cause,Effect),W),rule,"RuleID"):- _edge(W, (Cause, Effect), Type).
-attr(edge,((Cause,Effect),W),type,Type):-     _edge(W, (Cause, Effect), Type).
+edge(Cause,Effect,((Cause,Effect),(RuleID,VARS))):-       _edge(W, (RuleID,VARS), (Cause, Effect), Type).
+attr(edge,((Cause,Effect),(RuleID,VARS)),origin,W):-      _edge(W, (RuleID,VARS), (Cause, Effect), Type).
+attr(edge,((Cause,Effect),(RuleID,VARS)),rule,RuleID):-   _edge(W, (RuleID,VARS), (Cause, Effect), Type).
+attr(edge,((Cause,Effect),(RuleID,VARS)),type,Type):-     _edge(W, (RuleID,VARS), (Cause, Effect), Type).
 
 % in_both(A) :- _f_atom(real, A), _f_atom(hypothetical, A).
 
