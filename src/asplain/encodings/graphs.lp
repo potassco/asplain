@@ -42,9 +42,12 @@ Creates the graph based on the causes and inhibitors
 % visible(person(gabriel)).
 % visible(person(clare)).
 
+visible(alcohol(clare)).
 visible(alcohol(gabriel)).
 visible(drive(gabriel)).
 visible(drive(clare)).
+visible(resist(gabriel)).
+visible(resist(clare)).
 
 % visible(punish(gabriel)).
 % visible(punish(clare)).
@@ -60,11 +63,11 @@ visible(loved(clare)).
 visible(hated(clare)).
 visible(glory(clare)).
 
-tab(cause, cause, cause).
-tab(cause, inhibitor, inhibitor).
-tab(inhibitor, cause, inhibitor).
+tab(cause,     cause,     cause).
+tab(cause,     inhibitor, inhibitor).
+tab(inhibitor, cause,     inhibitor).
 tab(inhibitor, inhibitor, enabler).
-tab(enabler, inhibitor, inhibitor).
+tab(enabler,   inhibitor, inhibitor).
 
 %
 _skip(World, (RID,Vars), (Cause, Effect), cause) :- _direct_cause((RID, Vars), World, Effect, Cause), not visible(Cause).
@@ -72,25 +75,40 @@ _skip(World, (RID,Vars), (Cause, Effect), cause) :- _direct_cause((RID, Vars), W
 %
 _reach(World, (X, Y), cause) :- _direct_cause((RID, Vars), World, Y, X), not _skip(World, (RID,Vars), (X, Y), cause).  % Base
 _reach(World, (Cause, TransitiveEffect), cause) :- _skip(World, RULE, (Cause, TransitiveEffect), cause).  % Base
-_reach(World, (X, Z), cause) :-      % transitivity
-    _reach(World, (X, Y), cause), 
-    skip(World, RULE, (Y, Z), cause).
+_reach(World, (X, Z), cause) :-       % transitivity
+    _reach(World, (X, Y), cause),     
+    skip(World, RULE, (Y, Z), cause).  
 %
 
-% Now we handle the connection between graphs
-_reach(contrastive, (Inhibitor, Effect), inhibitor) :-   % base
+%  Contrastive skips
+_skip(contrastive, (RID,Vars), (Cause, Effect), cause) :- _skip(World, (RID,Vars), (Cause, Effect), cause).  % Inherit skips from other two graphs
+%
+_skip(contrastive, (RID,Vars), (Inhibitor, Effect), inhibitor) :-     % skip inhibitor if one of the ends is not visible
     _direct_inhibitor((RID, Vars), World1, Effect, Inhibitor),   % Effect its true in World1, Inhibitor inhibits it in World2
-    _f_atom(World1, Effect), _f_atom(World2, Inhibitor), World1 != World2.
+    _f_atom(World1, Effect), _f_atom(World2, Inhibitor), World1 != World2,
+    not visible(Inhibitor).
+_skip(contrastive, (RID,Vars), (Inhibitor, Effect), inhibitor) :- 
+    _direct_inhibitor((RID, Vars), World1, Effect, Inhibitor),   
+    _f_atom(World1, Effect), _f_atom(World2, Inhibitor), World1 != World2,
+    not visible(Effect).
 %
-_reach(contrastive, (X, Z), FinalType) :-
-    _reach(World1, (X, Y), Type1), 
-    _reach(contrastive, (Y, Z), Type2), 
-    tab(Type1, Type2, FinalType).
+
+% Contrastive reach
 %
-_reach(contrastive, (X, Z), FinalType) :-
-    _reach(contrastive, (X, Y), Type1), 
-    _reach(World2, (Y, Z), Type2), 
-    tab(Type1, Type2, FinalType).
+_reach(contrastive, (X, Y), cause) :-       % Inherit causes from other two graphs
+    _reach(_, (X, Y), cause).
+%
+_reach(contrastive, (Inhibitor, Effect), inhibitor) :-   % include the edge if not skip
+    _direct_inhibitor((RID, Vars), World1, Effect, Inhibitor),   % Effect its true in World1, Inhibitor inhibits it in World2
+    _f_atom(World1, Effect), _f_atom(World2, Inhibitor), World1 != World2,
+    not _skip(contrastive, (RID,Vars), (Inhibitor, Effect), inhibitor).  % Base
+%
+_reach(contrastive, (Cause, TransitiveEffect), inhibitor) :- _skip(contrastive, RULE, (Cause, TransitiveEffect), inhibitor).  % Base
+%
+_reach(contrastive, (X, Z), FinalType) :-       % transitivity
+    _reach(contrastive, (X, Y), Type1),     
+    _skip(contrastive, RULE, (Y, Z), Type2),
+    tab(Type1, Type2, FinalType).  
 %
 
 %
@@ -104,6 +122,8 @@ node(A):- _node(World,A).
 attr(node,A,origin,W):- _node(W,A).
 attr(node,A,abduced,X):- node(A), _abduced(X,A).
 attr(node,A,query,X):- node(A), _query(X,A).
+
+#show edge/3.
 
 %=== Edges
 % edge(Cause,Effect,((Cause,Effect),(RuleID,VARS))):- _edge((RuleID,VARS), W, Effect, Cause).
