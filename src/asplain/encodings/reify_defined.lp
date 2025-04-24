@@ -1,0 +1,13 @@
+#defined atom_tuple/1.
+#defined atom_tuple/2.
+#defined literal_tuple/1.
+#defined literal_tuple/2.
+#defined output/2.
+#defined theory_number/2.
+#defined theory_string/2.
+#defined theory_function/3.
+#defined theory_atom/3.
+#defined theory_atom/5.
+#defined theory_tuple/1.
+#defined theory_tuple/3.
+#defined theory_sequence/3.

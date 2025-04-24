@@ -13,8 +13,28 @@ p :- d, not a.
 %   h inhibitor of a, enabler of p.
 a :- not h.
 
-% Bond drinks d and is not on a holiday.
+{h}.
 d.
-h.
+p:- stupid.
+stupid.
+
+% a:- b.
+
+% {b}.
+% Bond drinks d and is not on a holiday.
+% d.
+% h.
+% p.
+% a :- p, h.
+% a:-d.
+% b:- p, h.
+% 2{a(1..5)}2:- h.
+
+% c.
+% c:-d.
+% d.
+% {e}.
+
+% a :- 3 #sum{1,a(X):a(X)}.
 
 % Only model {d, h, p}
