@@ -100,18 +100,14 @@ class ContrastiveMetaExplainer(Explainer):
             ", why not".join([""] + [str(q) for q in query_exclude]),
         )
         self.assert_is_model(model_symbols)
-        constraint_model_prg = "\n".join([f"in_model({str(s)})." for s in model_symbols])
-        constraint_model_prg += ":- not shown(S,_), in_model(S).\n"
-        # constraint_model_prg += ":- shown(S,_), not in_model(S).\n"
         ctl_args = ["0", "--warn=none"]
 
         ctl = Control(arguments=ctl_args)
-        print(constraint_model_prg)
+        constraint_model_prg = "\n".join([f":- not hold({str(s)})." for s in model_symbols])
         ctl.add("base", [], constraint_model_prg)
         ctl.add("base", [], self._reified_prg)
-        # for f in self._explanation_preference_files:
-        #     ctl.load(f)~
-        with path("asplain.encodings", "meta.lp") as base_encoding:
+
+        with path("asplain.encodings.new", "all.lp") as base_encoding:
             print("Loading encoding: ", base_encoding)
             ctl.load(str(base_encoding))
 
@@ -134,9 +130,10 @@ class ContrastiveMetaExplainer(Explainer):
                 explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
                 contrastive_explanations.append(explanation_graph_prg)
 
-        print(contrastive_explanations[0])
         if len(contrastive_explanations) == 0:
             log.warning("No explanation found")
+        else:
+            print(contrastive_explanations[0])
 
         return contrastive_explanations
 
@@ -157,7 +154,7 @@ class ContrastiveMetaExplainer(Explainer):
         ctx = ClingraphContext()
         ctl.add("base", [], explanation_graph)
 
-        with path("asplain.encodings", "explain_viz.lp") as clingraph_encoding:
+        with path("asplain.encodings.new", "viz_pg.lp") as clingraph_encoding:
             ctl.load(str(clingraph_encoding))
         enable_python()
         ctl.ground([("base", [])], context=ctx)

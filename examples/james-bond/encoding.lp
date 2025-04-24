@@ -7,16 +7,22 @@
 
 % Posioned if drinks d and not antidote a.
 %   a acts as an inhibitor of p.
-p :- d, not a.
+% p :- d, not a.
 
 % Antidote if not holiday h
 %   h inhibitor of a, enabler of p.
-a :- not h.
+% a :- not h.
 
-{h}.
-d.
-p:- stupid.
-stupid.
+% {h}.
+% d.
+
+% p:- stupid.
+% stupid.
+
+% p:- not cleaver.
+
+% #external cleaver.
+
 
 % a:- b.
 
@@ -28,13 +34,14 @@ stupid.
 % a :- p, h.
 % a:-d.
 % b:- p, h.
-% 2{a(1..5)}2:- h.
+% 4{a(1..5)}4.
 
-% c.
-% c:-d.
-% d.
+c.
+c:-d.
+d.
 % {e}.
 
-% a :- 3 #sum{1,a(X):a(X)}.
-
+% :- not 3 #sum{1,a(X):a(X)}.
+% {a(1..5)}.
+% a(1..3).
 % Only model {d, h, p}

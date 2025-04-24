@@ -76,7 +76,3 @@ edge((rule(disjunction(H),B),S)):-rule(disjunction(H),B),
 edge((rule(choice(H),B),S)):-rule(choice(H),B),
     not aux_rule(rule(choice(H), B)),
     atom_tuple(H,E), atom(E,P), atom_value(E,P,S).
-
-
-attr(edge,(rule(disjunction(H),B),S),color,blue):-rule(disjunction(H),B),
-    atom_tuple(H,E), atom(E,P), atom_value(E,P,S), reason(E,B).
