@@ -2,3 +2,5 @@ p: James was poisoned
 d: James drank the drinks
 h: James was on holiday
 a: James was administered the antidote
+s: James was smart
+w: James was working

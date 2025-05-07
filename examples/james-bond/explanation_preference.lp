@@ -5,7 +5,7 @@
 %     to find the hypothetical model
 
 _abducible((rm;add),d).
-_abducible((rm;add),h).
+_abducible((rm;add),s).
 
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.

@@ -7,14 +7,25 @@
 
 % Posioned if drinks d and not antidote a.
 %   a acts as an inhibitor of p.
-% p :- d, not a.
+p :- d, not a.
 
 % Antidote if not holiday h
 %   h inhibitor of a, enabler of p.
-% a :- not h.
+% {h;w}.
+% :- h, w.
+% :- not h, not w.
+1{h;w}1.
 
-% {h}.
-% d.
+a :- w.
+a :- s.
+
+d. s.
+% {f}.
+% :- h, not f.
+% :- f, not h.
+% p:-f.
+
+
 
 % p:- stupid.
 % stupid.
@@ -36,9 +47,9 @@
 % b:- p, h.
 % 4{a(1..5)}4.
 
-c.
-c:-d.
-d.
+% c.
+% c:-d.
+% d.
 % {e}.
 
 % :- not 3 #sum{1,a(X):a(X)}.

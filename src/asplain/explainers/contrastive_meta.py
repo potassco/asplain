@@ -107,31 +107,55 @@ class ContrastiveMetaExplainer(Explainer):
         ctl.add("base", [], constraint_model_prg)
         ctl.add("base", [], self._reified_prg)
 
-        with path("asplain.encodings.new", "all.lp") as base_encoding:
+        with path("asplain.encodings.new", "all_reference.lp") as base_encoding:
             print("Loading encoding: ", base_encoding)
             ctl.load(str(base_encoding))
 
         # model_prg = "".join([f"_model(real,{s})." for s in model_symbols])
         # ctl.add("base", [], model_prg)
-        # qi = "".join([f"_query(include,{s})." for s in query_include])
-        # ctl.add("base", [], qi)
-        # qe = "".join([f"_query(exclude,{s})." for s in query_exclude])
-        # ctl.add("base", [], qe)
+
+        ctl.ground([("base", [])])
+        reference_explanations = []
+        with ctl.solve(yield_=True) as handle:
+            for m in handle:
+                explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
+                reference_explanations.append(explanation_graph_prg)
+
+        if len(reference_explanations) == 0:
+            log.warning("No reference explanation found")
+        else:
+            log.debug("=================\nReference explanation:")
+            log.debug(reference_explanations[0])
+
+        ref_prg = reference_explanations[0]
+        ctl = Control(arguments=ctl_args)
+        ctl.add("base", [], ref_prg)
+
+        qi = "".join([f"_query(include,{s})." for s in query_include])
+        ctl.add("base", [], qi)
+        qe = "".join([f"_query(exclude,{s})." for s in query_exclude])
+        ctl.add("base", [], qe)
+
+        for f in self._explanation_preference_files:
+            print("Loading encoding: ", f)
+            ctl.load(f)
+
+        with path("asplain.encodings.new", "all_hypo.lp") as base_encoding:
+            log.debug("Loading encoding: %s", base_encoding)
+            ctl.load(str(base_encoding))
 
         ctl.ground([("base", [])])
         contrastive_explanations = []
         with ctl.solve(yield_=True) as handle:
             for m in handle:
-                # if not m.optimality_proven:
-                #     continue
-                # explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
-                # explanation_graph_prg = GraphTransformer().parse_string(explanation_graph_prg)
-                # log.debug("----- Full Expanation \n%s", m.symbols(atoms=True))
                 explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
+                log.debug("=================\nHypo explanation:")
+                log.debug(m.symbols(shown=True))
+                explanation_graph_prg += ref_prg
                 contrastive_explanations.append(explanation_graph_prg)
 
         if len(contrastive_explanations) == 0:
-            log.warning("No explanation found")
+            log.error("No hypothetical explanation found")
         else:
             print(contrastive_explanations[0])
 
@@ -148,7 +172,6 @@ class ContrastiveMetaExplainer(Explainer):
             name: The name of the output file. File will be stored in the same directory
                     as the domain files, inside the `out` directory.
         """
-
         fb = Factbase()
         ctl = Control(["--warn=none"])
         ctx = ClingraphContext()
