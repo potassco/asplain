@@ -5,7 +5,7 @@ from typing import Any, Callable, Optional, Sequence
 
 from clingo import Application, ApplicationOptions, Control, Flag, Model
 
-from .explainers import ContrastiveExplainer, ContrastiveMetaExplainer
+from .explainers import ContrastiveExplainer
 from .llm.models import ModelTag, OllamaModel
 from .llm.models.openai import OpenAIModel
 from .llm.templates import ExplainLargeTemplate
@@ -255,8 +255,7 @@ class AsplainApp(Application):
         """
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
-        # self._explainer = ContrastiveExplainer(files, self._explanation_preference)  # type: ignore
-        self._explainer = ContrastiveMetaExplainer(files, self._explanation_preference)  # type: ignore
+        self._explainer = ContrastiveExplainer(files, self._explanation_preference)  # type: ignore
         if self._model:
             ctl.load(self._model)
         else:

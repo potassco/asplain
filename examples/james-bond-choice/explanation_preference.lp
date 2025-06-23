@@ -4,18 +4,14 @@
 %     In this case, atoms `d` and `h` can be either removed or added from the reference model
 %     to find the hypothetical model
 
-_abducible((rm;add),sit(P)):-node(atom( person(P))).
-_abducible((rm;add),stand(P)):-node(atom( person(P))).
-_abducible((rm;add),age(P,E)):-node(atom( age(P,E))).
+_abducible((rm;add),d).
+_abducible((rm;add),s).
 
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.
 
-_distance(Atom, 1, 2) :-
+_distance(Atom, 1, 3) :-
     _abduced(_, Atom).
-
-% _direct_inhibitor(2, real, sit, stand).
-% _direct_inhibitor(2, hypothetical, stand, sit).
 
 
 % ## reduce

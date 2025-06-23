@@ -1,14 +1,14 @@
 
-% {sit(P);stand(P)}:-person(P).
-% :- person(P), not sit(P), not stand(P).
-% :- sit(P), stand(P).
+{sit(P);stand(P)}:-person(P). % (7)
+:- person(P), not sit(P), not stand(P).
+:- sit(P), stand(P).
 
 % Alternatively, we could use a choice with bounds
 % 1{sit(P);stand(P)}1:-person(P).
 
 over_age(P):- age(P,E), E>60.
 child(P):- age(P,E), E<10.
-:- stand(P), over_age(P).
+:- stand(P), over_age(P). %(12)
 :- stand(P), child(P).
 
 

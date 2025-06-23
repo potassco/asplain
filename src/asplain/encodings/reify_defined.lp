@@ -42,7 +42,7 @@ Specifies that `O` will be output when the literal tuple `B` is true.
 
 #parameters
 - O: Value to be output.
-- ID_LITERAL_TUPLE: Numerical identifier of the literal tuple.
+- B: Numerical identifier of the literal tuple.
 
 *%
 #defined output/2.

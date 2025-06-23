@@ -9,9 +9,17 @@
 %   a acts as an inhibitor of p.
 p :- d, not a.
 
-% Antidote if not holiday h
-a :- not h.
+% Holiday or work day.
+{h;w}.
+:- h, w.
+:- not h, not w.
+% 1{h;w}1.
 
-% Bond drinks d and is not on a holiday.
-d.
-h.
+% Antidote if work day
+a :- w.
+d. %<- abducible
+
+% Extra to have multiple reasons for antidote.
+% Antidote if smart.
+a :- s.
+s. %<- abducible
