@@ -74,14 +74,14 @@ v_attr(node,(rule(H,sum(B,G)),G),(label,input),@concat("sum at least ",G)):-
 v_attr(node, (atom(A),G), label, A):- node(atom(A), G).
 
 % ## Edges
-v_attr(edge,((A,G),(R,G)),style,dotted):- edge_attr((A,R), type, negative, G).
+v_attr(edge,((A,G),(R,G)),style,dashed):- edge_attr((A,R), type, negative, G).
 v_attr(edge,((A,G),(R,G)),label,W):- edge_attr((A,R), weight, W, G).
 
 v_attr(edge,((atom(A),G),(rule(H,B),G)),arrowhead,none):- v_edge(((atom(A),G),(rule(H,B),G)),_).
 % v_attr(edge,((rule(H,B),G),(atom(A),G)),color,orange):- v_edge(((rule(H,B),G),(atom(A),G)),_).
 
 
-v_attr(edge,((A,contrastive),(R,contrastive)),style,dotted):- edge_attr((A,R), type, negative, G).
+v_attr(edge,((A,contrastive),(R,contrastive)),style,dashed):- edge_attr((A,R), type, negative, G).
 v_attr(edge,((A,contrastive),(R,contrastive)),label,W):- edge_attr((A,R), weight, W, G).
 
 
@@ -109,6 +109,7 @@ v_attr(node,(atom(A),contrastive),penwidth, "4"):-_query(_,A).
 % ## Contrastive
 % v_attr(node,(N,contrastive),penwidth,"4"):- node(N,reference), not node(N,hypothetical).
 v_attr(node,(N,contrastive),(fontcolor;color),red):- node(N,reference), not node(N,hypothetical).
+v_attr(node,(N,contrastive),(fontcolor;color),blue):- node(N,hypothetical), not node(N,reference).
 v_attr(node,(N,contrastive),(fontcolor;color),gray):- node(N,reference), node(N,hypothetical),
                                 not true_node((N,hypothetical)),
                                 true_node((N,reference)).

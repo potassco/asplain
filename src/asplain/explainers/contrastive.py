@@ -68,9 +68,11 @@ class ContrastiveExplainer(Explainer):
 
         with open(os.path.join(self._output_dir, "rule_tagged.lp"), "w") as f:
             f.write(self._rule_tagged_prg)
+
+            log.debug("Transformed program: \n%s", self._rule_tagged_prg)
             log.info("Transformed encoding saved in " + f.name)
 
-        # TODO add externals to program
+        # TODO add externals to program to make sure negation is not removed when grounding
 
         self._reified_prg = reify(self._rule_tagged_prg)
 
