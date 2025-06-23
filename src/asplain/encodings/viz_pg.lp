@@ -11,12 +11,14 @@
 #const _color_purple = "#6554C0".
 #const _color_both = "#57B5BD50".
 
+color_set(reference, @concat(_color_purple,"80")).
 % color_set(reference, _color_green).
-color_set(reference, _color_green).
+% color_set(reference,  @concat(_color_green,"35")).
 color_set(hypothetical, _color_green).
 % color_set(union, @concat(_color_green,"80")).
-color_set(union, @concat(_color_green,"70")).
-color_set(ref_hypo, @concat(_color_green,"15")).
+% color_set(union, @concat(_color_green,"85")).
+color_set(union, "#36B37E;0.5:#6554C080").
+color_set(ref_hypo, @concat(_color_purple,"25")).
 color_set(hypo_ref, _color_green).
 color_set(edge, blue).
 color_set(edge_old, red).
@@ -90,6 +92,11 @@ true_node((rule(H,B),G)):- node(rule(H,B), G), body(B,G).
 true_node((atom(A),G)):- node(atom(A), G), hold(A,G).
 v_attr(node,(N,G),fillcolor,C):-node(N, G), true_node((N,G)), color_set(G,C).
 v_attr(node,(N,G),fillcolor,white):-node(N, G), not true_node((N,G)).
+
+v_attr(node,(N,G),(fontcolor;color),gray80):- node(N,G),
+                                not true_node((N,G)).
+
+
 active_edge(((atom(A),G),(rule(H,B),G))):- edge_attr((atom(A),rule(H,B)), type, positive,_), true_node((atom(A),G)).
 active_edge(((atom(A),G),(rule(H,B),G))):- edge_attr((atom(A),rule(H,B)), type, negative,_), not true_node((atom(A),G)), graph(G).
 active_edge(((rule(H,B),G),(atom(A),G))):- true_node((rule(H,B),G)),edge((rule(H,B),atom(A)),G).
@@ -100,7 +107,10 @@ v_attr(edge,((N1,contrastive),(N2,contrastive)),color,C):-edge((N1,N2),reference
 
 
 % ## Highlight explanation
-v_attr(edge,((N1,G),(N2,G)),color,C):-reason((N1,N2),G), color_set(edge, C).
+% v_attr(edge,((N1,G),(atom(A),G)),color,C):-reason((N1,atom(A)),G), color_set(edge, C).
+v_attr(edge,((N1,G),(atom(A),G)),color,gray80):-edge((N1,atom(A)),G),not reason((N1,atom(A)),G), color_set(edge, C).
+% v_attr(edge,((N1,contrastive),(atom(A),contrastive)),color,C):-reason((N1,atom(A)),hypothetical), color_set(edge, C).
+v_attr(edge,((N1,contrastive),(atom(A),contrastive)),color,gray80):-edge((N1,atom(A)),hypothetical),not reason((N1,atom(A)),hypothetical), color_set(edge, C).
 
 % ## Highlight query
 v_attr(node,(atom(A),contrastive),penwidth, "4"):-_query(_,A).
@@ -110,9 +120,9 @@ v_attr(node,(atom(A),contrastive),penwidth, "4"):-_query(_,A).
 % v_attr(node,(N,contrastive),penwidth,"4"):- node(N,reference), not node(N,hypothetical).
 v_attr(node,(N,contrastive),(fontcolor;color),red):- node(N,reference), not node(N,hypothetical).
 v_attr(node,(N,contrastive),(fontcolor;color),blue):- node(N,hypothetical), not node(N,reference).
-v_attr(node,(N,contrastive),(fontcolor;color),gray):- node(N,reference), node(N,hypothetical),
-                                not true_node((N,hypothetical)),
-                                true_node((N,reference)).
+v_attr(node,(N,contrastive),(fontcolor;color),gray80):- node(N,hypothetical),
+                                not true_node((N,hypothetical)).
+                                % true_node((N,reference)).
 
 
 v_node((N,contrastive),contrastive):- node(N,G).
@@ -126,7 +136,7 @@ v_attr(node,(N,contrastive),fillcolor, C):-not true_node((N, hypothetical)), tru
 v_attr(node,(N,contrastive),fillcolor, white):-v_node((N,contrastive),contrastive), not true_node((N, hypothetical)), not true_node((N, reference)).
 
 % ## Highlight difference
-v_attr(edge,((N1,contrastive),(N2,contrastive)),color,C):-reason((N1,N2),reference), not reason((N1,N2), hypothetical),color_set(edge_old,C), true_node((N1,hypothetical)).
+% v_attr(edge,((N1,contrastive),(N2,contrastive)),color,C):-reason((N1,N2),reference), not reason((N1,N2), hypothetical),color_set(edge_old,C), true_node((N1,hypothetical)).
 
 
 

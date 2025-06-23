@@ -15,6 +15,7 @@ _abduced_rule(rm, rule(H,B)):-
 
 % Add rules (facts) to make abducible facts true
 {_abduced(add,A)} :- _abducible(add,A).
+:- _abduced(add, A), _abduced(rm, A).
 node(rule(disjunction(added(A)),normal(A))):-_abduced(add, A), node(atom(A)).
 edge((rule(disjunction(added(A)),normal(A)), atom(A))):-_abduced(add, A), node(atom(A)).
 

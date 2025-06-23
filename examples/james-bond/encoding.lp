@@ -14,6 +14,6 @@ a :- not h.
 
 % Bond drinks d and is not on a holiday.
 d.
-% h.
+h.
 
 #external h.

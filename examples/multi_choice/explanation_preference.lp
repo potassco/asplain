@@ -4,8 +4,8 @@
 %     In this case, atoms `d` and `h` can be either removed or added from the reference model
 %     to find the hypothetical model
 
-_abducible((rm;add),d).
-_abducible((rm;add),h).
+% _abducible((rm;add),d).
+% _abducible((rm;add),h).
 
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.
