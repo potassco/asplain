@@ -1,81 +1,83 @@
-[build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
+    [build-system]
+    requires = ["setuptools", "setuptools-scm"]
+    build-backend = "setuptools.build_meta"
 
-[project]
-name = "asplain"
-authors = [{ name = "Susana Hahn", email = "hahnmartinlu@uni-potsdam.de" }]
-description = "A template project."
-requires-python = ">=3.9"
-license = { file = "LICENSE" }
-dynamic = ["version"]
-readme = "README.md"
-dependencies = [
-    "clingo>=5.7.1",
-    "clingraph",
-    "ollama",
-    "openai",
-    "python-dotenv",
-    "jinja2",
-]
+    [project]
+    name = "asplain"
+    authors = [{ name = "Susana Hahn", email = "hahnmartinlu@uni-potsdam.de" }]
+    description = "A template project."
+    requires-python = ">=3.9"
+    license = { file = "LICENSE" }
+    dynamic = ["version"]
+    readme = "README.md"
+    dependencies = [
+        "clingo>=5.7.1",
+        "clingox",
+        "clingraph",
+        "ollama",
+        "openai",
+        "python-dotenv",
+        "jinja2",
+        "clingexplaid",
+    ]
 
-[project.urls]
-Homepage = "https://github.com/potassco/asplain.git/"
+    [project.urls]
+    Homepage = "https://github.com/potassco/asplain.git/"
 
-[project.optional-dependencies]
-format = ["black", "isort", "autoflake"]
-lint_pylint = ["pylint"]
-typecheck = ["types-setuptools", "mypy"]
-test = ["coverage[toml]", "clintest"]
-doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
-dev = ["asplain[test,typecheck,lint_pylint]"]
+    [project.optional-dependencies]
+    format = ["black", "isort", "autoflake"]
+    lint_pylint = ["pylint"]
+    typecheck = ["types-setuptools", "mypy"]
+    test = ["coverage[toml]", "clintest"]
+    doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
+    dev = ["asplain[test,typecheck,lint_pylint]"]
 
-[project.scripts]
-asplain = "asplain.__main__:main"
+    [project.scripts]
+    asplain = "asplain.__main__:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+    [tool.setuptools.packages.find]
+    where = ["src"]
 
-[tool.setuptools_scm]
-version_scheme = "python-simplified-semver"
-local_scheme = "no-local-version"
+    [tool.setuptools_scm]
+    version_scheme = "python-simplified-semver"
+    local_scheme = "no-local-version"
 
-[tool.isort]
-profile = "black"
-line_length = 120
+    [tool.isort]
+    profile = "black"
+    line_length = 120
 
-[tool.black]
-line-length = 120
+    [tool.black]
+    line-length = 120
 
-[tool.pylint.format]
-max-line-length = 120
+    [tool.pylint.format]
+    max-line-length = 120
 
-[tool.pylint.design]
-max-args = 10
-max-attributes = 7
-max-bool-expr = 5
-max-branches = 12
-max-locals = 30
-max-parents = 7
-max-public-methods = 20
-max-returns = 10
-max-statements = 50
-min-public-methods = 1
+    [tool.pylint.design]
+    max-args = 10
+    max-attributes = 7
+    max-bool-expr = 5
+    max-branches = 12
+    max-locals = 30
+    max-parents = 7
+    max-public-methods = 20
+    max-returns = 10
+    max-statements = 50
+    min-public-methods = 1
 
-[tool.pylint.similarities]
-ignore-comments = true
-ignore-docstrings = true
-ignore-imports = true
-ignore-signatures = true
+    [tool.pylint.similarities]
+    ignore-comments = true
+    ignore-docstrings = true
+    ignore-imports = true
+    ignore-signatures = true
 
-[tool.pylint.basic]
-argument-rgx = "^[a-z][a-z0-9]*((_[a-z0-9]+)*_?)?$"
-variable-rgx = "^[a-z][a-z0-9]*((_[a-z0-9]+)*_?)?$"
-good-names = ["_"]
+    [tool.pylint.basic]
+    argument-rgx = "^[a-z][a-z0-9]*((_[a-z0-9]+)*_?)?$"
+    variable-rgx = "^[a-z][a-z0-9]*((_[a-z0-9]+)*_?)?$"
+    good-names = ["_"]
 
-[tool.coverage.run]
-source = ["asplain", "tests"]
-omit = ["*/asplain/__main__.py"]
+    [tool.coverage.run]
+    source = ["asplain", "tests"]
+    omit = ["*/asplain/__main__.py"]
 
-[tool.coverage.report]
-exclude_lines = ["assert", "nocoverage"]
+    [tool.coverage.report]
+    exclude_lines = ["assert", "nocoverage"]
