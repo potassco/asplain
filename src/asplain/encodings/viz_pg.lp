@@ -66,7 +66,7 @@ v_attr(node,(rule(H,sum(B,G)),G),(label,value),B):-
     v_node((rule(H,sum(B,G)),G),G).
 v_attr(node,(rule(choice(H),B),G),(label,output),"choice"):-
     v_node((rule(choice(H),B),G),G).
-v_attr(node,(rule(disjunction(H),B),G),(label,output),"disjuction"):-
+v_attr(node,(rule(disjunction(H),B),G),(label,output),"disjunction"):-
     v_node((rule(disjunction(H),B),G),G).
 v_attr(node,(rule(H,normal(B)),G),(label,input),"normal"):-
     v_node((rule(H,normal(B)),G),G).

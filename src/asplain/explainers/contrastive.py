@@ -62,9 +62,7 @@ class ContrastiveExplainer(Explainer):
 
         self._rule_tagged_prg = ""
         for f in self._domain_files:
-            self._rule_tagged_prg += (
-                RuleIDTransformer().parse_file(f).replace("% Choice rule to allow", ". % Choice rule to allow")
-            )
+            self._rule_tagged_prg += RuleIDTransformer().parse_file(f)
 
         with open(os.path.join(self._output_dir, "rule_tagged.lp"), "w") as f:
             f.write(self._rule_tagged_prg)
