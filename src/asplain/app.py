@@ -213,7 +213,7 @@ class AsplainApp(Application):
         graphs = self._explainer.explain(model_symbols, include, exclude, prune=self._prune)
 
         for i, g in enumerate(graphs):
-            log.info("Explanation %d\n%s", i, g)
+            log.info("--------------------Explanation %d\n%s", i, g)
 
             # -------- Explain with LLM --------
             llm_response = None
@@ -244,7 +244,9 @@ class AsplainApp(Application):
 
             # -------- Visualize Explanation --------
             self._explainer.viz_explanation_graph(
-                g, name=f"model-{model.number}-explanation-{i}", natural_language_explanation=llm_response
+                g,
+                name=f"{{graph_name}}-model-{model.number}-explanation-{i}",
+                natural_language_explanation=llm_response,
             )
 
     def main(self, ctl: Control, files: Sequence[str]) -> None:
