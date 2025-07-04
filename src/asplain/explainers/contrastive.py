@@ -61,8 +61,9 @@ class ContrastiveExplainer(Explainer):
             os.makedirs(self._output_dir)
 
         self._rule_tagged_prg = ""
+        transformer = RuleIDTransformer()
         for f in self._domain_files:
-            self._rule_tagged_prg += RuleIDTransformer().parse_file(f)
+            self._rule_tagged_prg += transformer.parse_file(f)
 
         with open(os.path.join(self._output_dir, "rule_tagged.lp"), "w") as f:
             f.write(self._rule_tagged_prg)
@@ -73,6 +74,9 @@ class ContrastiveExplainer(Explainer):
         # TODO add externals to program to make sure negation is not removed when grounding
 
         self._reified_prg = reify(self._rule_tagged_prg)
+        with open(os.path.join(self._output_dir, "reify.lp"), "w") as f:
+            f.write(self._reified_prg)
+            log.info("Reified program saved in " + f.name)
 
     def explain(
         self,

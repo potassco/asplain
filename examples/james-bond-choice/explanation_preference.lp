@@ -10,17 +10,21 @@ _abducible((rm;add),s).
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.
 
+% Abduce the least models
 _distance(Atom, 1, 3) :-
     _abduced(_, Atom).
 
 
 % ## reduce
-% This is tricky to write since one holds in holds/2 and one is holds/1
-_distance(Atom, 1, 1) :-
-    hold(Atom,reference), not hold(Atom).
+% Note: This is tricky to write since one holds in holds/2 and one is holds/1
 
-_distance(Atom, 1, 1) :-
-    not hold(Atom,reference), hold(Atom).
+% Penalize differences between the reference and the hypothetical model
+% _distance(Atom, 1, 1) :-
+%     hold(Atom,reference), not hold(Atom).
 
-_distance(Reason, 1, 1) :-
-    reason(Reason,reference), not reason(Reason).
+% _distance(Atom, 1, 1) :-
+%     not hold(Atom,reference), hold(Atom).
+
+% % Penalize changes in the reason for a model
+% _distance(Reason, 1, 1) :-
+%     reason(Reason,reference), not reason(Reason).

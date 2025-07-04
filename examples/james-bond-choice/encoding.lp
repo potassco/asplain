@@ -22,4 +22,5 @@ d. %<- abducible
 % Extra to have multiple reasons for antidote.
 % Antidote if smart.
 a :- s.
-s. %<- abducible
+% s. %<- abducible
+#external s.

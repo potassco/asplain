@@ -114,6 +114,11 @@ v_attr(edge,((N1,contrastive),(atom(A),contrastive)),color,gray80):-edge((N1,ato
 
 % ## Highlight query
 v_attr(node,(atom(A),contrastive),penwidth, "4"):-_query(_,A).
+v_attr(node,(atom(A),(reference;contrastive)),penwidth, "10"):-_input(A,_).
+% v_attr(node,(atom(A),(reference)),color, "green"):-_input(A,true).
+% v_attr(node,(atom(A),(reference)),color, "red"):-_input(A,false).
+v_attr(node,(atom(A),(hypothetical)),penwidth, "10"):-_input(A,_), not _abduced(_, A).
+% v_attr(node,(atom(A),(contrastive;hypothetical;reference)),fillcolor, "black"):-_abduced(_,A).
 
 % ----------------------------------------
 % ## Contrastive

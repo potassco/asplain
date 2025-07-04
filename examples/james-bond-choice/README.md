@@ -12,7 +12,7 @@ was drudged and was on vacation. We also include the query `-p` which means
 that we want `p` to be false (James not to be poisoned)
 
 ```console
-asplain examples/james-bond/encoding.lp  --explanation-preference examples/james-bond/explanation-preference.lp 0 --model examples/james-bond/model.lp --query "-p"
+asplain examples/james-bond-choice/encoding.lp  --explanation-preference examples/james-bond-choice/explanation_preference.lp 0 --query "p"
 ```
 
 The computed graphs of the real model (provided) the hypothetical model, as
