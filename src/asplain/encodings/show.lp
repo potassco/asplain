@@ -10,5 +10,7 @@
 #show.
 
 #show _abduced/2.
+#show _abducible/2.
 #show _abduced_rule/2.
 #show _query/2.
+#show _input/2.

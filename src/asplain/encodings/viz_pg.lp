@@ -26,7 +26,8 @@ color_set(light, gray80).
 
 graph((reference;hypothetical;contrastive)).
 type_hypothetical(hypothetical):-node(N,reference), not node(N,hypothetical).
-type_hypothetical(alternative):- not type_hypothetical(same), #false:  node(N,reference), not node(N,hypothetical).
+type_hypothetical(hypothetical):-node(N,hypothetical), not node(N,reference).
+type_hypothetical(alternative):- not type_hypothetical(same), #false:  node(N,reference), not node(N,hypothetical);#false:  node(N,hypothetical), not node(N,reference).
 type_hypothetical(same):- #false: hold(A, hypothetical), not hold(A,reference);
                          #false: not hold(A, hypothetical), hold(A,reference).
 

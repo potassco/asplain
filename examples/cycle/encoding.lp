@@ -7,26 +7,16 @@
 
 % Posioned if drinks d and not antidote a.
 %   a acts as an inhibitor of p.
-p :- d, not a.
+% a:- c.
+% a:-b.
+% b:-a.
+% c.
 
-% Holiday or work day.
-{h;w}.
-:- h, w.
-:- not h, not w.
-% 1{h;w}1.
+% c.
+% {a;b}:-c.
+% d.
+% b:-d.
 
-% Antidote if work day
-a :- w.
-d. %<- abducible
-
-% Extra to have multiple reasons for antidote.
-% Antidote if smart.
-a :- s.
-% s. %<- abducible
-
-
-% Mimic users assumptions
-% :- not h. % Assume h is true, i.e., Bond is on holiday. Works only with explanation_preference.lp
-
-
-#external s.
+% {c;b}.
+c;b.
+% c.
