@@ -14,3 +14,5 @@
 #show _abduced_rule/2.
 #show _query/2.
 #show _input/2.
+#show path(P,A1,A2,prg_name):path(P,A1,A2).
+#show _path_type/3.

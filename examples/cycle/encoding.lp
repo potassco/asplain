@@ -7,10 +7,10 @@
 
 % Posioned if drinks d and not antidote a.
 %   a acts as an inhibitor of p.
-% a:- c.
-% a:-b.
-% b:-a.
-% c.
+a:- c.
+a:-b.
+b:-a.
+c.
 
 % c.
 % {a;b}:-c.
@@ -18,5 +18,5 @@
 % b:-d.
 
 % {c;b}.
-c;b.
+% c;b.
 % c.

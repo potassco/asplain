@@ -26,7 +26,7 @@ a :- s.
 
 
 % Mimic users assumptions
-% :- not h. % Assume h is true, i.e., Bond is on holiday. Works only with explanation_preference.lp
+:- not h. % Assume h is true, i.e., Bond is on holiday. Works only with explanation_preference.lp
 
 
 #external s.
