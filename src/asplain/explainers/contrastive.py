@@ -1,6 +1,6 @@
 import os
 from importlib.resources import path
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Tuple
 
 from clingexplaid.transformers import RuleIDTransformer
 from clingo import Control, Function, Number, Symbol
@@ -60,10 +60,18 @@ class ContrastiveExplainer(Explainer):
         if not os.path.exists(self._output_dir):
             os.makedirs(self._output_dir)
 
+    def prepare(self, assumptions: Sequence[Tuple[Symbol, bool]]) -> None:
+        """ """
+
         self._rule_tagged_prg = ""
         transformer = RuleIDTransformer()
         for f in self._domain_files:
             self._rule_tagged_prg += transformer.parse_file(f)
+
+        assumptions_as_constraints = "\n".join([f":- not {str(s)}." for s, b in assumptions if b])
+        assumptions_as_constraints += "\n".join([f":- {str(s)}." for s, b in assumptions if not b])
+        self._rule_tagged_prg += "\n\n%%%%%%%%%%%% Assumptions as constraints %%%%%%%%%%%%\n"
+        self._rule_tagged_prg += transformer.parse_string(assumptions_as_constraints)
 
         with open(os.path.join(self._output_dir, "rule_tagged.lp"), "w") as f:
             f.write(self._rule_tagged_prg)
@@ -83,7 +91,7 @@ class ContrastiveExplainer(Explainer):
         model_symbols: Sequence[str],
         query_include: Sequence[str],
         query_exclude: Sequence[str],
-        prune: bool = False,
+        assumptions: Sequence[Tuple[Symbol, bool]],
     ) -> Sequence[str]:
         """
         Explain the given model and queries.
@@ -97,19 +105,25 @@ class ContrastiveExplainer(Explainer):
             List programs defining an explanation graph. Graphs are defined using predicates: `edge/2`, `node/1` and `attr/4`
         """
 
+        self.prepare(assumptions)
         log.info("Model: %s", model_symbols)
         log.info(
             "Will explain %s %s",
             ", why  ".join([""] + [str(q) for q in query_include]),
             ", why not".join([""] + [str(q) for q in query_exclude]),
         )
-        self.assert_is_model(model_symbols)
+        if assumptions is None:
+            assumptions = []
+        log.info("Assumptions: %s", [(str(s), b) for s, b in assumptions])
+        self.assert_is_model(model_symbols, assumptions)
         ctl_args = ["0", "--warn=none"]
 
         ctl = Control(arguments=ctl_args)
         constraint_model_prg = "\n".join([f":- not hold({str(s)})." for s in model_symbols])
         ctl.add("base", [], constraint_model_prg)
         ctl.add("base", [], self._reified_prg)
+
+        ctl.add("base", [], constraint_model_prg)
 
         with path("asplain.encodings", "all_reference.lp") as base_encoding:
             log.info("Loading encoding: %s", base_encoding)

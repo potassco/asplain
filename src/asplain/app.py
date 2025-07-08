@@ -3,7 +3,7 @@ import sys
 from textwrap import dedent
 from typing import Any, Callable, Optional, Sequence
 
-from clingo import Application, ApplicationOptions, Control, Flag, Model
+from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
 
 from .explainers import ContrastiveExplainer
 from .llm.models import ModelTag, OllamaModel
@@ -25,6 +25,7 @@ class AsplainApp(Application):
         self._log_level = "WARNING"
         self._model = None
         self._query = None
+        self._assumptions = None
         self._explanation_preference: Optional[Sequence[str]] = []
         self._predicates_file: Optional[Sequence[str]] = None
         self._model_tag = "openai"
@@ -62,6 +63,17 @@ class AsplainApp(Application):
             return True
 
         return setter
+
+    def parse_assumptions(self, value) -> bool:
+        """
+        Parse assumptions string
+        """
+
+        true_assumptions, false_assumptions = self._divide_space_string(value)
+        self._assumptions = [(parse_term(s), True) for s in true_assumptions]
+        self._assumptions += [(parse_term(s), False) for s in false_assumptions]
+
+        return True
 
     def parse_general(self, attr_name: str) -> Callable[[str], bool]:
         """
@@ -128,6 +140,19 @@ class AsplainApp(Application):
             argument="<query>",
         )
 
+        options.add(
+            group,
+            "assumptions",
+            dedent(
+                """\
+                Assumptions to enforce. Input should be atoms separated by spaces.
+                            False assumptions are preceded by '-'.
+                            If not given, assumptions will be provided interactively via the command line"""
+            ),
+            self.parse_assumptions,
+            argument="<assumptions>",
+        )
+
         options.add_flag(
             group,
             "prune",
@@ -172,12 +197,13 @@ class AsplainApp(Application):
             argument="<predicates>",
         )
 
-    def _divide_query_string(self, query_string: str) -> tuple[list[str], list[str]]:
+    @staticmethod
+    def _divide_space_string(space_string: str) -> tuple[list[str], list[str]]:
         """
-        Divide the query string into atoms to include and exclude
+        Divide the string into atoms to include and exclude
         """
-        include = [atom for atom in query_string.split() if not atom.startswith("-")]
-        exclude = [atom[1:] for atom in query_string.split() if atom.startswith("-")]
+        include = [atom for atom in space_string.split() if not atom.startswith("-")]
+        exclude = [atom[1:] for atom in space_string.split() if atom.startswith("-")]
         return include, exclude
 
     def print_model(self, model: Model, printer: Callable[[], None]) -> None:
@@ -207,10 +233,27 @@ class AsplainApp(Application):
                 print("pass")
                 return
 
+        include, exclude = self._divide_space_string(query)
+
+        # -------- Interactive assumptions --------
+        if self._assumptions is None:
+            assumptions_str = input(
+                colored(
+                    "yellow",
+                    dedent(
+                        """
+                    Are there any assumptions to be made?
+                    Provide the atoms you would like in your model separated by spaces.
+                    Write -a to make sure an atom does not appear. (Press enter to skip): """,
+                    ),
+                )
+            )
+            self.parse_assumptions(assumptions_str)
+
         # -------- Explain with Contrastive --------
-        include, exclude = self._divide_query_string(query)
+
         model_symbols = [str(s) for s in model.symbols(atoms=True, shown=True, theory=True)]
-        graphs = self._explainer.explain(model_symbols, include, exclude, prune=self._prune)
+        graphs = self._explainer.explain(model_symbols, include, exclude, assumptions=self._assumptions)
 
         for i, g in enumerate(graphs):
             log.info("--------------------Explanation %d\n%s", i, g)
@@ -263,4 +306,5 @@ class AsplainApp(Application):
                 ctl.load(f)
 
         ctl.ground([("base", [])])
-        ctl.solve()
+        assumptions = [] if self._assumptions is None else self._assumptions
+        ctl.solve(assumptions=assumptions)

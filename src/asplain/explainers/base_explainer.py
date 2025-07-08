@@ -2,9 +2,9 @@
 Classes that do the explanation of the models.
 """
 
-from typing import Sequence
+from typing import Sequence, Tuple
 
-from clingo import Control
+from clingo import Control, Symbol
 
 from ..utils.logging import get_logger
 
@@ -27,7 +27,7 @@ class Explainer:
         self._domain_files = domain_files
         self._explanation_preference_files = explanation_preference_files
 
-    def assert_is_model(self, model_symbols: Sequence[str]) -> bool:
+    def assert_is_model(self, model_symbols: Sequence[str], assumptions: Sequence[Tuple[Symbol, bool]]) -> bool:
         """
         Check if the given model is a valid model.
 
@@ -48,14 +48,18 @@ class Explainer:
         model_prg = "".join([f":- not {s}." for s in model_symbols])
         ctl.add("base", [], model_prg)
         ctl.ground([("base", [])])
-        with ctl.solve(yield_=True) as handle:
+        with ctl.solve(yield_=True, assumptions=assumptions) as handle:
             for m in handle:
                 return
         log.error("The provided model is not a model of the encoding")
         raise ValueError("The provided model is not a model of the encoding")
 
     def explain(
-        self, model_symbols: Sequence[str], query_include: Sequence[str], query_exclude: Sequence[str]
+        self,
+        model_symbols: Sequence[str],
+        query_include: Sequence[str],
+        query_exclude: Sequence[str],
+        assumptions: Sequence[Tuple[Symbol, bool]],
     ) -> Sequence[str]:
         """
         Explain the given model and queries.
@@ -64,6 +68,7 @@ class Explainer:
             model_symbols: The symbols of the model to explain.
             query_include: The symbols that must be included in the explanation.
             query_exclude: The symbols that must be excluded in the explanation.
+            assumptions: A list of tuples containing the assumption symbol and its value (True or False).
 
         Returns:
             List programs defining an explanation graph. Graphs are defined using predicates: `edge/2`, `node/1` and `attr/4`
