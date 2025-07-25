@@ -235,20 +235,22 @@ class AsplainApp(Application):
 
         include, exclude = self._divide_space_string(query)
 
-        # -------- Interactive assumptions --------
+        # # -------- Interactive assumptions --------
         if self._assumptions is None:
-            assumptions_str = input(
-                colored(
-                    "yellow",
-                    dedent(
-                        """
-                    Are there any assumptions to be made?
-                    Provide the atoms you would like in your model separated by spaces.
-                    Write -a to make sure an atom does not appear. (Press enter to skip): """,
-                    ),
-                )
-            )
-            self.parse_assumptions(assumptions_str)
+            self._assumptions = []
+        # if self._assumptions is None:
+        #     assumptions_str = input(
+        #         colored(
+        #             "yellow",
+        #             dedent(
+        #                 """
+        #             Are there any assumptions to be made?
+        #             Provide the atoms you would like in your model separated by spaces.
+        #             Write -a to make sure an atom does not appear. (Press enter to skip): """,
+        #             ),
+        #         )
+        #     )
+        #     self.parse_assumptions(assumptions_str)
 
         # -------- Explain with Contrastive --------
 
@@ -299,6 +301,7 @@ class AsplainApp(Application):
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
         self._explainer = ContrastiveExplainer(files, self._explanation_preference)  # type: ignore
+        log.info("Explainer initialized with files: %s", files)
         if self._model:
             ctl.load(self._model)
         else:
@@ -307,4 +310,8 @@ class AsplainApp(Application):
 
         ctl.ground([("base", [])])
         assumptions = [] if self._assumptions is None else self._assumptions
-        ctl.solve(assumptions=assumptions)
+        log.info("Solving with assumptions: %s", assumptions)
+        result = ctl.solve(assumptions=assumptions)
+        if not result.satisfiable:
+            log.error("No answer set found for the given program and assumptions.")
+            return
