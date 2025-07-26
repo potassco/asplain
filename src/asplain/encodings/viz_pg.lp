@@ -13,11 +13,14 @@
 
 % ====================
 % === CONFIGURATION===
+% Now passed when the program is called
+
+
 % draw(contrastive).
 % draw(hypothetical).
-draw(reference).
+% draw(reference).
 
-draw_type(pg).
+% draw_type(pg).
 % draw_type(model).
 % draw_type(explanation).
 % ====================
@@ -70,7 +73,7 @@ v_attr(node,(N,G),fontname,"Baskerville"):- v_node((N,G),G).
 
 % ## Nodes
 v_attr(node,(rule(H,B),G),shape,box):-v_node((rule(H,B),G),G).
-v_attr(node,(rule(H,B),G),label,"<<i>{{input}} </i><br/> BODY {{value}} <br/><i>{{output}}</i>>"):-
+v_attr(node,(rule(H,B),G),label,"<<i>{{input}} </i><br/> BODY {{value}} <br/><u>{{nl}} </u><br/> <i>{{output}}</i>>"):-
     v_node((rule(H,B),G),G).
 % v_attr(node,(rule(H,B),G),label,"<{{input}}<br/> BODY {{value}} <br/>{{output}}>"):-
 %     v_node((rule(H,B),G),G).
@@ -79,6 +82,9 @@ id(rule(disjunction(H),normal(B)),(H,B)):-node(rule(disjunction(H),normal(B)),_)
 id(rule(choice(H),normal(B)),(H,B)):-node(rule(choice(H),normal(B)),_).
 id(rule(disjunction(H),sum(B,W)),(H,B)):-node(rule(disjunction(H),sum(B,W)),_).
 id(rule(choice(H),sum(B,W)),(H,B)):-node(rule(choice(H),sum(B,W)),_).
+
+v_attr(node,(N,G),(label,nl),@format(S,P)):-
+    v_node((N,G),G),node_tag(N,nl(S,P)).
 
 v_attr(node,(rule(H,B),G),(label,value),ID):-
     v_node((rule(H,B),G),G),id(rule(H,B),ID).
