@@ -22,10 +22,10 @@ conjunction(B) :- _my_literal_tuple(B),
     hold(A) : _my_literal_tuple(B, A, pos);
     not hold(A) : _my_literal_tuple(B, A, neg).
 
-body(normal(B)) :- node(rule(_,normal(B))), conjunction(B).
-body(sum(B,G)) :- node(rule(_,sum(B,G))),
+body(normal(B)) :- node(rule(H,normal(B))), conjunction(B).
+body(sum(B,G)) :- node(rule(H,sum(B,G))),
     #sum { W,A : hold(A), _my_w_literal_tuple(B, A, pos, W) ;
            W,A : not hold(A), _my_w_literal_tuple(B, A, neg, W) } >= G.
 
-hold(A) : edge((rule(disjunction(H),B),atom(A))) :- node(rule(disjunction(H),B)), body(B).
-{ hold(A) : edge((rule(choice(H),B),atom(A))) } :- node(rule(choice(H),B)), body(B).
+hold(A) : edge((rule(disjunction(H),B),atom(A))) :- node(rule(disjunction(H),B)), body(B), not node_tag(rule(disjunction(H),B),disabled).
+{ hold(A) : edge((rule(choice(H),B),atom(A))) } :- node(rule(choice(H),B)), body(B), not node_tag(rule(choice(H),B),disabled).

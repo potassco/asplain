@@ -1,6 +1,7 @@
 import os
+import shutil
 from importlib.resources import path
-from typing import Callable, Dict, List, Sequence, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 from clingexplaid.transformers import RuleIDTransformer
 from clingo import Control, Function, Number, Symbol, TheoryTermType
@@ -26,7 +27,6 @@ def _visit_terms(thy: ReifiedTheory, cb: Callable[[ReifiedTheoryTerm], None]):
 
     This function does not recurse into terms.
     """
-    print("Visiting terms in theory")
     for atm in thy:
         for elem in atm.elements:
             for term in elem.terms:
@@ -35,6 +35,18 @@ def _visit_terms(thy: ReifiedTheory, cb: Callable[[ReifiedTheoryTerm], None]):
         guard = atm.guard
         if guard:
             cb(guard[1])
+
+
+def query_to_pgr(query_include: Sequence[str], query_exclude: Sequence[str]) -> str:
+    """
+    Convert query include and exclude symbols to a program graph representation.
+    """
+    pg = ""
+    for s in query_include:
+        pg += f"query(include,{s}).\n"
+    for s in query_exclude:
+        pg += f"query(exclude,{s}).\n"
+    return pg
 
 
 def _term_symbols(term: ReifiedTheoryTerm, ret: Dict[int, Symbol]) -> None:
@@ -57,7 +69,6 @@ def reify(prg: str = "", files: Sequence[str] = None) -> str:
     """
     Do the reification using clingox Reifier
     """
-    print("---------Reifying program")
     symbols: List[Symbol] = []
 
     ctl = Control(["--warn=none"])
@@ -68,17 +79,18 @@ def reify(prg: str = "", files: Sequence[str] = None) -> str:
         for f in files:
             ctl.load(f)
 
-    ctl.ground([("base", [])])
+    with path("asplain.encodings", "tag_theory.lp") as tag_theory_encoding:
+        log.info("Loading encoding: %s", tag_theory_encoding)
+        ctl.load(str(tag_theory_encoding))
 
-    theory_symbols: Dict[int, Symbol] = {}
-    print("Reifying theory symbols")
-    print(ReifiedTheory(symbols))
-    _visit_terms(ReifiedTheory(symbols), lambda term: _term_symbols(term, theory_symbols))
+        ctl.ground([("base", [])])
 
-    for k, v in theory_symbols.items():
-        print(f"Reified theory symbol: {k} -> {v}")
-        symbols.append(Function("theory_symbol", [Number(k), v]))
-    return "\n".join([f"{str(s)}." for s in symbols])
+        theory_symbols: Dict[int, Symbol] = {}
+        _visit_terms(ReifiedTheory(symbols), lambda term: _term_symbols(term, theory_symbols))
+
+        for k, v in theory_symbols.items():
+            symbols.append(Function("theory_symbol", [Number(k), v]))
+        return "\n".join([f"{str(s)}." for s in symbols])
 
 
 class ContrastiveExplainer(Explainer):
@@ -86,168 +98,256 @@ class ContrastiveExplainer(Explainer):
     Explanation class for contrastive explanations.
     """
 
-    def __init__(self, domain_files: Sequence[str], explanation_preference_files: Sequence[str]):
+    def __init__(self, output_dir: str, visualize: bool = True, store: bool = True):
         """
         Create an Asplain instance.
 
         Args:
-            domain_files: List of ASP files containing the domain knowledge.
-            explanation_preference_files: List of ASP files containing the explanation preferences (abducibles, distance).
+            output_dir: Directory where the output files will be stored.
+            visualize: Whether to visualize the explanation graphs.
+            store: Whether to store the explanation graphs in the output directory.
         """
-        self._domain_files = domain_files
-        self._explanation_preference_files = explanation_preference_files
+        self._visualize = visualize
+        self._store = store
 
         # Output directory for intermediate files and images
-        domain_base_path = os.path.dirname(self._domain_files[0])
-        self._output_dir = os.path.join(domain_base_path, "out")
-        if not os.path.exists(self._output_dir):
-            os.makedirs(self._output_dir)
+        self._output_dir = output_dir
+        # Remove the directory if it exists, then create it fresh
+        if os.path.exists(self._output_dir):
+            shutil.rmtree(self._output_dir)
+        os.makedirs(self._output_dir, exist_ok=True)
 
-    def prepare(self, assumptions: Sequence[Tuple[Symbol, bool]]) -> None:
-        """ """
+    def assumptions_as_ic(self, assumptions: Sequence[Tuple[Symbol, bool]]) -> str:
+        """
+        Convert assumptions to integrity constraints.
 
-        assumptions_as_constraints = "\n\n%%%%%%%%%%%% Assumptions as constraints %%%%%%%%%%%%\n"
-        assumptions_as_constraints += "\n".join([f":- not {str(s)}." for s, b in assumptions if b])
-        assumptions_as_constraints += "\n".join([f":- {str(s)}." for s, b in assumptions if not b])
+        Args:
+            assumptions: List of assumptions as tuples of (Symbol, bool).
 
-        self._reified_prg = reify(assumptions_as_constraints, self._domain_files)
-        with open(os.path.join(self._output_dir, "reify.lp"), "w") as f:
-            f.write(self._reified_prg)
-            log.info("Reified program saved in " + f.name)
-        self.viz_reify()
+        Returns:
+            A string representing the integrity constraints.
+        """
+        return "\n".join(
+            [f":- not {str(s)}, &tag_rule{{assumption}}." for s, b in assumptions if b]
+            + [f":- {str(s)}, &tag_rule{{assumption}}." for s, b in assumptions if not b]
+        )
 
-    def get_pg(
-        self,
-    ):
-        ctl_args = ["0", "--warn=none"]
-        ctl = Control(arguments=ctl_args)
-        ctl.add("base", [], self._reified_prg)
+    def reify(self, files: Sequence[str], assumptions: Sequence[Tuple[Symbol, bool]]) -> str:
+
+        assumptions_as_constraints = self.assumptions_as_ic(assumptions)
+
+        reified_prg = reify(assumptions_as_constraints, files)
+        if self._store:
+            with open(os.path.join(self._output_dir, "reify.lp"), "w") as f:
+                f.write(reified_prg)
+                log.info("Reified program saved in " + f.name)
+        # if self._visualize:
+        #     self.viz_reify(reified_prg)
+        return reified_prg
+
+    def generate_pg(self, files: Sequence[str], assumptions: Optional[Sequence[Tuple[Symbol, bool]]] = None):
+        if not assumptions:
+            assumptions = []
+        log.info("-----Reifying program")
+        reified_prg = self.reify(files, assumptions)
+
+        log.info("-----Computing PG")
+        ctl = Control(arguments=["1", "--warn=none"])
+        ctl.add("base", [], reified_prg)
         with path("asplain.encodings", "reify_to_pg.lp") as base_encoding:
             log.info("Loading encoding: %s", base_encoding)
             ctl.load(str(base_encoding))
 
         ctl.ground([("base", [])])
+        pg = ""
         with ctl.solve(yield_=True) as handle:
             for m in handle:
-                self._pg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
-        if not self._pg:
+                pg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
+        if not pg:
             log.error("No program graph found")
-            return
+            return None
 
-        with open(os.path.join(self._output_dir, "pg.lp"), "w") as f:
-            f.write(self._pg)
-            log.info("Program graph saved in " + f.name)
+        if self._store:
+            with open(os.path.join(self._output_dir, "pg.lp"), "w") as f:
+                f.write(pg)
+                log.info("Program graph saved in " + f.name)
 
-        extra_prg = """
-        node(N,reference) :- node(N).
-        edge(N,reference) :- edge(N).
-        edge_attr(N,T,V,reference) :- edge(N,T,V).
-        """
-        self.viz_explanation_graph(self._pg + extra_prg, name="pg", draw=["reference"], draw_types=["pg"])
+        if self._visualize:
+            self.viz_graph(pg, "reference", "Program Graph", file_name="pg", draw_types=["pg"])
+        return pg
 
-    def explain(
+    def setup_ctl_from_pg(
         self,
+        ctl: Control,
+        pg: str,
         model_symbols: Sequence[str],
         query_include: Sequence[str],
         query_exclude: Sequence[str],
-        assumptions: Sequence[Tuple[Symbol, bool]],
-    ) -> Sequence[str]:
+    ):
         """
-        Explain the given model and queries.
+        Setup the control object with the program graph and model symbols.
 
         Args:
-            model_symbols: The symbols of the model to explain.
+            ctl: The control object to setup.
+            pg: The program graph as a string of facts
+            model_symbols: The symbols of the model to be fixed, this will make sure this model is obtained from the pg.
+            query_include: The symbols that must be checked if included in the model.
+            query_exclude: The symbols that must be checked if excluded in the model.
+        """
+        ctl.add("base", [], pg)
+
+        if model_symbols is not None:
+            model_prg = "\n".join([f"_model({str(s)})." for s in model_symbols])
+            model_prg += "_force_model."
+            ctl.add("base", [], model_prg)
+
+        q_prg = query_to_pgr(query_include, query_exclude)
+        ctl.add("base", [], q_prg)
+
+        with path("asplain.encodings", "solve_pg.lp") as base_encoding:
+            log.info("Loading encoding: %s", base_encoding)
+            ctl.load(str(base_encoding))
+
+    def tag_symbols(self, prg: str, tag: str) -> List[Symbol]:
+        """ """
+        ctl = Control(["--warn=none"])
+        ctl.add("base", [], prg)
+        ctl.ground([("base", [])])
+        with ctl.solve(yield_=True) as handle:
+            for m in handle:
+                tag_atom = Function(tag, [])
+                new_symbols = []
+                for s in m.symbols(shown=True):
+                    new_s = Function(s.name, s.arguments + [tag_atom])
+                    new_symbols.append(new_s)
+                return new_symbols
+
+    def contrast(self, reference_model_pg, hypothetical_model_pg):
+        """
+        Compute the contrast between the reference model and the hypothetical model.
+
+        Args:
+            reference_model_pg: The program graph of the reference model. Tagged with "reference".
+            hypothetical_model_pg: The program graph of the hypothetical model. Tagged with "hypothetical".
+
+        Returns:
+            A string representing the contrast between the two models.
+        """
+        ctl = Control(["--warn=none"])
+        ctl.add("base", [], reference_model_pg)
+        ctl.add("base", [], hypothetical_model_pg)
+
+        with path("asplain.encodings", "contrast.lp") as contrast_encoding:
+            log.info("Loading encoding: %s", contrast_encoding)
+            ctl.load(str(contrast_encoding))
+
+        ctl.ground([("base", [])])
+        contrast_prg = ""
+        # Add a custom prune function
+        with ctl.solve(yield_=True) as handle:
+            for m in handle:
+                contrast_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
+        return contrast_prg
+
+    def explain(
+        self,
+        reference_model_symbols: Sequence[Symbol],
+        query_include: Sequence[str],
+        query_exclude: Sequence[str],
+        preference_files: Optional[str] = None,
+        model_number: int = 1,
+    ):
+        """
+        Compute the contrastive explanation for the given model and queries.
+
+        Args:
+            reference_model_symbols: The program graph of the reference model.
             query_include: The symbols that must be included in the explanation.
             query_exclude: The symbols that must be excluded in the explanation.
 
         Returns:
-            List programs defining an explanation graph. Graphs are defined using predicates: `edge/2`, `node/1` and `attr/4`
+            List of programs defining an explanation graph. Graphs are defined using predicates: `edge/2`, `node/1` and `attr/4`
         """
+        ctl = Control(["0", "--warn=none"])
+        reference_model_pg = self.tag_symbols(reference_model_symbols, "reference")
+        reference_model_pg = "\n".join([str(s) + "." for s in reference_model_pg])
+        ctl.add("base", [], reference_model_pg)
 
-        self.prepare(assumptions)
-        self.get_pg()
-        return True
-        log.info("Model: %s", model_symbols)
-        log.info(
-            "Will explain %s %s",
-            ", why  ".join([""] + [str(q) for q in query_include]),
-            ", why not".join([""] + [str(q) for q in query_exclude]),
-        )
-        # if assumptions is None:
-        #     assumptions = []
-        # log.info("Assumptions: %s", [(str(s), b) for s, b in assumptions])
-        # self.assert_is_model(model_symbols, assumptions)
+        q_prg = query_to_pgr(query_include, query_exclude)
+        ctl.add("base", [], q_prg)
 
-        ctl_args = ["0", "--warn=none"]
-        ctl = Control(arguments=ctl_args)
-        constraint_model_prg = "\n".join([f":- not hold({str(s)})." for s in model_symbols])
-        ctl.add("base", [], constraint_model_prg)
-        ctl.add("base", [], self._pg)
-
-        with path("asplain.encodings", "all_reference.lp") as base_encoding:
+        # Find hypo
+        with path("asplain.encodings", "all_hypo.lp") as base_encoding:
             log.info("Loading encoding: %s", base_encoding)
             ctl.load(str(base_encoding))
 
-        # model_prg = "".join([f"_model(real,{s})." for s in model_symbols])
-        # ctl.add("base", [], model_prg)
+        if preference_files is None:
+            preference_files = []
 
-        ctl.ground([("base", [])])
-        reference_explanations = []
-        with ctl.solve(yield_=True) as handle:
-            for m in handle:
-                explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
-                reference_explanations.append(explanation_graph_prg)
-
-        if len(reference_explanations) == 0:
-            log.warning("No reference explanation found")
-        else:
-            log.debug("=================\nReference explanation:")
-            log.debug(reference_explanations[0])
-
-        ref_prg = reference_explanations[0]
-        ctl = Control(arguments=ctl_args)
-        ctl.add("base", [], ref_prg)
-
-        qi = "".join([f"_query(include,{s})." for s in query_include])
-        ctl.add("base", [], qi)
-        qe = "".join([f"_query(exclude,{s})." for s in query_exclude])
-        ctl.add("base", [], qe)
-
-        for f in self._explanation_preference_files:
+        for f in preference_files:
             log.info("Loading encoding: %s", f)
             ctl.load(f)
 
-        with path("asplain.encodings", "all_hypo.lp") as base_encoding:
-            log.debug("Loading encoding: %s", base_encoding)
-            ctl.load(str(base_encoding))
-
         ctl.ground([("base", [])])
-        contrastive_explanations = []
+
+        hypo_explanations = []
         ctl.configuration.solve.opt_mode = "optN"
         with ctl.solve(yield_=True) as handle:
             for m in handle:
+
                 if not m.optimality_proven:
-                    log.debug("No optimality proven")
-                    log.debug(m.cost)
+                    log.debug("Optimality not proven for model, skipping it.")
                     continue
-                explanation_graph_prg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
-                log.debug("=================\nHypo explanation:")
-                log.debug(m.cost)
-                log.debug(explanation_graph_prg)
-                explanation_graph_prg += ref_prg
-                contrastive_explanations.append(explanation_graph_prg)
+                hypothetical_model_pg = "\n".join([str(s) + "." for s in m.symbols(shown=True)])
+                log.info(f"=================Found Hypothetical explanation {m.number}:")
+                log.debug(hypothetical_model_pg)
+                hypo_explanations.append(hypothetical_model_pg)
+                if self._store:
+                    hypo_explanation_file = os.path.join(
+                        self._output_dir, f"model-{model_number}-hypothetical-{m.number}.lp"
+                    )
+                    with open(hypo_explanation_file, "w") as f:
+                        f.write(hypothetical_model_pg)
+                        log.info("Hypothetical explanation saved in " + f.name)
+                if self._visualize:
+                    self.viz_graph(
+                        hypothetical_model_pg,
+                        "hypothetical",
+                        "Hypothetical Model Program Graph",
+                        file_name=f"model-{model_number}-hypothetical-{m.number}",
+                        draw_types=["explanation", "model"],
+                    )
 
-        if len(contrastive_explanations) == 0:
+                hypothetical_model_pg = self.tag_symbols(hypothetical_model_pg, "hypothetical")
+                hypothetical_model_pg = "\n".join([str(s) + "." for s in hypothetical_model_pg])
+                contrast_prg = self.contrast(reference_model_pg, hypothetical_model_pg)
+
+                if self._store:
+                    contrast_file = os.path.join(self._output_dir, f"model-{model_number}-contrast-{m.number}.lp")
+                    with open(contrast_file, "w") as f:
+                        f.write(contrast_prg)
+                        log.info("Contrast saved in " + f.name)
+
+                if self._visualize:
+                    self.viz_graph(
+                        contrast_prg,
+                        "contrast",
+                        "Contrastive explanation",
+                        file_name=f"model-{model_number}-contrast-{m.number}",
+                        draw_types=["contrast", "model"],
+                        open=True,
+                    )
+
+        if len(hypo_explanations) == 0:
             log.error("No hypothetical explanation found")
+            return []
 
-        return contrastive_explanations
-
-    def viz_reify(self) -> None:
+    def viz_reify(self, reified_prg: str) -> None:
 
         fb = Factbase()
         ctl = Control(["--warn=none"])
         ctx = ClingraphContext()
-        ctl.add("base", [], self._reified_prg)
+        ctl.add("base", [], reified_prg)
 
         with path("asplain.encodings", "viz_reify.lp") as clingraph_encoding:
             ctl.load(str(clingraph_encoding))
@@ -255,17 +355,18 @@ class ContrastiveExplainer(Explainer):
         ctl.ground([("base", [])], context=ctx)
         ctl.solve(on_model=fb.add_model)
         graphs = compute_graphs(fb, graphviz_type="directed")
-        files = render(graphs, view=True, directory=self._output_dir, name_format="reify", format="svg")
+        files = render(graphs, view=False, directory=self._output_dir, name_format="reify", format="svg")
         for _, f in files.items():
             log.info("Reify: " + f)
 
-    def viz_explanation_graph(
+    def viz_graph(
         self,
         explanation_graph: str,
-        name: str = "explanation",
-        natural_language_explanation: str = None,
+        graph_type: str,
+        title: str,
+        file_name: str = "explanation",
         draw_types: [str] = None,
-        draw: [str] = None,
+        open=False,
     ) -> None:
         """
         Visualize the explanation graph using cligraph
@@ -277,18 +378,16 @@ class ContrastiveExplainer(Explainer):
         """
         if not draw_types:
             draw_types = []
-        if not draw:
-            draw = []
 
-        fb = Factbase(prefix="v_")
+        fb = Factbase()
         ctl = Control(["--warn=none"])
         ctx = ClingraphContext()
         ctl.add("base", [], explanation_graph)
+        ctl.add("base", [], f'title("{title}").')
+        ctl.add("base", [], f"graph_type({graph_type}).")
 
         for d in draw_types:
             ctl.add("base", [], f"draw_type({d}).")
-        for d in draw:
-            ctl.add("base", [], f"draw({d}).")
 
         with path("asplain.encodings", "viz_pg.lp") as clingraph_encoding:
             ctl.load(str(clingraph_encoding))
@@ -296,6 +395,6 @@ class ContrastiveExplainer(Explainer):
         ctl.ground([("base", [])], context=ctx)
         ctl.solve(on_model=fb.add_model)
         graphs = compute_graphs(fb, graphviz_type="directed")
-        files = render(graphs, view=True, directory=self._output_dir, name_format=name, format="svg")
+        files = render(graphs, view=open, directory=self._output_dir, name_format=f"{file_name}", format="svg")
         for _, f in files.items():
-            log.info("Explanation graph saved in: " + f)
+            log.info(f"Graph for {graph_type} titled '{title}' saved in: {f}")

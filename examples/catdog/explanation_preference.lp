@@ -12,10 +12,10 @@ _distance(Atom, 1, 1) :-
 % ## reduce
 % This is tricky to write since one holds in holds/2 and one is holds/1
 _distance(Atom, 1, 1) :-
-    hold(Atom,reference), not hold(Atom).
+    used_to_hold(Atom), not hold(Atom).
 
 _distance(Atom, 1, 1) :-
-    not hold(Atom,reference), hold(Atom).
+    not used_to_hold(Atom), hold(Atom).
 
 _distance(Reason, 1, 1) :-
     reason(Reason,reference), not reason(Reason).

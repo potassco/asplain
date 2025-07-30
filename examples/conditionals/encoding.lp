@@ -1,14 +1,15 @@
 
 
-% p(1).
-% p(2).
-% p(3).
-% p(4).
+
+% p(1..4).
+% {c}.
+
+% {r(X):p(X);#true} :- c.
 
 
-p(1..4).
-c.
 
-{r(X): p(X)} :- c.
-% {r(1);r(2);r(3);r(4)} :- c.
-% {r(X)} :- c, p(X).
+p(1):-&tag_rule{input}.
+p(2):-&tag_rule{input}.
+p(3):-&tag_rule{input}.
+{c}.
+{r(X)} :- c, p(X).

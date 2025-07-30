@@ -23,11 +23,12 @@ class AsplainApp(Application):
         """
         self.program_name = name
         self._log_level = "WARNING"
-        self._model = None
-        self._query = None
-        self._assumptions = None
+        self._model_symbols = None
+        self._query_include = []
+        self._query_exclude = []
+        self._assumptions = []
         self._explanation_preference: Optional[Sequence[str]] = []
-        self._predicates_file: Optional[Sequence[str]] = None
+        # self._predicates_file: Optional[Sequence[str]] = None
         self._model_tag = "openai"
         self._use_llm: Flag = Flag()
         self._prune: Flag = Flag()
@@ -74,6 +75,30 @@ class AsplainApp(Application):
         self._assumptions += [(parse_term(s), False) for s in false_assumptions]
 
         return True
+
+    def parse_query(self, value) -> bool:
+        """
+        Parse query string
+        """
+
+        true_queries, false_queries = self._divide_space_string(value)
+        self._query_include = [parse_term(s) for s in true_queries]
+        self._query_exclude = [parse_term(s) for s in false_queries]
+
+        return True
+
+    def parse_model(self, value: str) -> bool:
+        self.parse_file("_model_file")(value)
+        ctl = Control(["1", "--warn=none"])
+        ctl.load(value)
+        ctl.ground([("base", [])])
+        with ctl.solve(yield_=True) as handle:
+            for m in handle:
+                self._model_symbols = m.symbols(atoms=True)
+                return True
+
+        log.error("No answer set found for the given model file: %s", value)
+        return False
 
     def parse_general(self, attr_name: str) -> Callable[[str], bool]:
         """
@@ -123,7 +148,7 @@ class AsplainApp(Application):
                 File with a fixed model to explain. Input should be an ASP program using facts.
                 If this parameter is not provided, the solving will follow normally in search for models. """
             ),
-            self.parse_file("_model"),
+            self.parse_model,
             argument="<model>",
         )
 
@@ -136,7 +161,7 @@ class AsplainApp(Application):
                             Negated atoms are preceded by '-'.
                             If not given, queries will be provided interactively via the command line"""
             ),
-            self.parse_general("_query"),
+            self.parse_query,
             argument="<query>",
         )
 
@@ -210,89 +235,36 @@ class AsplainApp(Application):
         """
         Print a model on the console. If no query was provided, it asks the user for one
         """
+        # log.info("Model: %s", model)
+        output = ""
+        failed_query = False
+        model_pg = "\n".join([str(s) + "." for s in model.symbols(shown=True)])
         for sym in model.symbols(shown=True):
-            sys.stdout.write(f"{sym} ")
-        sys.stdout.write("\n")
+            # print(sym.arguments[0].name)
+            if sym.name == "node_tag" and str(sym.arguments[1]) == "true" and sym.arguments[0].name == "atom":
+                output += str(sym.arguments[0].arguments[0]) + " "
+            if sym.name == "fail_query":
+                failed_query = True
 
-        # -------- Interactive query --------
-        if self._query:
-            query = self._query
+        color = "red" if failed_query else "green"
+        output = colored(color, output)
+        if failed_query:
+            output += "\n" + colored("red", "(Query failed to hold in the model)")
         else:
-            query = input(
-                colored(
-                    "yellow",
-                    dedent(
-                        """
-                    What do you want to explain?
-                    Provide the atoms you would like in your model separated by spaces.
-                    Write -a to force atom a to not appear. (Press enter to skip): """,
-                    ),
-                )
-            )
-            if query.lower() == "":
-                print("pass")
-                return
+            output += "\n" + colored("green", "(Query holds in the model)")
+        sys.stdout.write(output + "\n")
 
-        include, exclude = self._divide_space_string(query)
+        self._explainer.viz_graph(
+            model_pg, "reference", "Model Program Graph", file_name=f"model-{model.number}", draw_types=["model"]
+        )
+        reference_explanation_file = os.path.join(self._explainer._output_dir, f"model-{model.number}.lp")
+        with open(reference_explanation_file, "w") as f:
+            f.write(model_pg)
+            log.info("Reference model saved in " + f.name)
 
-        # # -------- Interactive assumptions --------
-        if self._assumptions is None:
-            self._assumptions = []
-        # if self._assumptions is None:
-        #     assumptions_str = input(
-        #         colored(
-        #             "yellow",
-        #             dedent(
-        #                 """
-        #             Are there any assumptions to be made?
-        #             Provide the atoms you would like in your model separated by spaces.
-        #             Write -a to make sure an atom does not appear. (Press enter to skip): """,
-        #             ),
-        #         )
-        #     )
-        #     self.parse_assumptions(assumptions_str)
-
-        # -------- Explain with Contrastive --------
-
-        model_symbols = [str(s) for s in model.symbols(atoms=True, shown=True, theory=True)]
-        graphs = self._explainer.explain(model_symbols, include, exclude, assumptions=self._assumptions)
-
-        for i, g in enumerate(graphs):
-            log.info("--------------------Explanation %d\n%s", i, g)
-
-            # -------- Explain with LLM --------
-            llm_response = None
-            if self._use_llm:
-                predicates = ""
-                if self._predicates_file:
-                    with open(self._predicates_file, "r") as f:
-                        predicates = " ".join(f.readlines())
-
-                if self._model_tag == "openai":
-                    # OPEN AI
-                    llm_model = OpenAIModel(ModelTag.GPT_4O_MINI)
-                elif self._model_tag == "deepseek":
-                    # DEEPSEEK
-                    llm_model = OllamaModel(ModelTag.DEEPSEEK_R1_14B)
-                elif self._model_tag == "llama":
-                    # DEFAULT LLAMA
-                    llm_model = OllamaModel(ModelTag.LLAMA_3_2_1B)
-                else:
-                    raise ValueError(f"Model tag invalid: {self._model_tag}")
-
-                prompt_template = ExplainLargeTemplate(
-                    graph=g,
-                    predicates=predicates,
-                )
-                llm_response = llm_model.prompt_template(prompt_template)
-                print_llm_message(llm_response)
-
-            # -------- Visualize Explanation --------
-            self._explainer.viz_explanation_graph(
-                g,
-                name=f"{{graph_name}}-model-{model.number}-explanation-{i}",
-                natural_language_explanation=llm_response,
-            )
+        self._explainer.explain(
+            model_pg, self._query_include, self._query_exclude, self._explanation_preference, model.number
+        )
 
     def main(self, ctl: Control, files: Sequence[str]) -> None:
         """
@@ -300,18 +272,25 @@ class AsplainApp(Application):
         """
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
-        self._explainer = ContrastiveExplainer(files, self._explanation_preference)  # type: ignore
-        log.info("Explainer initialized with files: %s", files)
-        if self._model:
-            ctl.load(self._model)
-        else:
-            for f in files:
-                ctl.load(f)
+        log.info("Model: %s", self._model_symbols)
+        log.info(
+            "Will explain %s %s",
+            ", why  ".join([""] + [str(q) for q in self._query_include]),
+            ", why not".join([""] + [str(q) for q in self._query_exclude]),
+        )
+        # Set the assumptions
+        output_dir = os.path.join(os.path.dirname(files[0]), "out")
+        self._explainer = ContrastiveExplainer(output_dir, True, True)  # type: ignore
+        pg = self._explainer.generate_pg(files, self._assumptions)
+        if pg is None:
+            log.error("No program graph generated. Exiting.")
+            return
+
+        self._explainer.setup_ctl_from_pg(ctl, pg, self._model_symbols, self._query_include, self._query_exclude)
 
         ctl.ground([("base", [])])
-        assumptions = [] if self._assumptions is None else self._assumptions
-        log.info("Solving with assumptions: %s", assumptions)
-        result = ctl.solve(assumptions=assumptions)
+        result = ctl.solve()
         if not result.satisfiable:
-            log.error("No answer set found for the given program and assumptions.")
-            return
+            log.warning("------ UNSATISFIABLE ------")
+            log.warning("Calculating contrastive explanation without a query for the pg without a model")
+            self._explainer.explain(pg, [], [], self._explanation_preference, 0)

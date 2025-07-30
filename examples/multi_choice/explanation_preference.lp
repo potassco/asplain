@@ -25,7 +25,7 @@ _distance(Reason, 1, 2) :-
 
 % The following distance produces a single optimal explanation by removing the one where h is added.
 % _distance(Atom, 1, 1) :-
-%     hold(Atom,reference), not hold(Atom).
+%     used_to_hold(Atom), not hold(Atom).
 
 % _distance(Atom, 1, 1) :-
-%     not hold(Atom,reference), hold(Atom).
+%     not used_to_hold(Atom), hold(Atom).
