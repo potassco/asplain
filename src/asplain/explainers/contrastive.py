@@ -127,10 +127,14 @@ class ContrastiveExplainer(Explainer):
         Returns:
             A string representing the integrity constraints.
         """
-        return "\n".join(
-            [f":- not {str(s)}, &tag_rule{{assumption}}." for s, b in assumptions if b]
-            + [f":- {str(s)}, &tag_rule{{assumption}}." for s, b in assumptions if not b]
-        )
+        prg = ""
+        for s, b in assumptions:
+            if b:
+                prg += f":- not {str(s)}, &tag_rule{{assume(true)}}.\n"
+            else:
+                prg += f":- {str(s)}, &tag_rule{{assume(false)}}.\n"
+        log.debug("Assumptions as integrity constraints: %s", prg)
+        return prg
 
     def reify(self, files: Sequence[str], assumptions: Sequence[Tuple[Symbol, bool]]) -> str:
 

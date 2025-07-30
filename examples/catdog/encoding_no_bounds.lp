@@ -20,22 +20,31 @@ Sits people so that dog people dont sit in the same table as dog people
 *%
 
 %=== Instance
-person("Susana",cat). person("Alexander",cat). person("Torsten",dog).
-seat((1,1..2)). seat((2,1..2)).
+person("Susana",cat):- &tag_rule{input}.
+person("Alexander",cat):- &tag_rule{input}.
+person("Torsten",dog):- &tag_rule{input}.
+seat((1,1..2)):- &tag_rule{input}.
+seat((2,1..2)):- &tag_rule{input}.
+
+:- person(P,A), not &tag_atom{nl("{} likes {}s",(P,A))}.
+:- seat((T,C)), not &tag_atom{nl("There is a seat at table {} and chair {}",(T,C))}.
+:- assign(P,(T,C)), not &tag_atom{nl("{} is assigned to table {} chair {}",(P,T,C))}.
 
 % ---- encoding
-% {assign(P,S):seat(S)}:- person(P,A).
-{assign(P,S)}:- person(P,A),seat(S).
+% 0{assign(P,S):seat(S)}#sup:- person(P,A).
+% 1{assign(P,S):seat(S)}1:- person(P,A).
+{assign(P,(T,C))}:- person(P,A), seat((T,C)), &tag_rule{nl("{} might be assigned to table {} seat {}",(P,T,C))}.
+% {assign(P,S)}:- person(P,A),seat(S).
 
 % :- assign(P,S), assign(P,S'), S'>S.  % no seats assigned to the same person
 % :- person(P,A), not assign(P,S): seat(S).  % every person must be assigned to a seat
 
-:- #sum{1,S:assign(P,S)}!=1, person(P,A).  % every person must be assigned to a seat
+:- #sum{1,S:assign(P,S)}!=1, person(P,A), &tag_rule{nl("{} must be assigned to exactly one seat",P)}.  % every person must be assigned to a seat
 
 
 % :- assign(P,S), assign(P,S'), S'>S.  % no seats assigned to the same person
-:- assign(P,S), assign(P',S), P'>P.  % no two people in the same seat
-:- assign(P,(T,C)), assign(P',(T,C')), person(P,cat), person(P',dog). % no cat and dog people in the same seat
+:- assign(P,S), assign(P',S), P'>P, &tag_rule{nl("{} and {} can't share seat",(P,P'))}.  % no two people in the same seat
+:- assign(P,(T,C)), assign(P',(T,C')), person(P,cat), person(P',dog), &tag_rule{nl("{} and {} don't like the same animal<br/> so can't seat in the same table {}",(P,P',T))}. % no cat and dog people in the same seat
 
 %% Interaction 1:
 % query:

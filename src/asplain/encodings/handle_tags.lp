@@ -69,5 +69,11 @@ node_tag(atom(A),F):-
 
 % ---------- extra inferred tags
 
-node_tag(rule(H,B),nl("User input",())):-
-    node_tag(rule(H,B),assumption).
+node_tag(rule(H,B),nl("User assumed {}",(F,))):-
+    node_tag(rule(H,B),assume(F)).
+
+node_tag(rule(H,B),abducible(rm)):-
+    node_tag(rule(H,B),assume(_)).
+
+node_tag(rule(H,B),nl("Input",())):-
+    node_tag(rule(H,B),input).
