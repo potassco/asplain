@@ -11,8 +11,8 @@ _abducible((rm;add),age(P,E)):-node(atom( age(P,E))).
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.
 
-_distance(Atom, 1, 2) :-
-    _abduced(_, Atom).
+distance(Atom, 1, 2) :-
+    abduced(_, Atom).
 
 % _direct_inhibitor(2, real, sit, stand).
 % _direct_inhibitor(2, hypothetical, stand, sit).
@@ -20,11 +20,11 @@ _distance(Atom, 1, 2) :-
 
 % ## reduce
 % This is tricky to write since one holds in holds/2 and one is holds/1
-_distance(Atom, 1, 1) :-
+distance(Atom, 1, 1) :-
     used_to_hold(Atom), not hold(Atom).
 
-_distance(Atom, 1, 1) :-
+distance(Atom, 1, 1) :-
     not used_to_hold(Atom), hold(Atom).
 
-_distance(Reason, 1, 1) :-
+distance(Reason, 1, 1) :-
     reason(Reason,reference), not reason(Reason).

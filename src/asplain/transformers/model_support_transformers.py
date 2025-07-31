@@ -139,7 +139,7 @@ class WorldVariableSafetyTransformer(CustomTransformer):
         ]:
             return rule
 
-        # Creates new literal for the body (not _abduced(rm, Head))
+        # Creates new literal for the body (not abduced(rm, Head))
         world_literal = ast.Literal(
             location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
             sign=False,  # Positive Literal

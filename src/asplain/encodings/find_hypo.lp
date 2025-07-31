@@ -1,8 +1,7 @@
 % Create the atoms _abducible_rule/2.
-#include "util_preferences/abducible_rules_from_atoms.lp".
 
 % Any abducible rule can be removed or added.
-{abduced(T,R)} :- node_tag(R,abducible(T),reference).
+{abduced(T,R)} :- node_tag(R,abducible(T)).
 
 
 % Abduced as added need to be included in the hypothetical PG.
@@ -28,6 +27,6 @@ node_tag(R,disabled):-node(R,reference), abduced(rm, R).
 % hold(A,reference) :-  node_tag(atom(A),true,reference).
 % :-node_tag(N,disabled), node_tag(N,true).
 % Adds an optimization based on the distance
-used_to_hold(A):-node_tag(atom(A),true,reference). %Used to simplify writing the distance rules
-_distance(default, 1, 1). %This rule is added in case no other distance is defined.
-:~ _distance(N,D,L). [D@L,N]
+used_to_hold(atom(A)):-node_tag(atom(A),true,reference). %Used to simplify writing the distance rules
+distance(default, 1, 1). %This rule is added in case no other distance is defined.
+:~ distance(N,D,L). [D@L,N]

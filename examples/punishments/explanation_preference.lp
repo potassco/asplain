@@ -9,7 +9,7 @@
 % _abducible((rm;add),resist(clare)).
 % _abducible((rm;add),resist(gabriel)).
 
-_abducible((rm;add), paid_taxes). 
+_abducible((rm;add), paid_taxes).
 
-_distance(Atom, 1, 1) :-
-    _abduced(_, Atom).
+distance(Atom, 1, 1) :-
+    abduced(_, Atom).

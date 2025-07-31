@@ -1,4 +1,4 @@
 % Abduce the least rules
 
-_distance(R, 1, 2) :-
-    _abduced(_, R).
+distance(R, 1, 2) :-
+    abduced(_, R).

@@ -54,7 +54,8 @@ attr(graph,default,(label,description),@format("({})",T)):-explanation_type(T).
 attr(graph,default,fontname,"Baskerville").
 attr(graph,default,fontsize,"20").
 
-attr(node,N,style,filled):- node(N).
+attr(node,N,style,filled):- node(N), not node_tag(N, abducible(_)).
+attr(node,N,style,"filled,dashed"):- node(N), node_tag(N, abducible(_)).
 attr(node,N,fontname,"Baskerville"):-  node(N).
 
 attr(node,N,tooltip,@format(S,P)):- node(N), node_tag(N,nl(S,P)).
@@ -63,9 +64,9 @@ attr(node,N,tooltip,@format(S,P)):- node(N), node_tag(N,nl(S,P)).
 attr(node,rule(H,B),shape,box):-node(rule(H,B)).
 
 % attr(node,rule(H,B),label,"<<u><font point-size=\"9\">{{input}}</font> </u><br/> BODY {{value}} <br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
-attr(node,rule(H,B),label,"<<br/> BODY {{value}} <br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
+attr(node,rule(H,B),label,"<<u><font point-size=\"9\">{{input}} </font> </u><br/> BODY {{value}} <br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
     node(rule(H,B)), not node_tag(rule(H,B),disabled).
-attr(node,rule(H,B),label,"<<br/><s> BODY {{value}} </s><br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
+attr(node,rule(H,B),label,"<<u><font point-size=\"9\">{{input}} </font> </u><br/><s> BODY {{value}} </s><br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
     node(rule(H,B)), node_tag(rule(H,B),disabled).
 % attr(node,(rule(H,B)),label,"<{{input}}<br/> BODY {{value}} <br/>{{output}}>"):-
 %     node((rule(H,B))).

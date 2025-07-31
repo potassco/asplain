@@ -10,7 +10,7 @@ from .custom_transformer import CustomTransformer
 
 WRAPPER_HYPOTHETICAL_PREDICATE_NAME = "hypothetical"
 WRAPPER_MODEL_PREDICATE_NAME = "_model"
-WRAPPER_ABDUCEDS_PREDICATE_NAME = "_abduced"
+WRAPPER_ABDUCEDS_PREDICATE_NAME = "abduced"
 
 # Method name "visit_Rule" doesn't conform to snake_case naming style (invalid-name)
 # Method name "visit_Literal" doesn't conform to snake_case naming style (invalid-name)
@@ -21,13 +21,13 @@ log = get_logger("main")
 
 class AbducedRemovedTransformer(CustomTransformer):
     """
-    Adds a special literal `not _abduced(rm, Head)` in the body of each rule, allowing the removing of some atoms when
+    Adds a special literal `not abduced(rm, Head)` in the body of each rule, allowing the removing of some atoms when
     abducing.
     """
 
     def visit_Rule(self, rule: ast.AST) -> ast.AST:
         """
-        Creates a special literal `not _abduced(rm, Head)` in the body of each rule, allowing the removing of some
+        Creates a special literal `not abduced(rm, Head)` in the body of each rule, allowing the removing of some
         atoms when abducing.
         """
         head = rule.head
@@ -73,7 +73,7 @@ class AbducedRemovedTransformer(CustomTransformer):
             if rule.head.atom.ast_type == ast.ASTType.BooleanConstant:  # Integrity Constraint
                 return rule
 
-            # Creates new literal for the body (not _abduced(rm, Head))
+            # Creates new literal for the body (not abduced(rm, Head))
             not_removed_literal = ast.Literal(
                 location=rule.body[0].location if len(rule.body) > 0 else rule.head.location,
                 sign=True,  # Negative Literal
@@ -138,7 +138,7 @@ class HypotheticalLiteralsTransformer(CustomTransformer):
             )
 
         if literal.ast_type == ast.ASTType.Literal:  # Also Pools
-            # Skip 'not _abduced(rm, Head)'
+            # Skip 'not abduced(rm, Head)'
             if (
                 literal.atom.ast_type == ast.ASTType.Function
                 and literal.sign == 1  # Negative literal

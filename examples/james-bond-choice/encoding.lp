@@ -24,16 +24,16 @@ a :- s, &tag_rule{nl("Bond receives the antidote if he is smart.",())}.
 
 
 %==== Instance
-d:- &tag_rule{abducible(rm)}, &tag_rule{nl("Input",())}.
-s:- &tag_rule{abducible(add)}, &tag_rule{disabled}, &tag_rule{nl("Input",())}.
+d:- &tag_rule{abducible(rm)}, &tag_rule{input}.
+s:- &tag_rule{abducible(add)}, &tag_rule{disabled}, &tag_rule{input}.
 
 
-:- a, not &tag_atom{nl("Bond has received the antidote.",())}.
-:- d, not &tag_atom{nl("Bond has drunk the drug.",())}.
-:- p, not &tag_atom{nl("Bond has been poisoned.",())}.
-:- h, not &tag_atom{nl("Bond is on holiday.",())}.
-:- w, not &tag_atom{nl("Bond is working.",())}.
-:- s, not &tag_atom{nl("Bond is smart.",())}.
+% :- a, not &tag_atom{nl("Bond has received the antidote.",())}.
+% :- d, not &tag_atom{nl("Bond has drunk the drug.",())}.
+% :- p, not &tag_atom{nl("Bond has been poisoned.",())}.
+% :- h, not &tag_atom{nl("Bond is on holiday.",())}.
+% :- w, not &tag_atom{nl("Bond is working.",())}.
+% :- s, not &tag_atom{nl("Bond is smart.",())}.
 % #external s.
 
 % :-d.

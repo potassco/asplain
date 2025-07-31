@@ -45,9 +45,9 @@ aux_rule(rule(H,normal(B))):-
     literal_tuple(B,-L), atom_tag(F,L).
 
 % Rules that are disabled are removed.
-aux_rule(rule(H,normal(B))):-
-    rule(H,normal(B)),
-    literal_tuple(B,L), rule_tag(disable,L).
+% aux_rule(rule(H,normal(B))):-
+%     rule(H,normal(B)),
+%     literal_tuple(B,L), rule_tag(disable,L).
 
 
 node_tag(rule(H,normal(B)),F):-
@@ -77,3 +77,9 @@ node_tag(rule(H,B),abducible(rm)):-
 
 node_tag(rule(H,B),nl("Input",())):-
     node_tag(rule(H,B),input).
+
+node_tag(rule(H,B),nl("Optional Input",())):-
+    node_tag(rule(H,B),disabled).
+
+node_tag(rule(H,B),nl(M,())):-
+    node_tag(rule(H,B),nl(M)).

@@ -6,5 +6,5 @@
 % _abducible((rm;add),value(X,V)):-_model(real, value(X,V)).
 _abducible((rm;add),constraint(S)):-_model(real, constraint(S)).
 
-_distance(Atom, 1, 1) :-
-    _abduced(_, Atom).
+distance(Atom, 1, 1) :-
+    abduced(_, Atom).

@@ -279,7 +279,6 @@ class ContrastiveExplainer(Explainer):
 
         q_prg = query_to_pgr(query_include, query_exclude)
         ctl.add("base", [], q_prg)
-
         # Find hypo
         with path("asplain.encodings", "all_hypo.lp") as base_encoding:
             log.info("Loading encoding: %s", base_encoding)

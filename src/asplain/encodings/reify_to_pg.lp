@@ -39,7 +39,7 @@ Node `N` is a node in the graph
 
 % ### Rule nodes
 % All rules in the reification except the auxiliary ones
-node(rule(H,B)):-rule(H,B), not aux_rule(rule(H, B)).
+node(rule(H,B)):-rule(H,B), not aux_rule(rule(H,B)).
 
 % ### Atom nodes
 
@@ -55,7 +55,7 @@ atom(E, external(E,V)):- external(E,V).
 %*
 #atom_value(E, A)
 An atom identified by `E` is in the program and has value `A`.
-Any atom that can not be mapped into an auxiliary has a as name aux(E)
+Any atom that can not be mapped into a single output has a as name aux(E)
 !!! example
     ```atom_value(10, person(james))```
 *%
@@ -111,10 +111,19 @@ edge((rule(disjunction(H),B),atom(A))):-rule(disjunction(H),B),
     atom_tuple(H,E), atom(E,P), atom_value(E,A).
 
 edge((rule(choice(H),B),atom(A))):-rule(choice(H),B),
-    not aux_rule(rule(choice(H), B)),
     atom_tuple(H,E), atom(E,P), atom_value(E,A).
 
 
 #show node/1.
 #show edge/1.
 #show edge_attr/3.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Auxiliary rules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% When the body has an auxiliary atom

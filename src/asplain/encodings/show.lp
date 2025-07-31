@@ -11,7 +11,6 @@
 #show node_tag(R,abduced(T)): abduced(T,R).
 #show node_tag(atom(A),query(T)): query(T,A).
 
-#show node_tag(atom(A),true): hold(A).
-#show node_tag(rule(H,B),true): body(B), node(rule(H,B)), not node_tag(rule(H,B),disabled).
+#show node_tag(N,true): hold(N).
 
 #show fail_query/0.

@@ -10,8 +10,8 @@ _abducible((rm;add),h).
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.
 
-_distance(Atom, 1, 3) :-
-    _abduced(_, Atom).
+distance(Atom, 1, 3) :-
+    abduced(_, Atom).
 
 
 % !!! warning
@@ -19,13 +19,13 @@ _distance(Atom, 1, 3) :-
 %        while for the hypothetical it uses holds/1 and reason/1.
 
 % Penalty for changing the reason of an atom
-_distance(Reason, 1, 2) :-
+distance(Reason, 1, 2) :-
     reason(Reason,reference), not reason(Reason).
 
 
 % The following distance produces a single optimal explanation by removing the one where h is added.
-% _distance(Atom, 1, 1) :-
+% distance(Atom, 1, 1) :-
 %     used_to_hold(Atom), not hold(Atom).
 
-% _distance(Atom, 1, 1) :-
+% distance(Atom, 1, 1) :-
 %     not used_to_hold(Atom), hold(Atom).

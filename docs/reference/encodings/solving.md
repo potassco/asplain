@@ -51,7 +51,7 @@ Computes the contrastive graphs using abduction. A contrastive graph will compar
     === "Distance"
         Each atom abduced will be penalized
         ```
-        _distance(Atom, 1, 1) :- _abduced(_, Atom).
+        distance(Atom, 1, 1) :- abduced(_, Atom).
         ```
 
     === "Query"
@@ -63,8 +63,8 @@ Computes the contrastive graphs using abduction. A contrastive graph will compar
     === "Abduction program"
         The input program reified to talk about worlds. This is done automatically by the system.
         ```
-        _model(hypothetical,a) :- not _abduced(rm,a); not _model(hypothetical,b).
-        _model(hypothetical,b) :- not _abduced(rm,b).
+        _model(hypothetical,a) :- not abduced(rm,a); not _model(hypothetical,b).
+        _model(hypothetical,b) :- not abduced(rm,b).
         ```
 
     === "Support program"
@@ -105,10 +105,10 @@ Computes the contrastive graphs using abduction. A contrastive graph will compar
 | Predicate | Description | Type |
 | :-------- | :---------- | :--- |
 | [`_abducible(T,A)`](#_abducibleta) | Abducible atoms | <span style="color:#9178C6"> :material-arrow-right-bold:</span> |
-| [`_distance(N,D,L)`](#_distancendl) | Distance between the real and hypothetical model | <span style="color:#9178C6"> :material-arrow-right-bold:</span> |
+| [`distance(N,D,L)`](#_distancendl) | Distance between the real and hypothetical model | <span style="color:#9178C6"> :material-arrow-right-bold:</span> |
 | [`_query(T,A)`](#_queryta) | Query that should hold in the hypothetical model | <span style="color:#9178C6"> :material-arrow-right-bold:</span> |
 | [`_model(T,A)`](#_modelta) | Atoms that are part of the model | <span style="color:#9178C6"> :material-arrow-right-bold:</span> |
-| [`_abduced(T,A)`](#_abducedta) | Uses the concept of abduction to find the hypothetical model | :material-eye-closed: |
+| [`abduced(T,A)`](#abducedta) | Uses the concept of abduction to find the hypothetical model | :material-eye-closed: |
 | [`_f_atom(W, A)`](#_f_atomwa) | Means that `A` is a node in the `W` explanation graph | :material-eye-closed: |
 | [`_direct_cause(R, W, E, C)`](#_direct_causerwec) | Models the directed edge `C -> E` that belongs to the graph `W` | :material-eye-closed: |
 | [`_direct_inhibitor(R, W, E, I)`](#_direct_inhibitorrwei) | Captures the Inhibitor-E relation between a negative literal in the body of a rule and an atom in the head | :material-eye-closed: |
@@ -120,11 +120,11 @@ Computes the contrastive graphs using abduction. A contrastive graph will compar
 ``` mermaid
 flowchart LR
     ab(["_abducible/2"])
-    di(["_distance/3"])
+    di(["distance/3"])
     q(["_query/2"])
     m(["_model/2"])
     f(["_f_atom/2"])
-    abduced(["_abduced/2"])
+    abduced(["abduced/2"])
     d(["_direct_cause/4"])
     i(["_direct_inhibitor/4"])
     n(["node/1"])
@@ -166,23 +166,23 @@ Finds the hypothetical model using abduction and the distance defined by the use
 ??? asp-doc "Encoding"
 
     ``` prolog
-    #defined _abduced/2.
+    #defined abduced/2.
 
     :- _query(exclude,Atom), _model(hypothetical,Atom).
     :- _query(include,Atom), not _model(hypothetical,Atom).
 
     world(real;hypothetical).
 
-    {_abduced(X,Atom)} :- _abducible(X,Atom).
+    {abduced(X,Atom)} :- _abducible(X,Atom).
     ```
 
     === "Constraints"
 
         ``` prolog
-        :- not _model(real,Atom), _abduced(rm,Atom). %(1)!
-        :- _abduced(add,Atom), _abduced(rm,Atom). %(2)!
-        :- _model(real,Atom), _abduced(add,Atom). %(3)!
-        _model(hypothetical,Atom) :- _abduced(add, Atom).
+        :- not _model(real,Atom), abduced(rm,Atom). %(1)!
+        :- abduced(add,Atom), abduced(rm,Atom). %(2)!
+        :- _model(real,Atom), abduced(add,Atom). %(3)!
+        _model(hypothetical,Atom) :- abduced(add, Atom).
         ```
 
         1.  :speech_balloon: (C1) No sense to remove something that is not in input
@@ -192,7 +192,7 @@ Finds the hypothetical model using abduction and the distance defined by the use
     === "Distance"
 
         ``` prolog
-        :~ _distance(N,D,L). [D@L,N]
+        :~ distance(N,D,L). [D@L,N]
         ```
 <br/>
 
@@ -223,7 +223,7 @@ Computes the contrastive graph based on the found hypothetical model
 
         ```prolog
 
-        _fbody(_abduced, hypothetical, Atom, ()) :- _abduced(add, Atom). %(1)!
+        _fbody(abduced, hypothetical, Atom, ()) :- abduced(add, Atom). %(1)!
         _fbody(R, W, Atom, Vars) :- _relevant(W, Atom), _sup(R, W, Atom, Vars), not _depends(_sup(R, W, _, _), _). %(2)!
         _fbody(R, W, Atom, Vars) :-
             _sup(R, W, Atom, Vars),
@@ -276,7 +276,7 @@ Creates the graph based on the causes and inhibitors
 
         node(Atom):-_f_atom(W, Atom).
         attr(node,Atom,origin,W):- _f_atom(W, Atom).
-        attr(node,Atom,abduced,X):- node(Atom), _abduced(X,Atom).
+        attr(node,Atom,abduced,X):- node(Atom), abduced(X,Atom).
         attr(node,Atom,query,X):- node(Atom), _query(X,Atom).
         ```
 
@@ -313,11 +313,11 @@ Abducible atoms
     === "`abduction.lp`"
 
         ```prolog hl_lines="1"
-        {_abduced(X,Atom)} :- _abducible(X,Atom).
+        {abduced(X,Atom)} :- _abducible(X,Atom).
         ```
 <br/>
 
-#### <code class="doc-symbol doc-symbol-heading doc-clingo-symbol-predicate"></code> `_distance(N,D,L)`
+#### <code class="doc-symbol doc-symbol-heading doc-clingo-symbol-predicate"></code> `distance(N,D,L)`
 Distance between the real and hypothetical model.
 
 | Parameter | Description                        |
@@ -331,7 +331,7 @@ Distance between the real and hypothetical model.
     === "`abduction.lp`"
 
         ```prolog
-        :~ _distance(N,D,L). [D@L,N]
+        :~ distance(N,D,L). [D@L,N]
         ```
 <br/>
 
@@ -376,8 +376,8 @@ Atoms that are part of the model
         ```prolog hl_lines="4"
         :- _query(exclude,Atom), _model(hypothetical,Atom).
         :- _query(include,Atom), not _model(hypothetical,Atom).
-        :- not _model(real,Atom), _abduced(rm,Atom).
-        _model(hypothetical,Atom) :- _abduced(add, Atom).
+        :- not _model(real,Atom), abduced(rm,Atom).
+        _model(hypothetical,Atom) :- abduced(add, Atom).
         ```
 
     === "`graph.lp`"
@@ -396,7 +396,7 @@ Atoms that are part of the model
 
 <br/>
 
-#### <code class="doc-symbol doc-symbol-heading doc-clingo-symbol-predicate"></code> `_abduced(T,A)`
+#### <code class="doc-symbol doc-symbol-heading doc-clingo-symbol-predicate"></code> `abduced(T,A)`
 Uses the concept of abduction to find the hypothetical model
 
 | Parameter | Description                        |
@@ -409,22 +409,22 @@ Uses the concept of abduction to find the hypothetical model
     === "`abduction.lp`"
 
         ```prolog hl_lines="1"
-        {_abduced(X,Atom)} :- _abducible(X,Atom).
-        :- not _model(real,Atom), _abduced(rm,Atom).
-        :- _abduced(add,Atom), _abduced(rm,Atom).
-        :- _model(real,Atom), _abduced(add,Atom).
+        {abduced(X,Atom)} :- _abducible(X,Atom).
+        :- not _model(real,Atom), abduced(rm,Atom).
+        :- abduced(add,Atom), abduced(rm,Atom).
+        :- _model(real,Atom), abduced(add,Atom).
         ```
 
     === "`graph.lp`"
 
         ```prolog
-        attr(node,A,abduced,X):- node(A), _abduced(X,A).
+        attr(node,A,abduced,X):- node(A), abduced(X,A).
         ```
 
     === "`contrastive.lp`"
 
         ```prolog
-        _fbody(_abduced, hypothetical, Atom, ()) :- _abduced(add, Atom).
+        _fbody(abduced, hypothetical, Atom, ()) :- abduced(add, Atom).
         ```
 
 
@@ -533,7 +533,7 @@ Defines a node in the graph
 
         ```prolog hl_lines="1"
         node(A):-_f_atom(W, A).
-        attr(node,A,abduced,X):- node(A), _abduced(X,A).
+        attr(node,A,abduced,X):- node(A), abduced(X,A).
         attr(node,A,query,X):- node(A), _query(X,A).
         edge(Cause,Effect):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).
         attr(edge,(Cause,Effect),type,inhibitor):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).
@@ -577,7 +577,7 @@ Defines an attribute for a node or edge.
 
         ```prolog hl_lines="1-6"
         attr(node,A,origin,W):- _f_atom(W, A).
-        attr(node,A,abduced,X):- node(A), _abduced(X,A).
+        attr(node,A,abduced,X):- node(A), abduced(X,A).
         attr(node,A,query,X):- node(A), _query(X,A).
         attr(edge,(Cause,Effect),origin,W):-_direct_cause(RuleID, W, Effect, Cause).
         attr(edge,(Cause,Effect),type,inhibitor):-_direct_inhibitor(RuleID, W, Effect, Cause), node(Effect), node(Cause).

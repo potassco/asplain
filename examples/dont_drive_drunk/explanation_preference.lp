@@ -1,13 +1,13 @@
-%%% _abducible(A)
-% A is an abducible atom
-% If A is true in the model then it may be removed for the contrastive explanation.
-% If A is false in the model then it may be added for the contrastive explanation
 
-_abducible((rm;add),alcohol(clare)).
-_abducible((rm;add),alcohol(gabriel)).
+% Make all input facts abducible
+% node_tag(rule(H,B),abducible(rm)):-node_tag(rule(H,B),input), edge((rule(H,B), atom(A))).
+% Make only alcohol and drive abducible
+node_tag(rule(H,B),abducible(rm)):-node_tag(rule(H,B),input), edge((rule(H,B), atom(drive(P)))).
+node_tag(rule(H,B),abducible(rm)):-node_tag(rule(H,B),input), edge((rule(H,B), atom(alcohol(P)))).
 
-_abducible((rm;add),resist(clare)).
-_abducible((rm;add),resist(gabriel)).
+% Allow including any disabled rule
+% !!!! Tricky since we use disabled for the abducible we need to check if it was disabled in the reference not in the current
+node_tag(rule(H,B),abducible(add)):-node_tag(rule(H,B),disabled,reference).
 
-_distance(Atom, 1, 1) :-
-    _abduced(_, Atom).
+
+#include "src/asplain/encodings/util_distance/abduce_the_least.lp".

@@ -1,8 +1,8 @@
 %% *******************
 % Selects a single reason for each true atom
 %% *******************
-1{  reason((rule(disjunction(H),B),atom(A))):edge((rule(disjunction(H),B),atom(A))), body(B);
-    reason((rule(choice(H),B),atom(A))):edge((rule(choice(H),B),atom(A))), body(B)}1      :- hold(A).
+1{  reason((rule(disjunction(H),B),atom(A))):edge((rule(disjunction(H),B),atom(A))), hold(rule(disjunction(H),B));
+    reason((rule(choice(H),B),atom(A))):edge((rule(choice(H),B),atom(A))), hold(rule(choice(H),B))}1      :- hold(atom(A)).
 
 % A disjunction can only be the reason for a single atom.
 :-  reason((rule(disjunction(H),B),atom(A))), reason((rule(disjunction(H),B),atom(A'))), A>A'.
