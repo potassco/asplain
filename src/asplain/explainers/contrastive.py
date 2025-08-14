@@ -5,6 +5,7 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
 from clingexplaid.transformers import RuleIDTransformer
 from clingo import Control, Function, Number, Symbol, TheoryTermType
+from clingo.ast import AST, ProgramBuilder, Transformer, Variable, parse_files, parse_string
 from clingo.script import enable_python
 
 # pylint: disable=E0401
@@ -14,7 +15,7 @@ from clingraph.clingo_utils import ClingraphContext  # type: ignore
 from clingraph.graphviz import compute_graphs, render  # type: ignore
 from clingraph.orm import Factbase  # type: ignore
 
-from ..transformers.graph_transformer import GraphTransformer
+from ..transformers.tag_transformer import TagTransformer
 from ..utils.logging import get_logger
 from .base_explainer import Explainer
 
@@ -76,12 +77,18 @@ def reify(prg: str = "", files: Sequence[str] = None) -> str:
     ctl.register_observer(reifier)
     ctl.add("base", [], prg)
     if files is not None:
-        for f in files:
-            ctl.load(f)
+        tag_transformer = TagTransformer()
+        with ProgramBuilder(ctl) as pb:
+            log.debug("Loading and transforming files: %s", files)
+            parse_files(files, lambda ast: pb.add(tag_transformer(ast)))
 
-    with path("asplain.encodings", "tag_theory.lp") as tag_theory_encoding:
-        log.info("Loading encoding: %s", tag_theory_encoding)
-        ctl.load(str(tag_theory_encoding))
+        # s = []
+        # parse_files(files, lambda ast: s.append(tag_transformer(ast)))
+        # ctl.add("base", [], "\n".join(s))
+
+    with path("asplain.encodings", "tag_theory_def.lp") as tag_theory_def:
+        log.info("Loading encoding: %s", tag_theory_def)
+        ctl.load(str(tag_theory_def))
 
         ctl.ground([("base", [])])
 
@@ -149,10 +156,36 @@ class ContrastiveExplainer(Explainer):
         #     self.viz_reify(reified_prg)
         return reified_prg
 
-    def generate_pg(self, files: Sequence[str], assumptions: Optional[Sequence[Tuple[Symbol, bool]]] = None):
+    # def add_tags_to_rules(self, prg: str, tag: str) -> str:
+    #     """
+    #     Add tags to the rules in the given program.
+
+    #     Args:
+    #         prg (str): The program to add tags to.
+    #         tag (str): The tag to add to the rules.
+
+    #     Returns:
+    #         str: The program with tags added to the rules.
+    #     """
+    #     transformer = TagTransformer(tag)
+    #     return transformer.transform(prg)
+
+    def generate_pg(self, files: Sequence[str], assumptions: Optional[Sequence[Tuple[Symbol, bool]]] = None) -> str:
+        """
+        Generate the program graph from the given files and assumptions.
+
+        Args:
+            files (Sequence[str]): The input files to consider.
+            assumptions (Optional[Sequence[Tuple[Symbol, bool]]], optional): The assumptions to apply. Defaults to None.
+
+        Returns:
+            str: The program graph as a string of facts.
+        """
         if not assumptions:
             assumptions = []
         log.info("-----Reifying program")
+        TagTransformer()
+
         reified_prg = self.reify(files, assumptions)
 
         log.info("-----Computing PG")
@@ -212,7 +245,7 @@ class ContrastiveExplainer(Explainer):
             log.info("Loading encoding: %s", base_encoding)
             ctl.load(str(base_encoding))
 
-    def tag_symbols(self, prg: str, tag: str) -> List[Symbol]:
+    def reify_symbols(self, prg: str, tag: str) -> List[Symbol]:
         """ """
         ctl = Control(["--warn=none"])
         ctl.add("base", [], prg)
@@ -273,7 +306,7 @@ class ContrastiveExplainer(Explainer):
             List of programs defining an explanation graph. Graphs are defined using predicates: `edge/2`, `node/1` and `attr/4`
         """
         ctl = Control(["0", "--warn=none"])
-        reference_model_pg = self.tag_symbols(reference_model_symbols, "reference")
+        reference_model_pg = self.reify_symbols(reference_model_symbols, "reference")
         reference_model_pg = "\n".join([str(s) + "." for s in reference_model_pg])
         ctl.add("base", [], reference_model_pg)
 
@@ -321,7 +354,7 @@ class ContrastiveExplainer(Explainer):
                         draw_types=["explanation", "model"],
                     )
 
-                hypothetical_model_pg = self.tag_symbols(hypothetical_model_pg, "hypothetical")
+                hypothetical_model_pg = self.reify_symbols(hypothetical_model_pg, "hypothetical")
                 hypothetical_model_pg = "\n".join([str(s) + "." for s in hypothetical_model_pg])
                 contrast_prg = self.contrast(reference_model_pg, hypothetical_model_pg)
 

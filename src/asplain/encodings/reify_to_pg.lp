@@ -5,25 +5,8 @@
 % !!! warning Assumes all atoms are set as external?
 % --------------------------------------------------------
 
-#include "handle_tags.lp".
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ## Auxiliaries
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% special atoms and rules to handle the `_rule` tags which come from `{_rule(X)}`.
-%*
-#aux_atom(A)
-Atom `A` is auxiliary
-*%
-% aux_atom(_rule(X)):- output(_rule(X), _).
-%*
-#aux_rule(R)
-Rule `R` is auxiliary
-
-#parameters
-- R: is of form rule(choice(H),normal(B))
-*%
-% aux_rule(rule(choice(H),normal(B))):- rule(choice(H),normal(B)),
-%     aux_atom(A):atom_tuple(H,E), atom(E,P), atom_value(E,A).
+#include "tag_general.lp".
+#include "tag_bounds.lp".
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -117,13 +100,3 @@ edge((rule(choice(H),B),atom(A))):-rule(choice(H),B),
 #show node/1.
 #show edge/1.
 #show edge_attr/3.
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Auxiliary rules
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-% When the body has an auxiliary atom

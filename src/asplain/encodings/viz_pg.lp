@@ -89,7 +89,10 @@ attr(node,rule(H,normal(B)),(label,input),"normal"):-
 attr(node,rule(H,sum(B,W)),(label,input),@concat("sum at least ",W)):-
     node(rule(H,sum(B,W))).
 
-attr(node, atom(A), label, A):- node(atom(A)).
+attr(node, atom(A), label, "<{{atom}}<br/><i>{{nl}} </i>>"):- node(atom(A)).
+attr(node, atom(A), (label,atom), A):- node(atom(A)).
+attr(node, atom(A), (label,nl), @format(L,P)):- node(atom(A)), node_tag(atom(A), nl(L,P)).
+
 
 % ## Edges
 attr(edge,((A),(R)),style,dashed):- edge_attr((A,R), type, negative).
@@ -131,8 +134,8 @@ attr(node,N,fillcolor,white):-node(N), not true_node(N), not draw_type(contrast)
 attr(node,N,fillcolor, C):-node_tag(N,true(reference)), node_tag(N,true(hypothetical)), color_set(union, C),draw_type(contrast).
 attr(node,N,fillcolor, C):-node_tag(N,true(hypothetical)), not node_tag(N, true(reference)) ,color_set(hypo_ref,C),draw_type(contrast).
 attr(node,N,fillcolor, C):-not node_tag(N,true(hypothetical)), node_tag(N, true(reference)), color_set(ref_hypo,C),draw_type(contrast).
-attr(node,N,fillcolor, white):-node(N), not node_tag(N,true(hypothetical)), not node_tag(N, true(reference)), not rule_could_have_fired(N),draw_type(contrast).
-attr(node,N,fillcolor, C):-node(N), rule_could_have_fired(N),draw_type(contrast),color_set(fired_cons, C).
+attr(node,N,fillcolor, white):-node(N), not node_tag(N,true(hypothetical)), not node_tag(N, true(reference)), not node_tag(N, constraint_wouldve_fired),draw_type(contrast).
+attr(node,N,fillcolor, C):-node(N), node_tag(N,constraint_wouldve_fired),draw_type(contrast),color_set(fired_cons, C).
 
 attr(node,N,penwidth, "4"):-node_tag(N,query(_)).
 
@@ -150,10 +153,31 @@ attr(node,R,(fontcolor;color),blue):- node_tag(R,abduced(add)).
 attr(edge,((N1),(N2)),color,C):-edge((N1,N2)), not active_edge(((N1),(N2))), color_set(light,C).
 
 
-cons(rule(disjunction(H),B)):-
-    node(rule(disjunction(H),B)), %rule node
-    not edge((rule(disjunction(H),B),atom(_))). % no outgoing edges
-fired_edge((atom(A),rule(H,B))):- node_tag(atom(A),true(_)), edge_attr((atom(A),rule(H,B)),type,positive).
-fired_edge((atom(A),rule(H,B))):- not node_tag(atom(A),true(_)), edge_attr((atom(A),rule(H,B)),type,negative).
-rule_could_have_fired(rule(H,B)):-cons(rule(H,B)),
-    fired_edge((atom(A),rule(H,B))): edge((atom(A),rule(H,B))).
+% cons(rule(disjunction(H),B)):-
+%     node(rule(disjunction(H),B)), %rule node
+%     not edge((rule(disjunction(H),B),atom(_))). % no outgoing edges
+% fired_edge((atom(A),rule(H,B))):- node_tag(atom(A),true(_)), edge_attr((atom(A),rule(H,B)),type,positive).
+% fired_edge((atom(A),rule(H,B))):- not node_tag(atom(A),true(_)), edge_attr((atom(A),rule(H,B)),type,negative).
+% node_tag(r, constraint_ule(H,B)):-cons(rule(H,B)),
+%     fired_edge((atom(A),rule(H,B))): edge((atom(A),rule(H,B))).
+
+
+
+
+% attr(node,X,id,X):-node(X).
+
+
+
+% linked_element(node,X,X):-node(X).
+% linked_element(node,Y,X):-edge((X,Y)).
+% linked_element(edge,(X,Y),X):-edge((X,Y)).
+% linked_element(edge,(X,Y),Y):-edge((X,Y)).
+
+
+% % attr(node,X,class,@svg_init("visibility","hidden")):-node(X),not root(X).
+% % attr(edge,(X,Y),class,@svg_init("visibility","hidden")) :- edge((X,Y)).
+
+
+% attr(Type,E,class,@svg("click",X,"visibility","visible")):-linked_element(Type,E,X).
+% attr(Type,E,class,@svg("mouseenter",X,"opacity","1")):-linked_element(Type,E,X).
+% attr(Type,E,class,@svg("mouseleave",X,"opacity","0.2")):-linked_element(Type,E,X).

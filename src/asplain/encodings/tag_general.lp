@@ -1,7 +1,7 @@
 % Transforms a reified program in to a program graph
 %
-% !!! warning Assumes one body for each rule, which is achieved by tagging each rule with a unique ID
-% !!! warning Assumes all atoms are set as external?
+% !!! warning Assumes one body for each rule, which is achieved by tagging each rule, this is done automatically before the reification
+
 % --------------------------------------------------------
 rule_tag(F,ID_A):-theory_atom(ID_A,ID_O,ID_E),
             theory_string(ID_O,"tag_rule"),
@@ -36,9 +36,6 @@ Rule `R` is auxiliary
 #parameters
 - R: is of form rule(choice(H),normal(B))
 *%
-% aux_rule(rule(disjunction(H),normal(B))):-
-%     rule(disjunction(H),normal(B)),
-%     literal_tuple(B,L), rule_tag(F,L).
 
 aux_rule(rule(H,normal(B))):-
     rule(H,normal(B)),
@@ -76,10 +73,10 @@ node_tag(rule(H,B),abducible(rm)):-
     node_tag(rule(H,B),assume(_)).
 
 node_tag(rule(H,B),nl("Input",())):-
-    node_tag(rule(H,B),input).
+    node_tag(rule(H,B),fact), not node_tag(rule(H,B),disabled).
 
 node_tag(rule(H,B),nl("Optional Input",())):-
     node_tag(rule(H,B),disabled).
 
-node_tag(rule(H,B),nl(M,())):-
-    node_tag(rule(H,B),nl(M)).
+node_tag(N,nl(M,())):-
+    node_tag(N,nl(M)).

@@ -35,10 +35,10 @@ child(P):- age(P,E), E<10, &tag_rule{nl("{} is a child since they are younger th
 
 
 % ## Input
-person(anna):-&tag_rule{nl("Input",())}, &tag_rule{abducible(rm)}.
-age(anna,70):-&tag_rule{nl("Input",())}, &tag_rule{abducible(rm)}.
-person(eva):-&tag_rule{nl("Input",())}, &tag_rule{abducible(rm)}.
-age(eva,8):-&tag_rule{nl("Input",())}, &tag_rule{abducible(rm)}.
+person(anna).
+age(anna,70).
+person(eva).
+age(eva,8).
 
 age(eva,20):-&tag_rule{disabled}, &tag_rule{abducible(add)}.
 % child(anna):-&tag_rule{nl("Maybe",())},&tag_rule{disable}.

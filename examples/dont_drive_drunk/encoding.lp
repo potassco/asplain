@@ -13,12 +13,14 @@ sentence(P, innocent) :- person(P), not punish(P), &tag_rule{nl("{} is innocent 
 % This tags can be automatic for all input facts (which usually come from the instance, then the preference can say which input is abducible)
 % Another relevant tag for input things is if they are static input, for instance, person(P) is static and can't be aduced and perhaps we even want to hide this in the graph.
 % While alcohol(P) is dynamic and can be adduced and it is relevant for explanation. But this might be just preferences of the graph pruning
-person(gabriel):- &tag_rule{input}.
-person(clare):-&tag_rule{input}.
-drive(gabriel):-&tag_rule{input}.
-alcohol(gabriel):-&tag_rule{input}.
-drive(clare):-&tag_rule{input}.
+% While these tags could be added based on the reification, we need them from the start to avoid simplifications when grounding.
+person(gabriel).
+person(clare).
+drive(gabriel).
+alcohol(gabriel).
+drive(clare).
 % Just like we tag this we could tag integrity constraints and have a preference that allows abducing them to find the errors
+% This could actually be added once we have the reification.
 
 
 

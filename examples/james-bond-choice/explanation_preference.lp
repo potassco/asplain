@@ -12,4 +12,4 @@
 
 % Abduce the least rules
 #include "src/asplain/encodings/util_distance/abduce_the_least.lp".
-#include "src/asplain/encodings/util_distance/prefer_abduce_constraint_single.lp".
+#include "src/asplain/encodings/util_distance/prefer_abduce_assumptions.lp".

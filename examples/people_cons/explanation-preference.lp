@@ -4,9 +4,12 @@
 %     In this case, atoms `d` and `h` can be either removed or added from the reference model
 %     to find the hypothetical model
 
-_abducible((rm;add),sit(P)):-node(atom( person(P))).
-_abducible((rm;add),stand(P)):-node(atom( person(P))).
-_abducible((rm;add),age(P,E)):-node(atom( age(P,E))).
+% _abducible((rm;add),sit(P)):-node(atom( person(P))).
+% _abducible((rm;add),stand(P)):-node(atom( person(P))).
+% _abducible((rm;add),age(P,E)):-node(atom( age(P,E))).
+
+node_tag(rule(H,B),abducible(rm)):-node_tag(rule(H,B),fact), edge((rule(H,B), atom(age(P,E)))).
+
 
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.
