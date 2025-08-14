@@ -156,20 +156,6 @@ class ContrastiveExplainer(Explainer):
         #     self.viz_reify(reified_prg)
         return reified_prg
 
-    # def add_tags_to_rules(self, prg: str, tag: str) -> str:
-    #     """
-    #     Add tags to the rules in the given program.
-
-    #     Args:
-    #         prg (str): The program to add tags to.
-    #         tag (str): The tag to add to the rules.
-
-    #     Returns:
-    #         str: The program with tags added to the rules.
-    #     """
-    #     transformer = TagTransformer(tag)
-    #     return transformer.transform(prg)
-
     def generate_pg(self, files: Sequence[str], assumptions: Optional[Sequence[Tuple[Symbol, bool]]] = None) -> str:
         """
         Generate the program graph from the given files and assumptions.
