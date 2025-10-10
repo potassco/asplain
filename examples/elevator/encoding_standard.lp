@@ -1,4 +1,3 @@
-#const horizon=15.
 time(0..horizon).
 
 % Generate actions for each time step
