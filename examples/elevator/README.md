@@ -8,3 +8,5 @@ This is an example of a temporal encoding modeling elevator movements between di
 ```bash
 asplain examples/elevator/encoding_standard.lp examples/elevator/instance.lp --explanation-preference examples/elevator/explanation_preference.lp --model examples/elevator/model.lp
 ```
+
+![](elevator.svg)
