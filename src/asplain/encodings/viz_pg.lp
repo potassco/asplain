@@ -13,6 +13,14 @@
 #const _color_both = "#57B5BD50".
 
 % ====================
+% === OUTPUT CONFIG ===
+% show_nl. %Show natural langue tet
+% show_normal. %Show text normal vs sum
+% abducible_dotted. %Abducible rules are dotted
+% show_title.
+% tuple_body_id.
+
+% ====================
 % === CONFIGURATION===
 % Now passed when the program is called
 
@@ -48,14 +56,14 @@ color_set(fired_cons, @concat(_color_red,"25")).
 % v_graph(contrastive,explanation):-draw(contrastive).
 
 attr(graph,default,labelloc,"t").
-attr(graph,default,label,"<<b>{{name}}</b><br/>{{description}}>").
-attr(graph,default,(label,name),T):-title(T).
-attr(graph,default,(label,description),@format("({})",T)):-explanation_type(T).
+attr(graph,default,label,"<<b>{{name}}</b><br/>{{description}}>"):-show_title.
+attr(graph,default,(label,name),T):-title(T),show_title.
+attr(graph,default,(label,description),@format("({})",T)):-explanation_type(T),show_title.
 attr(graph,default,fontname,"Baskerville").
 attr(graph,default,fontsize,"20").
 
 attr(node,N,style,filled):- node(N), not node_tag(N, abducible(_)).
-attr(node,N,style,"filled,dashed"):- node(N), node_tag(N, abducible(_)).
+attr(node,N,style,"filled,dashed"):- node(N), node_tag(N, abducible(_)), abducible_dotted.
 attr(node,N,fontname,"Baskerville"):-  node(N).
 
 attr(node,N,tooltip,@format(S,P)):- node(N), node_tag(N,nl(S,P)).
@@ -64,20 +72,24 @@ attr(node,N,tooltip,@format(S,P)):- node(N), node_tag(N,nl(S,P)).
 attr(node,rule(H,B),shape,box):-node(rule(H,B)).
 
 % attr(node,rule(H,B),label,"<<u><font point-size=\"9\">{{input}}</font> </u><br/> BODY {{value}} <br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
-attr(node,rule(H,B),label,"<<u><font point-size=\"9\">{{input}} </font> </u><br/> BODY {{value}} <br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
+attr(node,rule(H,B),label,"<<font point-size=\"9\">{{input}} </font><br/> BODY {{value}} <br/><i>{{nl}} </i>{{nlbr}} <u><font point-size=\"9\">{{output}}</font></u>>"):-
     node(rule(H,B)), not node_tag(rule(H,B),disabled).
-attr(node,rule(H,B),label,"<<u><font point-size=\"9\">{{input}} </font> </u><br/><s> BODY {{value}} </s><br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
+attr(node,rule(H,B),label,"<<font point-size=\"9\">{{input}} </font><br/><s> BODY {{value}} </s><br/><i>{{nl}} </i>{{nlbr}} <u><font point-size=\"9\">{{output}}</font></u>>"):-
     node(rule(H,B)), node_tag(rule(H,B),disabled).
 % attr(node,(rule(H,B)),label,"<{{input}}<br/> BODY {{value}} <br/>{{output}}>"):-
 %     node((rule(H,B))).
 
-id(rule(disjunction(H),normal(B)),(H,B)):-node(rule(disjunction(H),normal(B))).
-id(rule(choice(H),normal(B)),(H,B)):-node(rule(choice(H),normal(B))).
-id(rule(disjunction(H),sum(B,W)),(H,B)):-node(rule(disjunction(H),sum(B,W))).
-id(rule(choice(H),sum(B,W)),(H,B)):-node(rule(choice(H),sum(B,W))).
+id(rule(disjunction(H),normal(B)),(H,B)):-node(rule(disjunction(H),normal(B))),tuple_body_id.
+id(rule(choice(H),normal(B)),(H,B)):-node(rule(choice(H),normal(B))),tuple_body_id.
+id(rule(disjunction(H),sum(B,W)),(H,B)):-node(rule(disjunction(H),sum(B,W))),tuple_body_id.
+id(rule(choice(H),sum(B,W)),(H,B)):-node(rule(choice(H),sum(B,W))),tuple_body_id.
+
+id(rule(H,normal(B)),B):-node(rule(H,normal(B))), not tuple_body_id.
 
 attr(node,(N),(label,nl),@format(S,P)):-
-    node((N)),node_tag(N,nl(S,P)).
+    node((N)),node_tag(N,nl(S,P)),show_nl.
+attr(node,(N),(label,nlbr),"<br/>"):-
+    node((N)),show_nl.
 attr(node,rule(H,B),(label,value),ID):-
     node(rule(H,B)),id(rule(H,B),ID).
 attr(node,rule(choice(H),B),(label,output),"choice"):-
@@ -85,13 +97,14 @@ attr(node,rule(choice(H),B),(label,output),"choice"):-
 attr(node,rule(disjunction(H),B),(label,output),"disjunction"):-
     node(rule(disjunction(H),B)).
 attr(node,rule(H,normal(B)),(label,input),"normal"):-
-    node(rule(H,normal(B))).
+    node(rule(H,normal(B))),show_normal.
 attr(node,rule(H,sum(B,W)),(label,input),@concat("sum at least ",W)):-
-    node(rule(H,sum(B,W))).
+    node(rule(H,sum(B,W))),show_normal.
 
-attr(node, atom(A), label, "<{{atom}}<br/><i>{{nl}} </i>>"):- node(atom(A)).
+attr(node, atom(A), label, "<{{atom}}{{nlbr}}<i>{{nl}} </i>>"):- node(atom(A)).
 attr(node, atom(A), (label,atom), A):- node(atom(A)).
-attr(node, atom(A), (label,nl), @format(L,P)):- node(atom(A)), node_tag(atom(A), nl(L,P)).
+attr(node, atom(A), (label,nl), @format(L,P)):- node(atom(A)), node_tag(atom(A), nl(L,P)), show_nl.
+attr(node, atom(A), (label,nlbr), "<br/>"):- node(atom(A)),  show_nl.
 
 
 % ## Edges

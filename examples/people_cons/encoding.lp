@@ -33,14 +33,32 @@ child(P):- age(P,E), E<10, &tag_rule{nl("{} is a child since they are younger th
 :- stand(P), not &tag_atom{nl("{} is standing",(P,))}.
 
 
-
 % ## Input
 person(anna).
 age(anna,70).
 person(eva).
 age(eva,8).
 
-age(eva,20):-&tag_rule{disabled}, &tag_rule{abducible(add)}.
+age(eva,1..10):-&tag_rule{disabled}, &tag_rule{abducible(add)}.
+
+% #external person(alex).
+% child(alex):- person(alex), &tag_rule{disabled}, &tag_rule{abducible(add)}.
+
+
+% possible_person(alex;hannes).
+
+% {person(P):possible_person(P)}.
+% 1{age(P,E):E=1..100, person(P)}1.
+
+
+
+% age(eva,20):-&tag_rule{disabled}, &tag_rule{my_tricky_rule}.
+
+
+% :-sit(P), mean(P), &tag_rule{disabled}, &tag_rule{abducible(add)}.
+% :-sit(P), mean(P), &tag_rule{disabled}, &tag_rule{abducible(add)}.
+
+
 % child(anna):-&tag_rule{nl("Maybe",())},&tag_rule{disable}.
 
 

@@ -33,12 +33,12 @@ a :- w, &tag_rule{nl("Bond receives the antidote if he is working.",())}.
 
 % Extra to have multiple reasons for antidote.
 % Antidote if smart.
-a :- s, &tag_rule{nl("Bond receives the antidote if he is smart.",())}.
+% a :- s, &tag_rule{nl("Bond receives the antidote if he is smart.",())}.
 
 
 %==== Instance
 d:- &tag_rule{abducible(rm)}.
-s:- &tag_rule{abducible(add)}, &tag_rule{disabled}.
+% s:- &tag_rule{abducible(add)}, &tag_rule{disabled}.
 
 
 % :- a, not &tag_atom{nl("Bond has received the antidote.",())}.
