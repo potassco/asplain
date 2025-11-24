@@ -116,7 +116,7 @@ Instructions to install and use `nox` can be found in
 - Explanation preference, include this atoms always
 
   - What to always include and what to not mention % \_mention(contraint(C)):-
-    \_abduced(rm, constraint(C)).
+    \\abduced(rm, constraint(C)).
 
 ### Pruning
 

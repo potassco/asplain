@@ -86,8 +86,8 @@ h.
     %===== Distance
     %      It adds a penalty of 1 for each atom that is abduced.
 
-    _distance(Atom, 1, 1) :-
-        _abduced(_, Atom).
+    distance(Atom, 1, 1) :-
+        abduced(_, Atom).
     ```
 
 Defines the preference for the explanation.
@@ -108,8 +108,8 @@ Defines the preference for the explanation.
     It adds a penalty of 1 for each atom that is abduced.
 
     ```prolog
-    _distance(Atom, 1, 1) :-
-        _abduced(_, Atom).
+    distance(Atom, 1, 1) :-
+        abduced(_, Atom).
     ```
 
 

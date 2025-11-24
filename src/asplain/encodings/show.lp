@@ -1,14 +1,16 @@
+#show node/1.
+#show edge/1.
+#show edge_attr/3.
+#show node_tag/2.
 
+#show hold/1.
+#show body/1.
+% #show abduced/2.
+% #show query/2.
+#defined abduced/2.
+#show node_tag(R,abduced(T)): abduced(T,R).
+#show node_tag(atom(A),query(T)): query(T,A).
 
+#show node_tag(N,true): hold(N).
 
-#show node(N,prg_name):node(N).
-#show edge((N1,N2),prg_name):edge((N1,N2)).
-#show edge_attr((N1,N2),A,V,prg_name):edge_attr((N1,N2),A,V).
-#show reason(N,prg_name):reason(N).
-#show hold(A,prg_name):hold(A).
-#show body(A,prg_name):body(A).
-#show.
-
-#show _abduced/2.
-#show _abduced_rule/2.
-#show _query/2.
+#show fail_query/0.

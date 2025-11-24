@@ -1,31 +1,31 @@
 
-_fact(rule(disjunction(H),B)):-
-    node(rule(disjunction(H),B),reference), %rule node
-    not edge((atom(_), rule(disjunction(H),B)),reference), % no incoming edges (Fact)
-    #count{A:edge((rule(disjunction(H),B), atom(A)),reference)} = 1. % single outgoing edge
+% Any abducible rule can be removed or added.
+{abduced(T,R)} :- node_tag(R,abducible(T)).
 
 
-_abduced_rule(rm, rule(H,B)):-
-    _fact(rule(H,B)),
-    edge((rule(H,B), atom(A)),reference),
-    _abduced(rm,A).
+% Abduced as added need to be included in the hypothetical PG.
+% node(rule(disjunction(added(A)),normal(A))):-abduced(add, rule(disjunction(added(A)),normal(A))), node(atom(A)).
+% edge((rule(disjunction(added(A)),normal(A)), atom(A))):-abduced(add, rule(disjunction(added(A)),normal(A))), node(atom(A)).
 
 
-{_abduced(rm,A)} :- _abducible(rm,A).
-
-% Add rules (facts) to make abducible facts true
-{_abduced(add,A)} :- _abducible(add,A).
-:- _abduced(add, A), _abduced(rm, A).
-node(rule(disjunction(added(A)),normal(A))):-_abduced(add, A), node(atom(A)).
-edge((rule(disjunction(added(A)),normal(A)), atom(A))):-_abduced(add, A), node(atom(A)).
-
-
-node(atom(A)):-node(atom(A),reference).
-node(rule(H,B)):-node(rule(H,B),reference), not _abduced_rule(rm, rule(H, B)).
+% Gathers all atoms, edges and attributes from the reference PG for nodes present in the hypothetical PG.
+node(N):-node(N,reference).
 edge((N1,N2)):-edge((N1,N2),reference), node(N1), node(N2).
 edge_attr((N1,N2),A,V):-edge_attr((N1,N2),A,V,reference), node(N1), node(N2).
 
-:- _query(exclude,Atom),  hold(Atom).
-:- _query(include,Atom), not hold(Atom).
+node_tag(N,T):-node_tag(N,T,reference), node(N), T!=disabled, T!=true.
 
-:~ _distance(N,D,L). [D@L,N]
+
+% Abduce add by removing the disabled tag
+node_tag(R,disabled):-node_tag(R,disabled,reference), node(R), not abduced(add,R).
+node_tag(R,disabled):-node(R,reference), abduced(rm, R).
+
+#include "check_query.lp".
+:- fail_query.
+
+% hold(A,reference) :-  node_tag(atom(A),true,reference).
+% :-node_tag(N,disabled), node_tag(N,true).
+% Adds an optimization based on the distance
+used_to_hold(atom(A)):-node_tag(atom(A),true,reference). %Used to simplify writing the distance rules
+distance(default, 1, 1). %This rule is added in case no other distance is defined.
+:~ distance(N,D,L). [D@L,N]

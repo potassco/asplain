@@ -2,6 +2,7 @@
 % --------------------------------------------------------
 
 #include "reify_defined.lp".
+
 #const _color_blue = "#0052CC50".
 #const _color_green = "#36B37E".
 #const _color_orange = "#FFAB0050".
@@ -11,140 +12,185 @@
 #const _color_purple = "#6554C0".
 #const _color_both = "#57B5BD50".
 
+% ====================
+% === OUTPUT CONFIG ===
+% show_nl. %Show natural langue tet
+% show_normal. %Show text normal vs sum
+% abducible_dotted. %Abducible rules are dotted
+% show_title.
+% tuple_body_id.
+
+% ====================
+% === CONFIGURATION===
+% Now passed when the program is called
+
+
+% draw(contrastive).
+% draw(hypothetical).
+% draw(reference).
+
+% draw_type(pg).
+% draw_type(model).
+% draw_type(explanation).
+% ====================
+
+
+
 color_set(reference, @concat(_color_purple,"80")).
-% color_set(reference, _color_green).
-% color_set(reference,  @concat(_color_green,"35")).
+% % color_set(reference, _color_green).
+% % color_set(reference,  @concat(_color_green,"35")).
 color_set(hypothetical, _color_green).
-% color_set(union, @concat(_color_green,"80")).
-% color_set(union, @concat(_color_green,"85")).
+% % color_set(union, @concat(_color_green,"80")).
+% % color_set(union, @concat(_color_green,"85")).
 color_set(union, "#36B37E;0.5:#6554C080").
 color_set(ref_hypo, @concat(_color_purple,"25")).
 color_set(hypo_ref, _color_green).
 color_set(edge, blue).
 color_set(edge_old, red).
-color_set(light, gray80).
-
-graph((reference;hypothetical;contrastive)).
-type_hypothetical(hypothetical):-node(N,reference), not node(N,hypothetical).
-type_hypothetical(alternative):- not type_hypothetical(same), #false:  node(N,reference), not node(N,hypothetical).
-type_hypothetical(same):- #false: hold(A, hypothetical), not hold(A,reference);
-                         #false: not hold(A, hypothetical), hold(A,reference).
+color_set(light, gray84).
+color_set(fired_cons, @concat(_color_red,"25")).
 
 
+% graph(explanation).
+% v_graph(G,explanation):- node(N), draw(G).
+% v_graph(contrastive,explanation):-draw(contrastive).
 
-v_graph(explanation).
-v_graph(G,explanation):- node(N,G).
-v_graph(contrastive,explanation).
+attr(graph,default,labelloc,"t").
+attr(graph,default,label,"<<b>{{name}}</b><br/>{{description}}>"):-show_title.
+attr(graph,default,(label,name),T):-title(T),show_title.
+attr(graph,default,(label,description),@format("({})",T)):-explanation_type(T),show_title.
+attr(graph,default,fontname,"Baskerville").
+attr(graph,default,fontsize,"20").
 
-v_attr(graph,(reference;hypothetical),label,"<<b>{{name}}</b><br/>({{type}})>").
-v_attr(graph,reference,(label,name),"Reference").
-v_attr(graph,reference,(label,type),"Real").
-v_attr(graph,hypothetical,(label,name),"Found").
-v_attr(graph,hypothetical,(label,type),@stringify(T,true)):-type_hypothetical(T).
-v_attr(graph,contrastive,label,"<<b>Contrastive</b><br/><br/>>"):-graph(contrastive).
-v_attr(graph,G,fontname,"Baskerville"):-v_graph(G,_).
-v_attr(graph,G,fontsize,"20"):-v_graph(G,_).
-% v_attr(graph,G,fontname,"Baskerville"):-graph(G).
-% v_attr(graph,hypothetical,label,"<<b>Hypothetical</b>>"):- node(N,G).
-% v_attr(graph,reference,label,"<<b>Reference</b>>"):- node(N,G).
+attr(node,N,style,filled):- node(N), not node_tag(N, abducible(_)).
+attr(node,N,style,"filled,dashed"):- node(N), node_tag(N, abducible(_)), abducible_dotted.
+attr(node,N,fontname,"Baskerville"):-  node(N).
 
-v_node((N,G),G):- node(N,G).
-v_edge(((N1,G),(N2,G)),G):- edge((N1,N2),G).
-v_edge(((N1,contrastive),(N2,contrastive)),contrastive):- edge((N1,N2),G).
-v_attr(node,(N,G),style,filled):- v_node((N,G),G).
-v_attr(node,(N,G),fontname,"Baskerville"):- v_node((N,G),G).
+attr(node,N,tooltip,@format(S,P)):- node(N), node_tag(N,nl(S,P)).
 
 % ## Nodes
-v_attr(node,(rule(H,B),G),shape,box):-v_node((rule(H,B),G),G).
-v_attr(node,(rule(H,B),G),label,"<<i>{{input}} </i><br/> BODY {{value}} <br/><i>{{output}}</i>>"):-
-    v_node((rule(H,B),G),G).
-% v_attr(node,(rule(H,B),G),label,"<{{input}}<br/> BODY {{value}} <br/>{{output}}>"):-
-%     v_node((rule(H,B),G),G).
-v_attr(node,(rule(H,normal(B)),G),(label,value),B):-
-    v_node((rule(H,normal(B)),G),G).
-v_attr(node,(rule(H,sum(B,G)),G),(label,value),B):-
-    v_node((rule(H,sum(B,G)),G),G).
-v_attr(node,(rule(choice(H),B),G),(label,output),"choice"):-
-    v_node((rule(choice(H),B),G),G).
-v_attr(node,(rule(disjunction(H),B),G),(label,output),"disjunction"):-
-    v_node((rule(disjunction(H),B),G),G).
-v_attr(node,(rule(H,normal(B)),G),(label,input),"normal"):-
-    v_node((rule(H,normal(B)),G),G).
-v_attr(node,(rule(H,sum(B,G)),G),(label,input),@concat("sum at least ",G)):-
-    v_node((rule(H,sum(B,G)),G),G).
+attr(node,rule(H,B),shape,box):-node(rule(H,B)).
 
-v_attr(node, (atom(A),G), label, A):- node(atom(A), G).
+% attr(node,rule(H,B),label,"<<u><font point-size=\"9\">{{input}}</font> </u><br/> BODY {{value}} <br/><i>{{nl}} </i><br/> <u><font point-size=\"9\">{{output}}</font></u>>"):-
+attr(node,rule(H,B),label,"<<font point-size=\"9\">{{input}} </font><br/> BODY {{value}} <br/><i>{{nl}} </i>{{nlbr}} <u><font point-size=\"9\">{{output}}</font></u>>"):-
+    node(rule(H,B)), not node_tag(rule(H,B),disabled).
+attr(node,rule(H,B),label,"<<font point-size=\"9\">{{input}} </font><br/><s> BODY {{value}} </s><br/><i>{{nl}} </i>{{nlbr}} <u><font point-size=\"9\">{{output}}</font></u>>"):-
+    node(rule(H,B)), node_tag(rule(H,B),disabled).
+% attr(node,(rule(H,B)),label,"<{{input}}<br/> BODY {{value}} <br/>{{output}}>"):-
+%     node((rule(H,B))).
+
+id(rule(disjunction(H),normal(B)),(H,B)):-node(rule(disjunction(H),normal(B))),tuple_body_id.
+id(rule(choice(H),normal(B)),(H,B)):-node(rule(choice(H),normal(B))),tuple_body_id.
+id(rule(disjunction(H),sum(B,W)),(H,B)):-node(rule(disjunction(H),sum(B,W))),tuple_body_id.
+id(rule(choice(H),sum(B,W)),(H,B)):-node(rule(choice(H),sum(B,W))),tuple_body_id.
+
+id(rule(H,normal(B)),B):-node(rule(H,normal(B))), not tuple_body_id.
+
+attr(node,(N),(label,nl),@format(S,P)):-
+    node((N)),node_tag(N,nl(S,P)),show_nl.
+attr(node,(N),(label,nlbr),"<br/>"):-
+    node((N)),show_nl.
+attr(node,rule(H,B),(label,value),ID):-
+    node(rule(H,B)),id(rule(H,B),ID).
+attr(node,rule(choice(H),B),(label,output),"choice"):-
+    node(rule(choice(H),B)).
+attr(node,rule(disjunction(H),B),(label,output),"disjunction"):-
+    node(rule(disjunction(H),B)).
+attr(node,rule(H,normal(B)),(label,input),"normal"):-
+    node(rule(H,normal(B))),show_normal.
+attr(node,rule(H,sum(B,W)),(label,input),@concat("sum at least ",W)):-
+    node(rule(H,sum(B,W))),show_normal.
+
+attr(node, atom(A), label, "<{{atom}}{{nlbr}}<i>{{nl}} </i>>"):- node(atom(A)).
+attr(node, atom(A), (label,atom), A):- node(atom(A)).
+attr(node, atom(A), (label,nl), @format(L,P)):- node(atom(A)), node_tag(atom(A), nl(L,P)), show_nl.
+attr(node, atom(A), (label,nlbr), "<br/>"):- node(atom(A)),  show_nl.
+
 
 % ## Edges
-v_attr(edge,((A,G),(R,G)),style,dashed):- edge_attr((A,R), type, negative, G).
-v_attr(edge,((A,G),(R,G)),label,W):- edge_attr((A,R), weight, W, G).
+attr(edge,((A),(R)),style,dashed):- edge_attr((A,R), type, negative).
+attr(edge,((A),(R)),style,dashed):- edge_attr((A,R), type, negative).
+attr(edge,((A),(R)),label,W):- edge_attr((A,R), weight, W).
 
-v_attr(edge,((atom(A),G),(rule(H,B),G)),arrowhead,none):- v_edge(((atom(A),G),(rule(H,B),G)),_).
-% v_attr(edge,((rule(H,B),G),(atom(A),G)),color,orange):- v_edge(((rule(H,B),G),(atom(A),G)),_).
+attr(edge,((atom(A)),(rule(H,B))),arrowhead,none):- edge(((atom(A)),(rule(H,B)))).
+% attr(edge,((rule(H,B)),(atom(A))),color,orange):- v_edge(((rule(H,B)),(atom(A))),_).
 
 
-v_attr(edge,((A,contrastive),(R,contrastive)),style,dashed):- edge_attr((A,R), type, negative, G).
-v_attr(edge,((A,contrastive),(R,contrastive)),label,W):- edge_attr((A,R), weight, W, G).
-
+% attr(edge,((A,contrastive),(R,contrastive)),style,dashed):- edge_attr((A,R), type, negative).
+% attr(edge,((A,contrastive),(R,contrastive)),label,W):- edge_attr((A,R), weight, W).
 
 % ## Highlight model
-true_node((rule(H,B),G)):- node(rule(H,B), G), body(B,G).
-true_node((atom(A),G)):- node(atom(A), G), hold(A,G).
-v_attr(node,(N,G),fillcolor,C):-node(N, G), true_node((N,G)), color_set(G,C).
-v_attr(node,(N,G),fillcolor,white):-node(N, G), not true_node((N,G)).
+true_node(N):- node_tag(N,true).
 
-v_attr(node,(N,G),(fontcolor;color),gray80):- node(N,G),
-                                not true_node((N,G)).
-
-
-active_edge(((atom(A),G),(rule(H,B),G))):- edge_attr((atom(A),rule(H,B)), type, positive,_), true_node((atom(A),G)).
-active_edge(((atom(A),G),(rule(H,B),G))):- edge_attr((atom(A),rule(H,B)), type, negative,_), not true_node((atom(A),G)), graph(G).
-active_edge(((rule(H,B),G),(atom(A),G))):- true_node((rule(H,B),G)),edge((rule(H,B),atom(A)),G).
-v_attr(edge,((N1,G),(N2,G)),color,C):-edge((N1,N2),G), not active_edge(((N1,G),(N2,G))), color_set(light,C).
-v_attr(edge,((N1,contrastive),(N2,contrastive)),color,C):-edge((N1,N2),hypothetical), not active_edge(((N1,hypothetical),(N2,hypothetical))), color_set(light,C).
-v_attr(edge,((N1,contrastive),(N2,contrastive)),color,C):-edge((N1,N2),reference), not edge((N1,N2),hypothetical), color_set(light,C).
-% v_attr(edge,((N1,contrastive),(N2,contrastive)/),color,C):-edge((N1,N2),hypothetical), color_set(light,C).
+active_node(N):- draw_type(pg), node(N), not node_tag(N,disabled).
+active_node(atom(A)):- draw_type((model;explanation)), node(atom(A)),node_tag(atom(A),true). %All atoms are active in the model.
+active_node(rule(H,B)):- draw_type((model;explanation)), node(rule(H,B)), true_node(rule(H,B)). % Only true rules are active
+% active_node(rule(H,B)):- draw_type((model;explanation)), node(rule(H,B)), not node_tag(rule(H,B),disabled). % Only true rules are active
+% TODO define when a node is active in explanation option
 
 
-% ## Highlight explanation
-% v_attr(edge,((N1,G),(atom(A),G)),color,C):-reason((N1,atom(A)),G), color_set(edge, C).
-v_attr(edge,((N1,G),(atom(A),G)),color,gray80):-edge((N1,atom(A)),G),not reason((N1,atom(A)),G), color_set(edge, C).
-% v_attr(edge,((N1,contrastive),(atom(A),contrastive)),color,C):-reason((N1,atom(A)),hypothetical), color_set(edge, C).
-v_attr(edge,((N1,contrastive),(atom(A),contrastive)),color,gray80):-edge((N1,atom(A)),hypothetical),not reason((N1,atom(A)),hypothetical), color_set(edge, C).
-
-% ## Highlight query
-v_attr(node,(atom(A),contrastive),penwidth, "4"):-_query(_,A).
-
-% ----------------------------------------
-% ## Contrastive
-% v_attr(node,(N,contrastive),penwidth,"4"):- node(N,reference), not node(N,hypothetical).
-v_attr(node,(N,contrastive),(fontcolor;color),red):- node(N,reference), not node(N,hypothetical).
-v_attr(node,(N,contrastive),(fontcolor;color),blue):- node(N,hypothetical), not node(N,reference).
-v_attr(node,(N,contrastive),(fontcolor;color),gray80):- node(N,hypothetical),
-                                not true_node((N,hypothetical)).
-                                % true_node((N,reference)).
+active_edge(((A),(B))):- draw_type(pg), edge((A,B)),not node_tag(A,disabled).
+active_edge(((A),(B))):- draw_type(model), edge((A,B)), active_node((A)), active_node((B)), true_node((B)).
+active_edge(((A),(B))):- draw_type(explanation), edge((A,B)), reason((A,B)).
+active_edge(((atom(A)),(B))):- draw_type(explanation), edge((atom(A),B)), true_node((B)).
 
 
-v_node((N,contrastive),contrastive):- node(N,G).
-v_attr(node,(N,contrastive),label,L):- v_attr(node,(N,G),label,L).
-v_attr(node,(N,contrastive),(label,K),L):- v_attr(node,(N,G),(label,K),L).
+% active_edge(((atom(A)),(rule(H,B)))):- draw_type(model), edge_attr((atom(A),rule(H,B)), type, positive,_), true_node((atom(A))).
+% active_edge(((atom(A)),(rule(H,B)))):- draw_type(model), edge_attr((atom(A),rule(H,B)), type, negative,_), not true_node((atom(A))), graph(G).
+% active_edge(((rule(H,B)),(atom(A)))):- draw_type(model), true_node((rule(H,B))),edge((rule(H,B),atom(A))).
 
 
-v_attr(node,(N,contrastive),fillcolor, C):-true_node((N, hypothetical)),true_node((N, reference)), color_set(union, C).
-v_attr(node,(N,contrastive),fillcolor, C):-true_node((N, hypothetical)), not true_node((N, reference)),color_set(hypo_ref,C).
-v_attr(node,(N,contrastive),fillcolor, C):-not true_node((N, hypothetical)), true_node((N, reference)), color_set(ref_hypo,C).
-v_attr(node,(N,contrastive),fillcolor, white):-v_node((N,contrastive),contrastive), not true_node((N, hypothetical)), not true_node((N, reference)).
+attr(node,N,fillcolor,C):-node(N), true_node(N), color_set(G,C), not draw_type(pg), graph_type(G).
+attr(node,N,fillcolor,white):-node(N), draw_type(pg).
+attr(node,N,fillcolor,white):-node(N), not true_node(N), not draw_type(contrast) .
 
-% ## Highlight difference
-% v_attr(edge,((N1,contrastive),(N2,contrastive)),color,C):-reason((N1,N2),reference), not reason((N1,N2), hypothetical),color_set(edge_old,C), true_node((N1,hypothetical)).
+attr(node,N,fillcolor, C):-node_tag(N,true(reference)), node_tag(N,true(hypothetical)), color_set(union, C),draw_type(contrast).
+attr(node,N,fillcolor, C):-node_tag(N,true(hypothetical)), not node_tag(N, true(reference)) ,color_set(hypo_ref,C),draw_type(contrast).
+attr(node,N,fillcolor, C):-not node_tag(N,true(hypothetical)), node_tag(N, true(reference)), color_set(ref_hypo,C),draw_type(contrast).
+attr(node,N,fillcolor, white):-node(N), not node_tag(N,true(hypothetical)), not node_tag(N, true(reference)), not node_tag(N, constraint_wouldve_fired),draw_type(contrast).
+attr(node,N,fillcolor, C):-node(N), node_tag(N,constraint_wouldve_fired),draw_type(contrast),color_set(fired_cons, C).
+
+attr(node,N,penwidth, "4"):-node_tag(N,query(_)).
 
 
 
-% _contrast_lt(B):-node(rule(H,normal(B)),_).
-% _contrast_lt(B,A,pos):-edge_attr((atom(A),rule(H,normal(B))), type, positive,_).
-% _contrast_lt(B,A,neg):-edge_attr((atom(A),rule(H,normal(B))), type, negative,_).
-% _contrast_conjunction(B) :- _contrast_lt(B),
-%     hold(A) : _contrast_lt(B, A, pos);
-%     not hold(A) : _contrast_lt(B, A, neg).
-% _contrast_body(normal(B)) :- node(rule(_,normal(B)),_), _contrast_conjunction(B).
-% v_attr(node,(rule(H,normal(B)),contrastive),color, red):-node(rule(H,normal(B)),_),_contrast_body(normal(B)), not true_node((rule(H,normal(B)),_)).
+attr(node,N,(fontcolor;color),C):- node(N),
+                                not active_node(N),
+                                color_set(light,C),
+                                not node_tag(N,abduced(_)).
+
+attr(node,R,(fontcolor;color),red):- node_tag(R,abduced(rm)).
+attr(node,R,(fontcolor;color),blue):- node_tag(R,abduced(add)).
+
+
+attr(edge,((N1),(N2)),color,C):-edge((N1,N2)), not active_edge(((N1),(N2))), color_set(light,C).
+
+
+% cons(rule(disjunction(H),B)):-
+%     node(rule(disjunction(H),B)), %rule node
+%     not edge((rule(disjunction(H),B),atom(_))). % no outgoing edges
+% fired_edge((atom(A),rule(H,B))):- node_tag(atom(A),true(_)), edge_attr((atom(A),rule(H,B)),type,positive).
+% fired_edge((atom(A),rule(H,B))):- not node_tag(atom(A),true(_)), edge_attr((atom(A),rule(H,B)),type,negative).
+% node_tag(r, constraint_ule(H,B)):-cons(rule(H,B)),
+%     fired_edge((atom(A),rule(H,B))): edge((atom(A),rule(H,B))).
+
+
+
+
+% attr(node,X,id,X):-node(X).
+
+
+
+% linked_element(node,X,X):-node(X).
+% linked_element(node,Y,X):-edge((X,Y)).
+% linked_element(edge,(X,Y),X):-edge((X,Y)).
+% linked_element(edge,(X,Y),Y):-edge((X,Y)).
+
+
+% % attr(node,X,class,@svg_init("visibility","hidden")):-node(X),not root(X).
+% % attr(edge,(X,Y),class,@svg_init("visibility","hidden")) :- edge((X,Y)).
+
+
+% attr(Type,E,class,@svg("click",X,"visibility","visible")):-linked_element(Type,E,X).
+% attr(Type,E,class,@svg("mouseenter",X,"opacity","1")):-linked_element(Type,E,X).
+% attr(Type,E,class,@svg("mouseleave",X,"opacity","0.2")):-linked_element(Type,E,X).

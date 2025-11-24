@@ -1,29 +1,14 @@
+
 % Transforms a reified program in to a program graph
 %
 % !!! warning Assumes one body for each rule, which is achieved by tagging each rule with a unique ID
 % !!! warning Assumes all atoms are set as external?
 % --------------------------------------------------------
 
+#include "tag_general.lp".
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ## Auxiliaries
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% special atoms and rules to handle the `_rule` tags which come from `{_rule(X)}`.
-%*
-#aux_atom(A)
-Atom `A` is auxiliary
-*%
-aux_atom(_rule(X)):- output(_rule(X), _).
-%*
-#aux_rule(R)
-Rule `R` is auxiliary
-
-#parameters
-- R: is of form rule(choice(H),normal(B))
-*%
-aux_rule(rule(choice(H),normal(B))):- rule(choice(H),normal(B)),
-    aux_atom(A):atom_tuple(H,E), atom(E,P), atom_value(E,A).
-
+% Make sure there are no sum
+:- rule(H,sum(B)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ## Nodes
@@ -38,7 +23,7 @@ Node `N` is a node in the graph
 
 % ### Rule nodes
 % All rules in the reification except the auxiliary ones
-node(rule(H,B)):-rule(H,B), not aux_rule(rule(H, B)).
+node(rule(H,B)):-rule(H,normal(B)), not aux_rule(rule(H,B)).
 
 % ### Atom nodes
 
@@ -54,7 +39,7 @@ atom(E, external(E,V)):- external(E,V).
 %*
 #atom_value(E, A)
 An atom identified by `E` is in the program and has value `A`.
-Any atom that can not be mapped into an auxiliary has a as name aux(E)
+Any atom that can not be mapped into a single output has a as name aux(E)
 !!! example
     ```atom_value(10, person(james))```
 *%
@@ -77,38 +62,25 @@ Edge between nodes `N1` and `N2`
 % #### Normal edges
 
 % Edges for positive literals
-edge((atom(A),rule(H,normal(B)))):-
-    rule(H,normal(B)), literal_tuple(B,E), E>0, atom(E,_), atom_value(E,A), node(atom(A)).
-edge_attr((atom(A),rule(H,normal(B))), type, positive):-
-    rule(H,normal(B)), literal_tuple(B,E), E>0, atom(E,_), atom_value(E,A), node(atom(A)).
+edge((atom(A),rule(H,B))):-
+    rule(H,normal(B)), literal_tuple(B,E), E>0, atom(E,_), atom_value(E,A), node(atom(A)),node(rule(H,B)).
+edge_attr((atom(A),rule(H,B)), type, positive):-
+    rule(H,normal(B)), literal_tuple(B,E), E>0, atom(E,_), atom_value(E,A), node(atom(A)),node(rule(H,B)).
 % Edges for negative literals
-edge((atom(A),rule(H,normal(B)))):-
-    rule(H,normal(B)), literal_tuple(B,E), E<0, atom(-E,_), atom_value(-E,A), node(atom(A)).
-edge_attr((atom(A),rule(H,normal(B))), type, negative):-
-    rule(H,normal(B)), literal_tuple(B,E), E<0, atom(-E,_), atom_value(-E,A), node(atom(A)).
-
-% #### Sum edges
-
-% Edges for positive literals
-edge((atom(A),rule(H,sum(B,G)))):-
-    rule(H,sum(B,G)), weighted_literal_tuple(B,E,_), E>0, atom(E,_), atom_value(E,A), node(atom(A)).
-edge_attr((atom(A),rule(H,sum(B,G))), type, positive):-
-    rule(H,sum(B,G)), weighted_literal_tuple(B,E,_), E>0, atom(E,_), atom_value(E,A), node(atom(A)).
-edge_attr((atom(A),rule(H,sum(B,G))), weight, W):-
-    rule(H,sum(B,G)), weighted_literal_tuple(B,E,W), E>0, atom(E,_), atom_value(E,A), node(atom(A)).
-% Edges for negative literals
-edge((atom(A),rule(H,sum(B,G)))):-
-    rule(H,sum(B,G)), weighted_literal_tuple(B,E,_), E<0, atom(-E,_), atom_value(-E,A), node(atom(A)).
-edge_attr((atom(A),rule(H,sum(B,G))), type, negative):-
-    rule(H,sum(B,G)), weighted_literal_tuple(B,E,_), E<0, atom(-E,_), atom_value(-E,A), node(atom(A)).
-edge_attr((atom(A),rule(H,sum(B,G))), weight, W):-
-    rule(H,sum(B,G)), weighted_literal_tuple(B,E,W), E<0, atom(-E,_), atom_value(-E,A), node(atom(A)).
+edge((atom(A),rule(H,B))):-
+    rule(H,normal(B)), literal_tuple(B,E), E<0, atom(-E,_), atom_value(-E,A), node(atom(A)),node(rule(H,B)).
+edge_attr((atom(A),rule(H,B)), type, negative):-
+    rule(H,normal(B)), literal_tuple(B,E), E<0, atom(-E,_), atom_value(-E,A), node(atom(A)),node(rule(H,B)).
 
 
 % ### Rule body to head atoms
-edge((rule(disjunction(H),B),atom(A))):-rule(disjunction(H),B),
+edge((rule(disjunction(H),B),atom(A))):-rule(disjunction(H),normal(B)),
     atom_tuple(H,E), atom(E,P), atom_value(E,A).
 
-edge((rule(choice(H),B),atom(A))):-rule(choice(H),B),
-    not aux_rule(rule(choice(H), B)),
+edge((rule(choice(H),B),atom(A))):-rule(choice(H),normal(B)),
     atom_tuple(H,E), atom(E,P), atom_value(E,A).
+
+
+#show node/1.
+#show edge/1.
+#show edge_attr/3.

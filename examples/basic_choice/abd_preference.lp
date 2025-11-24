@@ -8,5 +8,5 @@ _abducible((rm;add),s(b,a)).
 %===== Distance
 %      It adds a penalty of 1 for each atom that is abduced.
 
-_distance(Atom, 1, 1) :-
-    _abduced(_, Atom).
+distance(Atom, 1, 1) :-
+    abduced(_, Atom).

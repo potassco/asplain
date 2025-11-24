@@ -8,19 +8,9 @@ with Vesper.
 ## Command line
 
 The command line is used my passing the model where James was poisoned since he
-was drudged and was on vacation. We also include the query `-p` which means
-that we want `p` to be false (James not to be poisoned)
+was drudged and was on vacation. We also include the query `p` which means that
+we want `p` to be true (James not to be poisoned)
 
-```console
-asplain examples/james-bond/encoding.lp  --explanation-preference examples/james-bond/explanation-preference.lp 0 --model examples/james-bond/model.lp --query "-p"
-```
-
-The computed graphs of the real model (provided) the hypothetical model, as
-well as the graph contrasting both models.
-
-=== "Explanation 1" ![James Bond](./out/james-bond-1.png) Shows that `h` had to
-be removed (crossed out) for the antidote to have been provided so that James
-is not poisoned.
-
-=== "Explanation 2" ![James Bond](./out/james-bond-2.png) Shows that `d` had to
-be removed (crossed out) for James not to be poisoned
+````console
+asplain examples/james-bond-choice/encoding.lp  --explanation-preference examples/james-bond-choice/explanation_preference.lp 1 --log info --query "p" --assumptions "-h"```
+````

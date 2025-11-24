@@ -1,31 +1,14 @@
 
 % Provides satisfiability based on the program graph
 % ------------------------------------------------------
+% Similar to the standard ASP semantics encoding, but works on the program graph
+% simplified without the sum bodies.
 
+body(B) :- node(rule(H,B)),
+    hold(atom(A)) : edge_attr((atom(A),rule(y)), type, positive);
+    not hold(atom(A)) : edge_attr((atom(A),rule(H,B)), type, negative).
 
-% Mimics literal_tuple
-_my_literal_tuple(B):-node(rule(H,normal(B))).
-_my_literal_tuple(B,A,pos):-edge_attr((atom(A),rule(H,normal(B))), type, positive).
-_my_literal_tuple(B,A,neg):-edge_attr((atom(A),rule(H,normal(B))), type, negative).
+hold(rule(H,B)):-node(rule(H,B)), body(B), not node_tag(rule(H,B),disabled).
 
-% Mimics weighted_literal_tuple
-_my_w_literal_tuple(B,A,pos,W):-
-    edge_attr((atom(A),rule(H,sum(B,G))), weight, W),
-    edge_attr((atom(A),rule(H,sum(B,G))), type, positive).
-_my_w_literal_tuple(B,A,neg,W):-
-    edge_attr((atom(A),rule(H,sum(B,G))), weight, W),
-    edge_attr((atom(A),rule(H,sum(B,G))), type, negative).
-
-
-% Satisfiable based on program graph
-conjunction(B) :- _my_literal_tuple(B),
-    hold(A) : _my_literal_tuple(B, A, pos);
-    not hold(A) : _my_literal_tuple(B, A, neg).
-
-body(normal(B)) :- node(rule(_,normal(B))), conjunction(B).
-body(sum(B,G)) :- node(rule(_,sum(B,G))),
-    #sum { W,A : hold(A), _my_w_literal_tuple(B, A, pos, W) ;
-           W,A : not hold(A), _my_w_literal_tuple(B, A, neg, W) } >= G.
-
-hold(A) : edge((rule(disjunction(H),B),atom(A))) :- node(rule(disjunction(H),B)), body(B).
-{ hold(A) : edge((rule(choice(H),B),atom(A))) } :- node(rule(choice(H),B)), body(B).
+hold(atom(A)) : edge((rule(disjunction(H),B),atom(A))) :- hold(rule(disjunction(H),B)).
+{ hold(atom(A)) : edge((rule(choice(H),B),atom(A))) } :- hold(rule(choice(H),B)).
