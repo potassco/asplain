@@ -37,7 +37,7 @@ Rule `R` is auxiliary
 - R: is of form rule(choice(H),normal(B))
 *%
 
-aux_rule(rule(H,normal(B))):-
+aux_rule(rule(H,B)):-
     rule(H,normal(B)),
     literal_tuple(B,-L), atom_tag(F,L).
 
@@ -47,7 +47,7 @@ aux_rule(rule(H,normal(B))):-
 %     literal_tuple(B,L), rule_tag(disable,L).
 
 
-node_tag(rule(H,normal(B)),F):-
+node_tag(rule(H,B),F):-
     rule(H,normal(B)),
     literal_tuple(B,L), rule_tag(F,L).
 

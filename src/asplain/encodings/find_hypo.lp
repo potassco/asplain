@@ -1,4 +1,3 @@
-% Create the atoms _abducible_rule/2.
 
 % Any abducible rule can be removed or added.
 {abduced(T,R)} :- node_tag(R,abducible(T)).

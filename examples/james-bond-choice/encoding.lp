@@ -2,51 +2,62 @@
 % The MI5 daily administers Bond antidote a, unless he is on holiday h.
 % Suppose now that, that day, Bond was actually on a holiday with Vesper.
 
-% a inhibitor b: when a is true, b becomes false.
-% a enabler of b: when a is true, b becomes true.
+% @nl("Bond is poisoned if he drinks the drug and does not receive the antidote")
+p :- d, not a.
+% @nl("Bond might be holiday or working")
+{h;w}.
+% @nl("Bond cannot be both on holiday and working")
+:- h, w.
+% @nl("Bond has to be either on holiday or working")
+:- not h, not w.
 
-% Posioned if drinks d and not antidote a.
-%   a acts as an inhibitor of p.
-p :- d, not a, &tag_rule{nl("Bond is poisoned if he drinks the drug and does not receive the antidote.",())}.
+% @nl("Bond receives the antidote if he is working")
+a :- w.
 
-% Holiday or work day.
-% 1{h;w}1:- &tag_rule{nl("Bond might be holiday or working.",())}.
-% {h}:- &tag_rule{nl("Bond might be holiday or working.",())}.
-% {w}:- &tag_rule{nl("Bond might be holiday or working.",())}.
-% :- not #sum{1,h:h;1,w:w}=1, &tag_rule{nl("Bond has to be either on holiday or working.",())}.
-{h;w}:- &tag_rule{nl("Bond might be holiday or working.",())}.
-:- h, w, &tag_rule{nl("Bond cannot be both on holiday and working.",())}.
-:- not h, not w, &tag_rule{nl("Bond has to be either on holiday or working.",())}.
-% x1:-w, &tag_rule{nl("Bond is working 1.",())}.
-% x2:-x1, &tag_rule{nl("Bond is working 2.",())}.
-% :- h, x2, &tag_rule{nl("Bond cannot be both on holiday and working.",())}.
-% :- not h, not x2, &tag_rule{nl("Bond has to be either on holiday or working.",())}.
-% h :- not w, &tag_rule{nl("Bond is on holiday if not working.",())}.
-% w :- not h, &tag_rule{nl("Bond is working if not on holiday.",())}.
+% @nl("Bond receives the antidote if he is smart")
+% a :- s.
 
-
-
-% 1{h;w}1:-&tag_rule{nl("Bond has to be either on holiday or working.",())}.
-
-% Antidote if work day
-a :- w, &tag_rule{nl("Bond receives the antidote if he is working.",())}.
-
-% Extra to have multiple reasons for antidote.
-% Antidote if smart.
-% a :- s, &tag_rule{nl("Bond receives the antidote if he is smart.",())}.
-
+% d:- &tag_rule{abducible(rm)}.
 
 %==== Instance
-d:- &tag_rule{abducible(rm)}.
-% s:- &tag_rule{abducible(add)}, &tag_rule{disabled}.
+
+%*
+a
+....
+Bond receives the antidote
+
+%*!
+d
+..
+Bond has drunk the drug
+*%
+% @nl("Bond has drunk the drug") : d
+
+%*!
+d(X)
+..
+Bond has drunk the drug
+
+Args:
+    X (fun) : drug
+*%
+% @nl("Bond has drunk the drug", X) : d(X)
+
+
+% @nl("Bond has received the antidote")
+% #defined a/0.
 
 
 % :- a, not &tag_atom{nl("Bond has received the antidote.",())}.
-% :- d, not &tag_atom{nl("Bond has drunk the drug.",())}.
-% :- p, not &tag_atom{nl("Bond has been poisoned.",())}.
-% :- h, not &tag_atom{nl("Bond is on holiday.",())}.
-% :- w, not &tag_atom{nl("Bond is working.",())}.
-% :- s, not &tag_atom{nl("Bond is smart.",())}.
-% #external s.
 
-% :-d.
+
+% @nl("Bond has drunk the drug")
+#defined d/0.
+% @nl("Bond has been poisoned")
+#defined p/0.
+% @nl("Bond is on holiday")
+#defined h/0.
+% @nl("Bond is working")
+#defined w/0.
+% @nl("Bond is smart")
+#defined s/0.
