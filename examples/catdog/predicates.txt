@@ -1,3 +1,0 @@
-seat((T,C)): There is a seat composed by chair C on table T
-person(X, P): X is a person who prefers P as pet
-assign(X, (T,C)): Person X was assigned to chair C in table T

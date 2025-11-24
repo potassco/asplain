@@ -1,2 +1,0 @@
-person(anna).
-sit(anna).

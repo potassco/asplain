@@ -1,3 +1,0 @@
-# Transformers
-
-::: asplain.transformers

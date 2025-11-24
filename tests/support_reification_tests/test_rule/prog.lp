@@ -1,1 +1,0 @@
-punish(P) :- drive(P), alcohol(P,A), A>30, person(P).

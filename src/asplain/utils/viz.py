@@ -1,0 +1,40 @@
+import logging
+from typing import List
+
+from clingo import Control, parse_term
+from clingo.script import enable_python
+from clingraph.clingo_utils import ClingraphContext  # type: ignore
+from clingraph.graphviz import compute_graphs, render  # type: ignore
+from clingraph.orm import Factbase  # type: ignore
+
+from asplain.utils.clingo import load_encoding
+
+log = logging.getLogger(__name__)
+
+
+def viz_graph(
+    pg: str,
+    graphs: List[str],
+    title: str,
+    open=False,
+    name: str = "graph",
+) -> None:
+    """
+    Visualize the explanation graph using cligraph
+    """
+    fb = Factbase(prefix="v")
+    ctl = Control(["--warn=none"])
+    ctx = ClingraphContext()
+    ctl.add("base", [], pg)
+    ctl.add("base", [], f'title("{title}").')
+    load_encoding(ctl, "viz-pg.lp")
+    enable_python()
+    ctl.ground([("base", [])], context=ctx)
+    for graph in graphs:
+        ctl.assign_external(parse_term(f"show({graph})"), True)
+    ctl.solve(on_model=fb.add_model)
+    graphs = compute_graphs(fb, graphviz_type="directed")
+    files = render(graphs, view=open, directory="out", name_format=f"{name}", format="svg")
+    log.info(f"Graph image saved in: {files['default']}")
+    return graphs
+    # for _, f in files.items():

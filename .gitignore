@@ -3,7 +3,6 @@
 *~
 \#*\#
 .\#*
-.idea
 
 # Mac/OSX
 .DS_Store
@@ -22,7 +21,6 @@ pip-delete-this-directory.txt
 
 # pyenv
 .python-version
-.venv
 
 # mypy
 .mypy_cache/
@@ -30,15 +28,10 @@ pip-delete-this-directory.txt
 dmypy.json
 *egg-info*
 
-# environment variables
-.env
-
 # unclassified
 dist
 build
 .coverage
 _build
 _autosummary
-
-out/
-site/
+site

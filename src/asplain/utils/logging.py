@@ -6,6 +6,7 @@ logging.
 """
 
 import logging
+import os
 from typing import TextIO
 
 NOTSET = logging.NOTSET
@@ -22,8 +23,8 @@ COLORS = {
     "YELLOW": "\033[93m",
     "RED": "\033[91m",
     "NORMAL": "\033[0m",
-    "CYAN": "\033[96m",
 }
+log = logging.getLogger(__name__)
 
 
 def colored(color: str, s: str) -> str:
@@ -56,10 +57,15 @@ class SingleLevelFilter(logging.Filter):
         return record.levelno == self.passlevel
 
 
+_current_logging_level = None  # Module-level variable to store the configured level
+
+
 def configure_logging(stream: TextIO, level: int, use_color: bool) -> None:
     """
     Configure application logging.
     """
+    global _current_logging_level
+    _current_logging_level = level
 
     def format_str(color: str) -> str:
         if use_color:
@@ -83,8 +89,33 @@ def configure_logging(stream: TextIO, level: int, use_color: bool) -> None:
     logging.basicConfig(handlers=handlers, level=level)
 
 
+def get_configured_logging_level() -> int | None:
+    """
+    Returns the logging level that was last set by configure_logging.
+    """
+    return _current_logging_level
+
+
 def get_logger(name: str) -> logging.Logger:
     """
     Get a logger with the given name.
     """
     return logging.getLogger(name)
+
+
+def save_out(file_name: str, content: str) -> None:
+    """
+    Save content to a file if the logging level is low enough.
+
+    Args:
+        file_path: The path to the file.
+        content: The content to save.
+    """
+    if _current_logging_level is DEBUG or _current_logging_level is INFO:  # 30 is WARNING, 40 is ERROR
+        return
+    out_dir = os.path.join(os.getcwd(), "out")
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, file_name)
+    with open(out_path, "w") as f:
+        f.write(content)
+    log.info("Saved output to %s", out_path)
