@@ -1,7 +1,0 @@
-person(X): X is a person
-drive(X): X drove
-resist(X): X resisted the authority
-alcohol(X): X had alcohol
-punish(X): X was punished
-sentence(X, prison): X was sentence to prison
-sentence(X, innocent): X was innocent

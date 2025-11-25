@@ -6,30 +6,22 @@ build-backend = "setuptools.build_meta"
 name = "asplain"
 authors = [{ name = "Susana Hahn", email = "hahnmartinlu@uni-potsdam.de" }]
 description = "A template project."
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { file = "LICENSE" }
 dynamic = ["version"]
 readme = "README.md"
-dependencies = [
-    "clingo>=5.7.1",
-    "clingox",
-    "clingraph",
-    "ollama",
-    "openai",
-    "python-dotenv",
-    "jinja2",
-    "clingexplaid>=1.3.1",
-]
+dependencies = ["clingo>=5.6.0", "meta-tools-clingo"]
 
 [project.urls]
-Homepage = "https://github.com/potassco/asplain.git/"
+Homepage = "asplain"
 
 [project.optional-dependencies]
+ui = ["clinguin>=2.7.5"]
 format = ["black", "isort", "autoflake"]
 lint_pylint = ["pylint"]
 typecheck = ["types-setuptools", "mypy"]
-test = ["coverage[toml]", "clintest"]
-doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
+test = ["coverage[toml]"]
+doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mkdoclingo"]
 dev = ["asplain[test,typecheck,lint_pylint]"]
 
 [project.scripts]
@@ -38,9 +30,9 @@ asplain = "asplain.__main__:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools_scm]
-version_scheme = "python-simplified-semver"
-local_scheme = "no-local-version"
+# [tool.setuptools_scm]
+# version_scheme = "python-simplified-semver"
+# local_scheme = "no-local-version"
 
 [tool.isort]
 profile = "black"

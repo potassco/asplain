@@ -7,24 +7,8 @@ nox.options.sessions = "lint_pylint", "typecheck", "test"
 EDITABLE_TESTS = True
 PYTHON_VERSIONS = None
 if "GITHUB_ACTIONS" in os.environ:
-    PYTHON_VERSIONS = ["3.9", "3.11"]
+    PYTHON_VERSIONS = ["3.10", "3.11"]
     EDITABLE_TESTS = False
-
-
-@nox.session
-def doc(session):
-    """
-    Build the documentation.
-
-    Accepts the following arguments:
-    - open: open documentation after build
-    - clean: clean up the build folder
-    - <target> <options>: build the given <target> with the given <options>
-    """
-
-    session.install("-e", ".[doc]")
-    session.run("open", "http://127.0.0.1:8000/asplain/")
-    session.run("mkdocs", "serve")
 
 
 @nox.session

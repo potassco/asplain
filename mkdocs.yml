@@ -1,6 +1,6 @@
 site_name: asplain
-site_url: https://mydomain.org/asplain
-site_description: An Experimental Package Management Solution for Python
+site_url: https://potassco.org/asplain
+site_description:
 repo_name: potassco/asplain
 repo_url: https://github.com/potassco/asplain
 copyright: Copyright &copy; 2024 Potassco
@@ -8,7 +8,6 @@ copyright: Copyright &copy; 2024 Potassco
 extra_css:
   - _custom/css/extra.css
   - _custom/css/mkdocstrings.css
-  - _custom/css/custom_admonition.css
   - _custom/css/mkdoclingo.css
 
 extra_javascript:
@@ -66,6 +65,7 @@ extra:
     - icon: potassco-logo
       link: https://potassco.org
   generator: false
+
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -92,40 +92,40 @@ markdown_extensions:
   - toc:
       permalink: true
   - footnotes
-  # - material.extensions.preview:
-  #     targets:
-  #       include:
-  #         - resources/*
+
 plugins:
   - search
   - autorefs
   - mkdocstrings:
       handlers:
         python:
-          import:
+          paths: [src]
+          inventories:
             - https://docs.python.org/3/objects.inv
           options:
             show_symbol_type_heading: true
             show_symbol_type_toc: true
-            # show_root_toc_entry: false
-            # show_inherited_summary: true
-            show_inherited_detail: true
-            show_inherited_detail_toc: true
-            show_inherited_detail_tree: true
+            show_signature_annotations: true
             show_source: false
-# nav:
-#   - Home: index.md
-#   - Getting started:
-#       - Installation: getting_started.md
-#       - Usage: usage.md
-#   - Reference:
-#       - reference/index.md
-#       - API: reference/api.md
-#       - Encodings: reference/encodings.md
-#   - Examples:
-#       - examples/index.md
-#   - Community:
-#       - community/index.md
-#       # - Contributing: contributing.md
-#       # - Code of Conduct: code_of_conduct.md
-#       # - License: license.md
+            extra:
+              signature_cross_references: true
+              show_inherited_detail: true
+              show_inherited_detail_toc: true
+              show_inherited_detail_tree: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Examples: examples/index.md
+  - Reference:
+      - reference/index.md
+      - Problem: reference/problem/index.md
+      - Encodings: reference/encodings/index.md
+      - API: reference/api/index.md
+  - Community:
+      - community/index.md
+      - Help: community/help.md
+      - Changes: community/CHANGES.md
+      - Contributing: community/CONTRIBUTING.md
+      - Development: community/DEVELOPMENT.md
+      - Deployment: community/DEPLOYMENT.md

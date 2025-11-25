@@ -3,21 +3,20 @@ The main entry point for the application.
 """
 
 import sys
-from pathlib import Path
 
 from clingo import clingo_main
-from dotenv import find_dotenv, load_dotenv
 
-from .app import AsplainApp
+from asplain.app import AsplainApp
+
+from .utils.clingo import parse_constants
 
 
 def main() -> None:
     """
     Run the main function.
     """
-    dotenv_path = Path(__package__).parent.resolve() / ".env"
-    load_dotenv(dotenv_path)
-    clingo_main(AsplainApp(sys.argv[0]), sys.argv[1:])
+    constants = parse_constants(sys.argv[2:])
+    clingo_main(AsplainApp(sys.argv[0], constants=constants), sys.argv[1:])
     sys.exit()
 
 

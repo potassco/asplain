@@ -1,3 +1,0 @@
-# Explanation
-
-::: asplain.explainers

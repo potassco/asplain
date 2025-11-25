@@ -1,47 +1,36 @@
+"""Module for Asplain application logic."""
+
+import logging
 import os
 import sys
 from textwrap import dedent
 from typing import Any, Callable, Optional, Sequence
 
-from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
+from clingo import Application, ApplicationOptions, Control, Model, parse_term
 
-from .explainers import ContrastiveExplainer
-from .llm.models import ModelTag, OllamaModel
-from .llm.models.openai import OpenAIModel
-from .llm.templates import ExplainLargeTemplate
-from .llm.utils import print_llm_message
-from .utils.logging import colored, configure_logging, get_logger
+from asplain import construct_contrastive, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
+from asplain.utils.clingo import divide_space_string, get_query_prg, model_symbols, print_foil, symbols_to_prg
+from asplain.utils.logging import colored, configure_logging, save_out
+from asplain.utils.viz import viz_graph
 
-log = get_logger("main")
+log = logging.getLogger(__name__)
 
 
 class AsplainApp(Application):
+    """Application for reification with extensions."""
 
-    def __init__(self, name: str):
-        """
-        Create application
-        """
+    def __init__(self, name, constants: Optional[dict[str, str]] = None) -> None:
+        """Initialize AsplainApp."""
         self.program_name = name
         self._log_level = "WARNING"
-        self._model_symbols = None
+        self._constants = constants or {}
         self._query_include = []
         self._query_exclude = []
         self._assumptions = []
-        self._explanation_preference: Optional[Sequence[str]] = []
-        # self._predicates_file: Optional[Sequence[str]] = None
-        self._model_tag = "openai"
-        self._use_llm: Flag = Flag()
-        self._prune: Flag = Flag()
+        self._number_explanations = 1
 
-    def parse_log_level(self, log_level: str) -> bool:
-        """
-        Parse log
-        """
-        if log_level is not None:
-            self._log_level = log_level.upper()
-            return self._log_level in ["INFO", "WARNING", "DEBUG", "ERROR"]
-
-        return True
+        self._dynamic_tags = []
+        self._model_symbols = None
 
     def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
         """
@@ -60,20 +49,37 @@ class AsplainApp(Application):
                     log.error("Setting value to list")
                     current_value = [current_value]
                 current_value.append(value)
-                self.__setattr__(attr_name, current_value)
+                self.__setattr__(attr_name, current_value)  # Use direct assignment instead of __setattr__
             return True
 
         return setter
+
+    def parse_log_level(self, log_level: str) -> bool:
+        """
+        Parse log
+        """
+        if log_level is not None:
+            self._log_level = log_level.upper()
+            return self._log_level in ["INFO", "WARNING", "DEBUG", "ERROR"]
+
+        return True
 
     def parse_assumptions(self, value) -> bool:
         """
         Parse assumptions string
         """
 
-        true_assumptions, false_assumptions = self._divide_space_string(value)
-        self._assumptions = [(parse_term(s), True) for s in true_assumptions]
-        self._assumptions += [(parse_term(s), False) for s in false_assumptions]
+        true_assumptions, false_assumptions = divide_space_string(value)
+        self._assumptions = [(str(parse_term(s)), True) for s in true_assumptions]
+        self._assumptions += [(str(parse_term(s)), False) for s in false_assumptions]
 
+        return True
+
+    def parse_number_explanations(self, value) -> bool:
+        """
+        Parse number of explanations
+        """
+        self._number_explanations = int(value)
         return True
 
     def parse_query(self, value) -> bool:
@@ -81,9 +87,9 @@ class AsplainApp(Application):
         Parse query string
         """
 
-        true_queries, false_queries = self._divide_space_string(value)
-        self._query_include = [parse_term(s) for s in true_queries]
-        self._query_exclude = [parse_term(s) for s in false_queries]
+        true_queries, false_queries = divide_space_string(value)
+        self._query_include = [str(parse_term(s)) for s in true_queries]
+        self._query_exclude = [str(parse_term(s)) for s in false_queries]
 
         return True
 
@@ -94,28 +100,14 @@ class AsplainApp(Application):
         ctl.ground([("base", [])])
         with ctl.solve(yield_=True) as handle:
             for m in handle:
-                self._model_symbols = m.symbols(atoms=True)
+                self._model_symbols = [str(s) for s in m.symbols(atoms=True)]
                 return True
 
         log.error("No answer set found for the given model file: %s", value)
         return False
 
-    def parse_general(self, attr_name: str) -> Callable[[str], bool]:
-        """
-        Parse general attributes
-        """
-
-        def setter(value: Any) -> bool:
-            self.__setattr__(attr_name, value)
-            return True
-
-        return setter
-
     def register_options(self, options: ApplicationOptions) -> None:
-        """
-        Add custom options
-        """
-        group = colored("red", "Asplain Options")
+        group = colored("blue", "Asplain Options")
 
         options.add(
             group,
@@ -128,17 +120,6 @@ class AsplainApp(Application):
             ),
             self.parse_log_level,
             argument="<level>",
-        )
-        options.add(
-            group,
-            "explanation-preference",
-            dedent(
-                """\
-                Preference file for explanations."""
-            ),
-            self.parse_file("_explanation_preference", multi=True),
-            argument="<explanation-preference>",
-            multi=True,
         )
         options.add(
             group,
@@ -178,119 +159,133 @@ class AsplainApp(Application):
             argument="<assumptions>",
         )
 
-        options.add_flag(
-            group,
-            "prune",
-            dedent(
-                """\
-                If active responds the pruned graph, where only nodes and edges connected to the query are shown.
-                """
-            ),
-            self._prune,
-        )
-
-        options.add_flag(
-            group,
-            "llm",
-            dedent(
-                """\
-                If active provides the user with an llm chat for explaining the query.
-                """
-            ),
-            self._use_llm,
-        )
         options.add(
             group,
-            "model-tag",
+            "nexplanations",
             dedent(
                 """\
-                Specifies which LLM model is used if the llm feature is active.
-                """
+                Number of explanations to compute. (default: 1)"""
             ),
-            self.parse_general("_model_tag"),
-            argument="<model-tag>",
+            self.parse_number_explanations,
+            argument="<nexplanations>",
         )
 
         options.add(
             group,
-            "predicates",
+            "dynamic-tags",
             dedent(
                 """\
-                Text explaning meaning of predicates."""
+                Preference file for automatic tagging."""
             ),
-            self.parse_file("_predicates_file"),
-            argument="<predicates>",
+            self.parse_file("_dynamic_tags", multi=True),
+            argument="<dynamic-tags>",
+            multi=True,
         )
 
-    @staticmethod
-    def _divide_space_string(space_string: str) -> tuple[list[str], list[str]]:
-        """
-        Divide the string into atoms to include and exclude
-        """
-        include = [atom for atom in space_string.split() if not atom.startswith("-")]
-        exclude = [atom[1:] for atom in space_string.split() if atom.startswith("-")]
-        return include, exclude
-
-    def print_model(self, model: Model, printer: Callable[[], None]) -> None:
-        """
-        Print a model on the console. If no query was provided, it asks the user for one
-        """
-        # log.info("Model: %s", model)
-        output = ""
-        failed_query = False
-        model_pg = "\n".join([str(s) + "." for s in model.symbols(shown=True)])
-        for sym in model.symbols(shown=True):
-            # print(sym.arguments[0].name)
-            if sym.name == "node_tag" and str(sym.arguments[1]) == "true" and sym.arguments[0].name == "atom":
-                output += str(sym.arguments[0].arguments[0]) + " "
-            if sym.name == "fail_query":
-                failed_query = True
-
-        color = "red" if failed_query else "green"
-        output = colored(color, output)
-        if failed_query:
-            output += "\n" + colored("red", "(Query failed to hold in the model)")
-        else:
-            output += "\n" + colored("green", "(Query holds in the model)")
-        sys.stdout.write(output + "\n")
-
-        self._explainer.viz_graph(
-            model_pg, "reference", "Model Program Graph", file_name=f"model-{model.number}", draw_types=["model"]
-        )
-        reference_explanation_file = os.path.join(self._explainer._output_dir, f"model-{model.number}.lp")
-        with open(reference_explanation_file, "w") as f:
-            f.write(model_pg)
-            log.info("Reference model saved in " + f.name)
-
-        self._explainer.explain(
-            model_pg, self._query_include, self._query_exclude, self._explanation_preference, model.number
-        )
+    def print_model(self, model: Model, _) -> None:
+        symbols = model.symbols(shown=True)
+        print(" ".join([str(s) for s in model_symbols(symbols)]))
 
     def main(self, ctl: Control, files: Sequence[str]) -> None:
         """
-        Main function ran on call
+        Main entry point.
         """
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
-        log.info("Model: %s", self._model_symbols)
-        log.info(
-            "Will explain %s %s",
-            ", why  ".join([""] + [str(q) for q in self._query_include]),
-            ", why not".join([""] + [str(q) for q in self._query_exclude]),
+        query_prg = get_query_prg(self._query_include, self._query_exclude)
+        distance_prg = ""  # TODO Get from command line
+
+        reference_pg = construct_program_graph(
+            list(files),
+            constants=self._constants,
+            assumptions=self._assumptions,
+            dynamic_tags_files=self._dynamic_tags,
         )
-        # Set the assumptions
-        output_dir = os.path.join(os.path.dirname(files[0]), "out")
-        self._explainer = ContrastiveExplainer(output_dir, True, True)  # type: ignore
-        pg = self._explainer.generate_pg(files, self._assumptions)
-        if pg is None:
-            log.error("No program graph generated. Exiting.")
-            return
+        save_out("reference_pg.lp", reference_pg)
+        viz_graph(
+            pg=reference_pg,
+            graphs=["reference"],
+            title="Reference Graph",
+            name="reference_pg",
+        )
+        model_subgraphs_ctl = set_model_subgraphs_ctl(pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols)
+        with model_subgraphs_ctl.solve(yield_=True) as hnd:
+            model_found = False
+            for model in hnd:
+                model_found = True
+                symbols = model.symbols(shown=True)
+                reference_model_pg = symbols_to_prg(symbols)
+                save_out(f"reference_model_{model.number}.lp", reference_model_pg)
+                viz_graph(
+                    pg=reference_model_pg,
+                    graphs=["reference", "model(reference)"],
+                    title="Reference Model Graph",
+                    name=f"reference_model_pg_{model.number}",
+                )
+                foil_ctl = set_foil_ctl(
+                    pg=reference_model_pg,
+                    number_of_foils=self._number_explanations,
+                    query_prg=query_prg,
+                    distance_prg=distance_prg,
+                )
+                with foil_ctl.solve(yield_=True) as foil_hnd:
+                    foil_found = False
+                    for foil_model in foil_hnd:
+                        foil_found = True
+                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
+                        save_out(f"foil_model_pg_{model.number}_{foil_model.number}.lp", foil_model_pg)
+                        viz_graph(
+                            pg=foil_model_pg,
+                            graphs=["foil", "model(foil)"],
+                            title="Foil Graph",
+                            name=f"foil_model_pg_{model.number}_{foil_model.number}",
+                        )
+                        print_foil(foil_model_pg)
+                        contrastive_pg = construct_contrastive(
+                            pg=foil_model_pg,
+                            query_prg=query_prg,
+                        )
+                        save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
+                        viz_graph(
+                            pg=contrastive_pg,
+                            graphs=["foil", "model(foil)", "reference", "model(reference)"],
+                            title="Contrastive Graph",
+                            name=f"contrastive_pg_{model.number}_{foil_model.number}",
+                        )
+                    if not foil_found:
+                        log.warning("No foil found.")
 
-        self._explainer.setup_ctl_from_pg(ctl, pg, self._model_symbols, self._query_include, self._query_exclude)
-
-        ctl.ground([("base", [])])
-        result = ctl.solve()
-        if not result.satisfiable:
-            log.warning("------ UNSATISFIABLE ------")
-            log.warning("Calculating contrastive explanation without a query for the pg without a model")
-            self._explainer.explain(pg, [], [], self._explanation_preference, 0)
+            if not model_found:
+                log.warning("UNSATISFIABLE. Will proceed to explain.")
+                foil_ctl = set_foil_ctl(
+                    pg=reference_pg,
+                    number_of_foils=self._number_explanations,
+                    query_prg=query_prg,
+                    distance_prg=distance_prg,
+                )
+                with foil_ctl.solve(yield_=True) as foil_hnd:
+                    foil_found = False
+                    for foil_model in foil_hnd:
+                        foil_found = True
+                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
+                        save_out(f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg)
+                        viz_graph(
+                            pg=foil_model_pg,
+                            graphs=["foil", "model(foil)"],
+                            title="Foil Graph",
+                            name=f"foil_model_pg_UNSAT_{foil_model.number}",
+                        )
+                        print_foil(foil_model_pg)
+                        contrastive_pg = construct_contrastive(
+                            pg=foil_model_pg,
+                            query_prg=query_prg,
+                        )
+                        save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
+                        viz_graph(
+                            pg=contrastive_pg,
+                            graphs=["foil", "model(foil)", "reference", "model(reference)"],
+                            title="Contrastive Graph",
+                            name=f"contrastive_pg_UNSAT_{foil_model.number}",
+                        )
+                    if not foil_found:
+                        log.warning("No foil found.")

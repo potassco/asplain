@@ -1,1 +1,0 @@
-value("frontWheel","W18").

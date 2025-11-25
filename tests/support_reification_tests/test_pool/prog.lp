@@ -1,1 +1,0 @@
-person(gabriel;clare).

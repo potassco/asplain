@@ -1,0 +1,10 @@
+edge(model(foil),positive,(rule(disjunction(0),normal(0)),atom(d))).
+edge(model(foil),positive,(rule(disjunction(4),normal(5)),atom(p))).
+edge(model(foil),positive,(rule(choice(1),normal(1)),atom(h))).
+edge(model(foil),positive,(atom(d),rule(disjunction(4),normal(5)))).
+node(model(foil),rule(disjunction(0),normal(0))).
+node(model(foil),rule(choice(1),normal(1))).
+node(model(foil),atom(d)).
+node(model(foil),rule(disjunction(4),normal(5))).
+node(model(foil),atom(p)).
+node(model(foil),atom(h)).
