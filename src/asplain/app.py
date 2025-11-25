@@ -1,3 +1,5 @@
+"""Module for Asplain application logic."""
+
 import logging
 import os
 import sys
@@ -18,13 +20,14 @@ class AsplainApp(Application):
     """Application for reification with extensions."""
 
     def __init__(self, name, constants: Optional[dict[str, str]] = None) -> None:
+        """Initialize AsplainApp."""
         self.program_name = name
         self._log_level = "WARNING"
         self._constants = constants or {}
         self._query_include = []
         self._query_exclude = []
         self._assumptions = []
-        self._nexplanations = 1
+        self._number_explanations = 1
 
         self._dynamic_tags = []
         self._model_symbols = None
@@ -46,7 +49,7 @@ class AsplainApp(Application):
                     log.error("Setting value to list")
                     current_value = [current_value]
                 current_value.append(value)
-                self.__setattr__(attr_name, current_value)
+                self.__setattr__(attr_name, current_value)  # Use direct assignment instead of __setattr__
             return True
 
         return setter
@@ -72,11 +75,11 @@ class AsplainApp(Application):
 
         return True
 
-    def parse_nexplanations(self, value) -> bool:
+    def parse_number_explanations(self, value) -> bool:
         """
         Parse number of explanations
         """
-        self._nexplanations = int(value)
+        self._number_explanations = int(value)
         return True
 
     def parse_query(self, value) -> bool:
@@ -163,7 +166,7 @@ class AsplainApp(Application):
                 """\
                 Number of explanations to compute. (default: 1)"""
             ),
-            self.parse_nexplanations,
+            self.parse_number_explanations,
             argument="<nexplanations>",
         )
 
@@ -185,7 +188,7 @@ class AsplainApp(Application):
 
     def main(self, ctl: Control, files: Sequence[str]) -> None:
         """
-        Main function ran on call
+        Main entry point.
         """
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
@@ -220,9 +223,8 @@ class AsplainApp(Application):
                     name=f"reference_model_pg_{model.number}",
                 )
                 foil_ctl = set_foil_ctl(
-                    reference_pg=reference_pg,
-                    reference_model_pg=reference_model_pg,
-                    number_of_foils=self._nexplanations,
+                    pg=reference_model_pg,
+                    number_of_foils=self._number_explanations,
                     query_prg=query_prg,
                     distance_prg=distance_prg,
                 )
@@ -230,7 +232,7 @@ class AsplainApp(Application):
                     foil_found = False
                     for foil_model in foil_hnd:
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(foil_model.symbols(shown=True))
+                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
                         save_out(f"foil_model_pg_{model.number}_{foil_model.number}.lp", foil_model_pg)
                         viz_graph(
                             pg=foil_model_pg,
@@ -240,9 +242,7 @@ class AsplainApp(Application):
                         )
                         print_foil(foil_model_pg)
                         contrastive_pg = construct_contrastive(
-                            reference_pg=reference_pg,
-                            foil_pg_tuple=foil_model_pg,
-                            reference_model_pg=reference_model_pg,
+                            pg=foil_model_pg,
                             query_prg=query_prg,
                         )
                         save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
@@ -257,11 +257,35 @@ class AsplainApp(Application):
 
             if not model_found:
                 log.warning("UNSATISFIABLE. Will proceed to explain.")
-                # contrast(
-                #     number_of_foils=self._nexplanations,
-                #     reference_pg=reference_pg,
-                #     query_prg=query_prg,
-                #     distance_prg=distance_prg,
-                #     on_contrastive=print_foil,
-                # )
-                # Should explain UNSAT
+                foil_ctl = set_foil_ctl(
+                    pg=reference_pg,
+                    number_of_foils=self._number_explanations,
+                    query_prg=query_prg,
+                    distance_prg=distance_prg,
+                )
+                with foil_ctl.solve(yield_=True) as foil_hnd:
+                    foil_found = False
+                    for foil_model in foil_hnd:
+                        foil_found = True
+                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
+                        save_out(f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg)
+                        viz_graph(
+                            pg=foil_model_pg,
+                            graphs=["foil", "model(foil)"],
+                            title="Foil Graph",
+                            name=f"foil_model_pg_UNSAT_{foil_model.number}",
+                        )
+                        print_foil(foil_model_pg)
+                        contrastive_pg = construct_contrastive(
+                            pg=foil_model_pg,
+                            query_prg=query_prg,
+                        )
+                        save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
+                        viz_graph(
+                            pg=contrastive_pg,
+                            graphs=["foil", "model(foil)", "reference", "model(reference)"],
+                            title="Contrastive Graph",
+                            name=f"contrastive_pg_UNSAT_{foil_model.number}",
+                        )
+                    if not foil_found:
+                        log.warning("No foil found.")

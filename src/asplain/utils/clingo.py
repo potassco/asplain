@@ -1,3 +1,5 @@
+"""Utilities for working with Clingo."""
+
 import argparse
 import logging
 from importlib.resources import path
@@ -91,7 +93,7 @@ def load_encoding(ctl: Control, encoding_name: str) -> None:
         ctl.load(str(base_encoding))
 
 
-def assert_no_errors(symbols: List[Symbol], function_name="error") -> None:
+def assert_no_errors(symbols: List[Symbol], function_name: str = "error") -> None:
     """
     Check for error symbols in the given list of symbols.
     If any error symbols are found, raise a RuntimeError with the error messages.
@@ -109,7 +111,7 @@ def assert_no_errors(symbols: List[Symbol], function_name="error") -> None:
         raise RuntimeError(m)
 
 
-def model_symbols(model_pg_symbols: List[Symbol], graph_name="reference") -> List[Symbol]:
+def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "reference") -> List[Symbol]:
     """
     Extract model symbols from the program graph string.
     Placeholder implementation.
@@ -139,7 +141,7 @@ def print_foil(foil_pg: str) -> None:
         print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
 
 
-def get_query_prg(query_include, query_exclude) -> str:
+def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:
     qi = "".join([f"_query({str(s)},include)." for s in query_include])
     qe = "".join([f"_query({str(s)},exclude)." for s in query_exclude])
     return qi + qe

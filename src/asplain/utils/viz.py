@@ -1,3 +1,5 @@
+"""Visualization utilities for Asplain."""
+
 import logging
 from typing import List
 
@@ -16,11 +18,17 @@ def viz_graph(
     pg: str,
     graphs: List[str],
     title: str,
-    open=False,
+    open: bool = False,
     name: str = "graph",
-) -> None:
+) -> dict[str, str]:
     """
     Visualize the explanation graph using cligraph
+    Args:
+        pg: The program graph as a string of facts. This might define multiple graphs.
+        graphs: List of graph names to visualize: {reference, model(reference), foil, model(foil), constrastive}
+        title: Title of the graph.
+        open: Whether to open the generated graph image.
+        name: Name format for the output file.
     """
     fb = Factbase(prefix="v")
     ctl = Control(["--warn=none"])
@@ -35,6 +43,5 @@ def viz_graph(
     ctl.solve(on_model=fb.add_model)
     graphs = compute_graphs(fb, graphviz_type="directed")
     files = render(graphs, view=open, directory="out", name_format=f"{name}", format="svg")
-    log.info(f"Graph image saved in: {files['default']}")
+    log.info("Graph image saved in: %s", files["default"])
     return graphs
-    # for _, f in files.items():

@@ -9,8 +9,6 @@ from clingo import clingo_main
 from asplain.app import AsplainApp
 
 from .utils.clingo import parse_constants
-from .utils.logging import configure_logging, get_logger
-from .utils.parser import get_parser
 
 
 def main() -> None:

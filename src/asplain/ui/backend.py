@@ -96,7 +96,9 @@ class ASPlainBackend(ClingoBackend):
             prg += "_no_foil."
 
         prg += " ".join([f"show({g})." for g in shown_graphs])
-        return prg + "\n" + self._contrastive_pg
+        if self._contrastive_pg is not None:
+            return prg + "\n" + self._contrastive_pg
+        return prg
 
     def _init_ds_constructors(self):
         super()._init_ds_constructors()
@@ -218,10 +220,11 @@ class ASPlainBackend(ClingoBackend):
     def _start_explanation(self):
 
         self._update_reference_pg()
-
+        pg = self._reference_pg or ""
+        if self._reference_model_pg is not None:
+            pg += self._reference_model_pg
         self._foil_ctl = set_foil_ctl(
-            reference_pg=self._reference_pg,
-            reference_model_pg=self._reference_model_pg,
+            pg=pg,
             query_prg=get_query_prg(self._query_include, self._query_exclude),
             number_of_foils=0,
         )
@@ -278,9 +281,7 @@ class ASPlainBackend(ClingoBackend):
             foil_model = next(self._explanation_iterator)
             foil_pg_and_model = foil_model.symbols(shown=True)  # shown should include the foil model and pg
             self._contrastive_pg = construct_contrastive(
-                reference_pg=self._reference_pg,
-                foil_pg_tuple=symbols_to_prg(foil_pg_and_model),
-                reference_model_pg=self._reference_model_pg,
+                pg=symbols_to_prg(foil_pg_and_model),
                 query_prg=get_query_prg(self._query_include, self._query_exclude),
             )
             self._logger.debug(self._contrastive_pg)
