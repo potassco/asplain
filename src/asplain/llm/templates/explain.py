@@ -16,9 +16,7 @@ class ExplainTemplate(Template):
         super().__init__()
         self._contrastive_program_graph = contrastive_program_graph
         self._query_program = query_program
-
-        graph_json = graph_program_to_json(self._contrastive_program_graph)
-        print("JSON", graph_json.json())
+        self._graph = graph_program_to_json(self._contrastive_program_graph)
 
     def compose_instructions(self) -> str:
         with open(Path(__file__).parent / PROMPT_FILE_INSTRUCTIONS, "r", encoding="utf-8") as prompt_file:
@@ -29,5 +27,5 @@ class ExplainTemplate(Template):
     def compose_input(self) -> str:
         with open(Path(__file__).parent / PROMPT_FILE_INPUT, "r", encoding="utf-8") as prompt_file:
             prompt_template = prompt_file.read()
-        prompt = prompt_template.format()
+        prompt = prompt_template.format(query=self._query_program, graph=self._graph.json())
         return prompt
