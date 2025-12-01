@@ -313,7 +313,10 @@ class AsplainApp(Application):
                         if self._llm_tag is not None:
                             # Prompt the LLM
                             llm = OpenAIModel(model_tag=self._llm_tag)
-                            template = ExplainTemplate()
+                            template = ExplainTemplate(
+                                contrastive_program_graph=contrastive_pg,
+                                query_program=query_prg,
+                            )
                             print("LLM Explanation:")
                             response = asyncio.run(llm.prompt_template(template))
                             print(colored("grey", response))
