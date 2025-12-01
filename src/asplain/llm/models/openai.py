@@ -1,6 +1,7 @@
 """Wrapper for the OpenAI ChatGPT model"""
 
 import os
+import dotenv
 from typing import Optional
 
 from openai import AsyncOpenAI
@@ -17,6 +18,7 @@ class OpenAIModel(AbstractModel):
 
     def __init__(self, model_tag: ModelTag, api_key: Optional[str] = None):
         super().__init__(model_tag)
+        dotenv.load_dotenv()
         openai_api_key = api_key if api_key is not None else os.environ.get("OPENAI_API_KEY")
         self._client = AsyncOpenAI(api_key=openai_api_key)
 

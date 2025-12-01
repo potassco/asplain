@@ -1,5 +1,6 @@
 """Module for Asplain application logic."""
 
+import asyncio
 import logging
 import os
 import sys
@@ -9,8 +10,10 @@ from typing import Any, Callable, Optional, Sequence
 from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
 
 from asplain import construct_contrastive, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
+from asplain.llm.models import ModelTag, OpenAIModel
+from asplain.llm.templates import ExplainTemplate
 from asplain.utils.clingo import divide_space_string, get_query_prg, model_symbols, print_foil, symbols_to_prg
-from asplain.utils.logging import colored, configure_logging, save_out
+from asplain.utils.logging import colored, configure_logging, save_out, COLORS
 from asplain.utils.viz import viz_graph
 
 log = logging.getLogger(__name__)
@@ -28,6 +31,7 @@ class AsplainApp(Application):
         self._query_exclude = []
         self._assumptions = []
         self._number_explanations = 1
+        self._llm_tag: Optional[ModelTag] = None
 
         self._dynamic_tags = []
         self._cost_encoding = []
@@ -109,6 +113,13 @@ class AsplainApp(Application):
         log.error("No answer set found for the given model file: %s", value)
         return False
 
+    def parse_llm_tag(self, value: str) -> bool:
+        if value in [str(m) for m in ModelTag.__members__]:
+            tag = ModelTag[value]
+            self._llm_tag = tag
+            return True
+        return False
+
     def register_options(self, options: ApplicationOptions) -> None:
         group = colored("blue", "Asplain Options")
 
@@ -171,6 +182,19 @@ class AsplainApp(Application):
             ),
             self.parse_number_explanations,
             argument="<nexplanations>",
+        )
+
+        options.add(
+            group,
+            "llm",
+            dedent(
+                f"""\
+                Generate a natural language explanation using an LLM. 
+                            <llm-tag> ={{{'|'.join([str(m) for m in ModelTag.__members__])}}}
+                """
+            ),
+            self.parse_llm_tag,
+            argument="<llm-tag>",
         )
 
         options.add(
@@ -286,6 +310,13 @@ class AsplainApp(Application):
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
                             open=self._open.flag,
                         )
+                        if self._llm_tag is not None:
+                            # Prompt the LLM
+                            llm = OpenAIModel(model_tag=self._llm_tag)
+                            template = ExplainTemplate()
+                            print("LLM Explanation:")
+                            response = asyncio.run(llm.prompt_template(template))
+                            print(colored("grey", response))
                     if not foil_found:
                         log.warning("No foil found.")
 
