@@ -11,220 +11,439 @@ EXAMPLE 1 START
 
 Input:
 {
-    "query": "p"
+    "query": "p",
     "graph": [
        {
           "type":"node",
           "id":1,
-          "label":"rule(disjunction(0),normal(0))",
-          "origin":"reference"
+          "label":"rule(choice(0),normal(0))",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond might be holiday or working\",())",
+                "origin":"reference"
+             },
+             {
+                "tag":"rule_fo(\"{ h; w }.\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond might be holiday or working\")",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":2,
-          "label":"rule(choice(1),normal(1))",
-          "origin":"reference"
+          "label":"rule(disjunction(1),normal(1))",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"rule_fo(\"#false :- h.\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"constraint",
+                "origin":"reference"
+             },
+             {
+                "tag":"abducible(remove)",
+                "origin":"reference"
+             },
+             {
+                "tag":"assume(false)",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"User assumed {} as {}\",(h,false))",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":3,
           "label":"rule(disjunction(2),normal(2))",
-          "origin":"reference"
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"fact",
+                "origin":"reference"
+             },
+             {
+                "tag":"rule_fo(\"d.\")",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":4,
           "label":"rule(disjunction(3),normal(3))",
-          "origin":"reference"
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond receives the antidote if he is working\",())",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond receives the antidote if he is working\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"rule_fo(\"a :- w.\")",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":5,
-          "label":"rule(disjunction(3),normal(4))",
-          "origin":"reference"
+          "label":"rule(disjunction(1),normal(4))",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond has to be either on holiday or working\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"rule_fo(\"#false :- not h; not w.\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"constraint",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond has to be either on holiday or working\",())",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":6,
-          "label":"rule(disjunction(4),normal(5))",
-          "origin":"reference"
+          "label":"rule(disjunction(1),normal(5))",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond cannot be both on holiday and working\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"constraint",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond cannot be both on holiday and working\",())",
+                "origin":"reference"
+             },
+             {
+                "tag":"rule_fo(\"#false :- h; w.\")",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":7,
-          "label":"atom(d)",
-          "origin":"reference"
+          "label":"rule(disjunction(4),normal(6))",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond is poisoned if he drinks the drug and does not receive the antidote\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond is poisoned if he drinks the drug and does not receive the antidote\",())",
+                "origin":"reference"
+             },
+             {
+                "tag":"rule_fo(\"p :- d; not a.\")",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":8,
-          "label":"atom(a)",
-          "origin":"reference"
+          "label":"atom(d)",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond has drunk the drug\",())",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond has drunk the drug\")",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":9,
-          "label":"atom(h)",
-          "origin":"reference"
+          "label":"atom(a)",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond has received the antidote\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond has received the antidote\",())",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":10,
-          "label":"atom(w)",
-          "origin":"reference"
+          "label":"atom(h)",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond is on holiday\",())",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond is on holiday\")",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":11,
-          "label":"atom(p)",
-          "origin":"reference"
+          "label":"atom(w)",
+          "origin":"reference",
+          "tags":[
+             {
+                "tag":"label(\"Bond is working\")",
+                "origin":"reference"
+             },
+             {
+                "tag":"label(\"Bond is working\",())",
+                "origin":"reference"
+             }
+          ]
        },
        {
           "type":"node",
           "id":12,
-          "label":"rule(disjunction(0),normal(0))",
-          "origin":"model(reference)"
+          "label":"atom(p)",
+          "origin":"reference",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":13,
-          "label":"rule(choice(1),normal(1))",
-          "origin":"model(reference)"
+          "label":"rule(choice(0),normal(0))",
+          "origin":"model(reference)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":14,
-          "label":"atom(d)",
-          "origin":"model(reference)"
+          "label":"rule(disjunction(2),normal(2))",
+          "origin":"model(reference)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":15,
-          "label":"rule(disjunction(2),normal(2))",
-          "origin":"model(reference)"
+          "label":"atom(d)",
+          "origin":"model(reference)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":16,
-          "label":"atom(a)",
-          "origin":"model(reference)"
+          "label":"rule(disjunction(3),normal(3))",
+          "origin":"model(reference)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":17,
-          "label":"atom(w)",
-          "origin":"model(reference)"
+          "label":"atom(a)",
+          "origin":"model(reference)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":18,
-          "label":"rule(disjunction(0),normal(0))",
-          "origin":"foil"
+          "label":"atom(w)",
+          "origin":"model(reference)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":19,
-          "label":"rule(choice(1),normal(1))",
-          "origin":"foil"
+          "label":"rule(choice(0),normal(0))",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":20,
           "label":"rule(disjunction(2),normal(2))",
-          "origin":"foil"
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":21,
           "label":"rule(disjunction(3),normal(3))",
-          "origin":"foil"
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":22,
-          "label":"rule(disjunction(3),normal(4))",
-          "origin":"foil"
+          "label":"rule(disjunction(1),normal(4))",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":23,
-          "label":"rule(disjunction(4),normal(5))",
-          "origin":"foil"
+          "label":"rule(disjunction(1),normal(5))",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":24,
-          "label":"atom(d)",
-          "origin":"foil"
+          "label":"rule(disjunction(4),normal(6))",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":25,
-          "label":"atom(a)",
-          "origin":"foil"
+          "label":"atom(d)",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":26,
-          "label":"atom(h)",
-          "origin":"foil"
+          "label":"atom(a)",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":27,
-          "label":"atom(w)",
-          "origin":"foil"
+          "label":"atom(h)",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":28,
-          "label":"atom(p)",
-          "origin":"foil"
+          "label":"atom(w)",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":29,
-          "label":"rule(disjunction(0),normal(0))",
-          "origin":"model(foil)"
+          "label":"atom(p)",
+          "origin":"foil",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":30,
-          "label":"rule(choice(1),normal(1))",
-          "origin":"model(foil)"
+          "label":"rule(choice(0),normal(0))",
+          "origin":"model(foil)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":31,
-          "label":"atom(d)",
-          "origin":"model(foil)"
+          "label":"rule(disjunction(2),normal(2))",
+          "origin":"model(foil)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":32,
-          "label":"rule(disjunction(4),normal(5))",
-          "origin":"model(foil)"
+          "label":"atom(d)",
+          "origin":"model(foil)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":33,
-          "label":"atom(p)",
-          "origin":"model(foil)"
+          "label":"rule(disjunction(4),normal(6))",
+          "origin":"model(foil)",
+          "tags":[
+
+          ]
        },
        {
           "type":"node",
           "id":34,
-          "label":"atom(h)",
-          "origin":"model(foil)"
+          "label":"atom(p)",
+          "origin":"model(foil)",
+          "tags":[
+
+          ]
        },
        {
-          "type":"edge",
+          "type":"node",
           "id":35,
-          "source":7,
-          "target":1,
-          "positive":true,
-          "label":"(rule(disjunction(0),normal(0)),atom(d))",
-          "origin":"reference"
+          "label":"atom(h)",
+          "origin":"model(foil)",
+          "tags":[
+
+          ]
        },
        {
           "type":"edge",
@@ -232,280 +451,299 @@ Input:
           "source":8,
           "target":3,
           "positive":true,
-          "label":"(rule(disjunction(2),normal(2)),atom(a))",
+          "label":"(rule(disjunction(2),normal(2)),atom(d))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":37,
-          "source":11,
-          "target":6,
+          "source":9,
+          "target":4,
           "positive":true,
-          "label":"(rule(disjunction(4),normal(5)),atom(p))",
+          "label":"(rule(disjunction(3),normal(3)),atom(a))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":38,
-          "source":9,
-          "target":2,
+          "source":12,
+          "target":7,
           "positive":true,
-          "label":"(rule(choice(1),normal(1)),atom(h))",
+          "label":"(rule(disjunction(4),normal(6)),atom(p))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":39,
           "source":10,
-          "target":2,
+          "target":1,
           "positive":true,
-          "label":"(rule(choice(1),normal(1)),atom(w))",
+          "label":"(rule(choice(0),normal(0)),atom(h))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":40,
-          "source":3,
-          "target":10,
+          "source":11,
+          "target":1,
           "positive":true,
-          "label":"(atom(w),rule(disjunction(2),normal(2)))",
+          "label":"(rule(choice(0),normal(0)),atom(w))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":41,
-          "source":5,
+          "source":2,
           "target":10,
           "positive":true,
-          "label":"(atom(w),rule(disjunction(3),normal(4)))",
+          "label":"(atom(h),rule(disjunction(1),normal(1)))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":42,
-          "source":5,
-          "target":9,
+          "source":4,
+          "target":11,
           "positive":true,
-          "label":"(atom(h),rule(disjunction(3),normal(4)))",
+          "label":"(atom(w),rule(disjunction(3),normal(3)))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":43,
           "source":6,
-          "target":7,
+          "target":11,
           "positive":true,
-          "label":"(atom(d),rule(disjunction(4),normal(5)))",
+          "label":"(atom(w),rule(disjunction(1),normal(5)))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":44,
-          "source":4,
+          "source":6,
           "target":10,
-          "positive":false,
-          "label":"(atom(w),rule(disjunction(3),normal(3)))",
+          "positive":true,
+          "label":"(atom(h),rule(disjunction(1),normal(5)))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":45,
-          "source":4,
-          "target":9,
-          "positive":false,
-          "label":"(atom(h),rule(disjunction(3),normal(3)))",
+          "source":7,
+          "target":8,
+          "positive":true,
+          "label":"(atom(d),rule(disjunction(4),normal(6)))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":46,
-          "source":6,
-          "target":8,
+          "source":5,
+          "target":11,
           "positive":false,
-          "label":"(atom(a),rule(disjunction(4),normal(5)))",
+          "label":"(atom(w),rule(disjunction(1),normal(4)))",
           "origin":"reference"
        },
        {
           "type":"edge",
           "id":47,
-          "source":7,
-          "target":1,
-          "positive":true,
-          "label":"(rule(disjunction(0),normal(0)),atom(d))",
-          "origin":"model(reference)"
+          "source":5,
+          "target":10,
+          "positive":false,
+          "label":"(atom(h),rule(disjunction(1),normal(4)))",
+          "origin":"reference"
        },
        {
           "type":"edge",
           "id":48,
-          "source":8,
-          "target":3,
-          "positive":true,
-          "label":"(rule(disjunction(2),normal(2)),atom(a))",
-          "origin":"model(reference)"
+          "source":7,
+          "target":9,
+          "positive":false,
+          "label":"(atom(a),rule(disjunction(4),normal(6)))",
+          "origin":"reference"
        },
        {
           "type":"edge",
           "id":49,
-          "source":10,
-          "target":2,
+          "source":8,
+          "target":3,
           "positive":true,
-          "label":"(rule(choice(1),normal(1)),atom(w))",
+          "label":"(rule(disjunction(2),normal(2)),atom(d))",
           "origin":"model(reference)"
        },
        {
           "type":"edge",
           "id":50,
-          "source":3,
-          "target":10,
+          "source":9,
+          "target":4,
           "positive":true,
-          "label":"(atom(w),rule(disjunction(2),normal(2)))",
+          "label":"(rule(disjunction(3),normal(3)),atom(a))",
           "origin":"model(reference)"
        },
        {
           "type":"edge",
           "id":51,
-          "source":7,
+          "source":11,
           "target":1,
           "positive":true,
-          "label":"(rule(disjunction(0),normal(0)),atom(d))",
-          "origin":"foil"
+          "label":"(rule(choice(0),normal(0)),atom(w))",
+          "origin":"model(reference)"
        },
        {
           "type":"edge",
           "id":52,
-          "source":8,
-          "target":3,
+          "source":4,
+          "target":11,
           "positive":true,
-          "label":"(rule(disjunction(2),normal(2)),atom(a))",
-          "origin":"foil"
+          "label":"(atom(w),rule(disjunction(3),normal(3)))",
+          "origin":"model(reference)"
        },
        {
           "type":"edge",
           "id":53,
-          "source":11,
-          "target":6,
+          "source":8,
+          "target":3,
           "positive":true,
-          "label":"(rule(disjunction(4),normal(5)),atom(p))",
+          "label":"(rule(disjunction(2),normal(2)),atom(d))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":54,
           "source":9,
-          "target":2,
+          "target":4,
           "positive":true,
-          "label":"(rule(choice(1),normal(1)),atom(h))",
+          "label":"(rule(disjunction(3),normal(3)),atom(a))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":55,
-          "source":10,
-          "target":2,
+          "source":12,
+          "target":7,
           "positive":true,
-          "label":"(rule(choice(1),normal(1)),atom(w))",
+          "label":"(rule(disjunction(4),normal(6)),atom(p))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":56,
-          "source":3,
-          "target":10,
+          "source":10,
+          "target":1,
           "positive":true,
-          "label":"(atom(w),rule(disjunction(2),normal(2)))",
+          "label":"(rule(choice(0),normal(0)),atom(h))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":57,
-          "source":5,
-          "target":10,
+          "source":11,
+          "target":1,
           "positive":true,
-          "label":"(atom(w),rule(disjunction(3),normal(4)))",
+          "label":"(rule(choice(0),normal(0)),atom(w))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":58,
-          "source":5,
-          "target":9,
+          "source":4,
+          "target":11,
           "positive":true,
-          "label":"(atom(h),rule(disjunction(3),normal(4)))",
+          "label":"(atom(w),rule(disjunction(3),normal(3)))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":59,
           "source":6,
-          "target":7,
+          "target":11,
           "positive":true,
-          "label":"(atom(d),rule(disjunction(4),normal(5)))",
+          "label":"(atom(w),rule(disjunction(1),normal(5)))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":60,
-          "source":4,
+          "source":6,
           "target":10,
-          "positive":false,
-          "label":"(atom(w),rule(disjunction(3),normal(3)))",
+          "positive":true,
+          "label":"(atom(h),rule(disjunction(1),normal(5)))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":61,
-          "source":4,
-          "target":9,
-          "positive":false,
-          "label":"(atom(h),rule(disjunction(3),normal(3)))",
+          "source":7,
+          "target":8,
+          "positive":true,
+          "label":"(atom(d),rule(disjunction(4),normal(6)))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":62,
-          "source":6,
-          "target":8,
+          "source":5,
+          "target":11,
           "positive":false,
-          "label":"(atom(a),rule(disjunction(4),normal(5)))",
+          "label":"(atom(w),rule(disjunction(1),normal(4)))",
           "origin":"foil"
        },
        {
           "type":"edge",
           "id":63,
-          "source":7,
-          "target":1,
-          "positive":true,
-          "label":"(rule(disjunction(0),normal(0)),atom(d))",
-          "origin":"model(foil)"
+          "source":5,
+          "target":10,
+          "positive":false,
+          "label":"(atom(h),rule(disjunction(1),normal(4)))",
+          "origin":"foil"
        },
        {
           "type":"edge",
           "id":64,
-          "source":11,
-          "target":6,
-          "positive":true,
-          "label":"(rule(disjunction(4),normal(5)),atom(p))",
-          "origin":"model(foil)"
+          "source":7,
+          "target":9,
+          "positive":false,
+          "label":"(atom(a),rule(disjunction(4),normal(6)))",
+          "origin":"foil"
        },
        {
           "type":"edge",
           "id":65,
-          "source":9,
-          "target":2,
+          "source":8,
+          "target":3,
           "positive":true,
-          "label":"(rule(choice(1),normal(1)),atom(h))",
+          "label":"(rule(disjunction(2),normal(2)),atom(d))",
           "origin":"model(foil)"
        },
        {
           "type":"edge",
           "id":66,
-          "source":6,
+          "source":12,
           "target":7,
           "positive":true,
-          "label":"(atom(d),rule(disjunction(4),normal(5)))",
+          "label":"(rule(disjunction(4),normal(6)),atom(p))",
+          "origin":"model(foil)"
+       },
+       {
+          "type":"edge",
+          "id":67,
+          "source":10,
+          "target":1,
+          "positive":true,
+          "label":"(rule(choice(0),normal(0)),atom(h))",
+          "origin":"model(foil)"
+       },
+       {
+          "type":"edge",
+          "id":68,
+          "source":7,
+          "target":8,
+          "positive":true,
+          "label":"(atom(d),rule(disjunction(4),normal(6)))",
           "origin":"model(foil)"
        }
     ]
+}
 Output:
 {
     "explanation": "

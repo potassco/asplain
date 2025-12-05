@@ -2,7 +2,7 @@ import json
 import warnings
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, Set
 
 import clingo
 
@@ -15,13 +15,38 @@ class Origin(Enum):
 
 
 @dataclass
+class TagJSON:
+    tag: str
+    origin: Origin
+
+    def __str__(self):
+        return f"<Tag @{self.origin} {self.tag}>"
+
+    def __hash__(self) -> int:
+        return hash((self.origin, self.tag))
+
+    def json_dict(self) -> Dict[str, str | int]:
+        return {
+            "tag": self.tag,
+            "origin": self.origin.value,
+        }
+
+    __repr__ = __str__
+
+
+@dataclass
 class NodeJSON:
     id: int
     label: str
     origin: Origin
+    tags: Set[TagJSON]
 
     def __str__(self) -> str:
-        return f"<Node {self.id}: {self.label}>"
+        return f"<Node {self.id}: {self.label} tags=[{", ".join([str(tag) for tag in self.tags])}]>"
+
+    def add_tag(self, origin: Origin, tag: str) -> None:
+        tag_json = TagJSON(origin=origin, tag=tag)
+        self.tags.add(tag_json)
 
     def json_dict(self) -> Dict[str, str | int]:
         return {
@@ -29,6 +54,7 @@ class NodeJSON:
             "id": self.id,
             "label": self.label,
             "origin": self.origin.value,
+            "tags": [tag.json_dict() for tag in self.tags],
         }
 
     __repr__ = __str__
@@ -75,7 +101,7 @@ class GraphJSON:
         return node_id in self.nodes.keys()
 
     def add_node(self, label: str, origin: Origin) -> NodeJSON:
-        node = NodeJSON(self._consume_id(), label, origin)
+        node = NodeJSON(self._consume_id(), label, origin, set())
         self.nodes[node.id] = node
         return node
 
@@ -129,17 +155,27 @@ class GraphJSON:
 def graph_program_to_json(graph_program: str) -> GraphJSON:
     print("INPUT", graph_program)
     graph_json = GraphJSON()
+    edge_rules = []
+    tag_rules = []
+
     for rule in graph_program.split("\n"):
         if rule.startswith("node"):
             origin, label = parse_node(rule)
             graph_json.add_node(label, origin)
         elif rule.startswith("edge"):
-            origin, label, source_label, target_label, positive = parse_edge(rule)
-            source = graph_json.get_node_by_label(source_label)
-            target = graph_json.get_node_by_label(target_label)
-            graph_json.add_edge(source.id, target.id, positive, origin, label)
+            edge_rules.append(rule)
         elif rule.startswith("tag"):
-            warnings.warn("Found TAG, Ignoring for now")
+            tag_rules.append(rule)
+
+    for rule in edge_rules:
+        origin, label, source_label, target_label, positive = parse_edge(rule)
+        source = graph_json.get_node_by_label(source_label)
+        target = graph_json.get_node_by_label(target_label)
+        graph_json.add_edge(source.id, target.id, positive, origin, label)
+    for rule in tag_rules:
+        origin, node, tag = parse_tag(rule)
+        node = graph_json.get_node_by_label(node)
+        node.add_tag(origin=origin, tag=tag)
 
     print("GRAPH", graph_json)
     return graph_json
@@ -158,6 +194,14 @@ def parse_positive(positive_string: str) -> bool:
     if positive_string.lower() == "negative":
         return False
     raise ValueError(f"Unknown positive: {positive_string}")
+
+
+def parse_tag(tag_string: str) -> Tuple[Origin, str, str]:
+    term = clingo.parse_term(tag_string.removesuffix("."))
+    origin = parse_origin(str(term.arguments[0]))
+    node = str(term.arguments[1])
+    tag = str(term.arguments[2])
+    return origin, node, tag
 
 
 def parse_node(node_string: str) -> Tuple[Origin, str]:
