@@ -1,6 +1,7 @@
 """Module for Asplain application logic."""
 
 import asyncio
+import json
 import logging
 import os
 import sys
@@ -319,7 +320,7 @@ class AsplainApp(Application):
                             )
                             print("LLM Explanation:")
                             response = asyncio.run(llm.prompt_template(template))
-                            print(colored("grey", response))
+                            print(colored("grey", str(json.loads(response, strict=False).get("explanation").strip())))
                     if not foil_found:
                         log.warning("No foil found.")
 
