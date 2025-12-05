@@ -32,7 +32,7 @@ color_set(model(foil), _color_green).
 color_set(union, "#36B37E;0.5:#6554C080").
 color_set(light, gray84).
 
-
+#const setdpi = 80.
 
 vnode(X):-node(G, X), not tag(G, X, disabled), show(G).
 vedge((X,Y)):-edge(G, _,(X, Y)), show(G), vnode(X), vnode(Y).
@@ -41,6 +41,7 @@ vtag(X,T):-tag(G, X, T), show(G).
 vattr(graph,default,label,"<<b>{{name}}</b><br/>{{description}}>"):-show_title.
 vattr(graph,default,(label,name),T):-title(T),show_title.
 vattr(graph,default,bgcolor,"#00000000").
+vattr(graph,default,dpi,setdpi).
 
 % Rule labels
 vattr(node,rule(H,B),label,"<<font point-size=\"9\"> </font><br/> r{{value}} <br/> <u><font point-size=\"9\"><i>{{output}}</i></font></u>>"):-
@@ -82,11 +83,14 @@ highlighted_model(foil):- show(model(foil)).
 highlighted_model(reference):- show(model(reference)), not show(model(foil)).
 
 active_node(N):- vnode(N), highlighted_model(M), node(model(M), N).
+active_node(N):- vnode(N), not show(model(_)), node(reference, N), not show(foil).
+active_node(N):- vnode(N), not show(model(_)), node(foil, N).
 
-vattr(node,N,(fontcolor;color),C):- vnode(N),
-                                not active_node(N),
-                                color_set(light,C),
-                                not abduced(_,N).
+gray_node(N):-vnode(N),
+            not active_node(N),
+            not abduced(_,N).
+vattr(node,N,(fontcolor;color),C):- gray_node(N),
+                                color_set(light,C).
 abduced(rm,R):-node(reference, R), not node(foil, R), show(foil).
 abduced(add,R):-node(foil, R), not tag(foil, R, disabled), tag(reference, R, disabled), show(foil).
 vattr(node,R,(fontcolor;color),red):- abduced(rm,R).
@@ -98,4 +102,6 @@ vattr(edge,E,arrowhead,vee):- vedge(E).
 vattr(edge,E,arrowsize,"0.5"):- vedge(E).
 
 active_edge(E):- vedge(E), highlighted_model(M), edge(model(M),T, E).
+active_edge(E):- vedge(E), not show(model(_)), edge(reference,T, E), not show(foil).
+active_edge(E):- vedge(E), not show(model(_)), edge(foil,T, E).
 vattr(edge,((N1),(N2)),color,C):-vedge((N1,N2)), not active_edge(((N1),(N2))), color_set(light,C).

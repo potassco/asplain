@@ -20,6 +20,7 @@ def viz_graph(
     title: str,
     open: bool = False,
     name: str = "graph",
+    format: str = "svg",
 ) -> dict[str, str]:
     """
     Visualize the explanation graph using cligraph
@@ -30,8 +31,9 @@ def viz_graph(
         open: Whether to open the generated graph image.
         name: Name format for the output file.
     """
+    dpi = 500 if format == "png" else 80
     fb = Factbase(prefix="v")
-    ctl = Control(["--warn=none"])
+    ctl = Control(["--warn=none", "--const", f"setdpi={dpi}"])
     ctx = ClingraphContext()
     ctl.add("base", [], pg)
     ctl.add("base", [], f'title("{title}").')
@@ -42,6 +44,6 @@ def viz_graph(
         ctl.assign_external(parse_term(f"show({graph})"), True)
     ctl.solve(on_model=fb.add_model)
     graphs = compute_graphs(fb, graphviz_type="directed")
-    files = render(graphs, view=open, directory="out", name_format=f"{name}", format="svg")
+    files = render(graphs, view=open, directory="out", name_format=f"{name}", format=format)
     log.info("Graph image saved in: %s", files["default"])
     return graphs

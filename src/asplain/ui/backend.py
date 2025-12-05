@@ -295,11 +295,11 @@ class ASPlainBackend(ClingoBackend):
     def download_explanation_graph(self, file_name: str):
         """Download the explanation graph as an image."""
         name = file_name.strip('"')
-        viz_graph(self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name=name, open=False)
+        viz_graph(self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name=name, open=False, format="png")
         self._messages.append(
             (
                 "Download successful",
-                f"Information saved in file out/{name}.svg",
+                f"Information saved in file out/{name}.png",
                 "success",
             )
         )

@@ -1,7 +1,7 @@
 % # Window
 % -------
 elem(w, window, root).
-attr(w, class, ("d-flex"; "flex-column")).
+attr(w, class, ("d-flex"; "flex-row")).
 
 
 
@@ -33,35 +33,30 @@ attr(elem_val(C), class, ("pe-3";"pt-1";"pb-1")):-elem(elem_val(C),label,_).
 
 % elem(tabs, tabs, w).
 % attr(tabs, class, ("nav-fill")).
-%     elem(right_tab, tabs_item, tabs).
-%     attr(right_tab, title, "Explanation").
+%     elem(main_explaination_tab, tabs_item, tabs).
+%     attr(main_explaination_tab, title, "Explanation").
 
-%         elem(right, container, right_tab).
+%         elem(main_explaination, container, main_explaination_tab).
 %     elem(left_tab, tabs_item, tabs).
 %     attr(left_tab, class, "w-100").
 %     attr(left_tab, title, "Basic").
 %         elem(left, container, left_tab).
 
 
-%     attr((right_tab;left_tab), (active_class;disabled_class), ("h3")).
-%     attr((right_tab;left_tab), active_class, ("bg-info";"bg-opacity-25";"h3")).
+%     attr((main_explaination_tab;left_tab), (active_class;disabled_class), ("h3")).
+%     attr((main_explaination_tab;left_tab), active_class, ("bg-info";"bg-opacity-25";"h3")).
 
-        elem(left, container, w).
+elem(right, container, w).
+attr(right, class, ("d-flex"; "flex-column";"w-75";"me-2";"mt-2")).
+attr(right, order, 2).
 
-elem(s, sidebar, w).
-attr(s, width, 1500).
-attr(s, position, end).
-attr(s, title, "Explanation").
-attr(s, class, ("border";"bg-info";"bg-opacity-10")).
-        elem(right, container, s).
-        attr(right, class, ("mt-4")).
+% elem(s, container, right).
+% attr(s, order, 2).
+% % attr(s, title, "Explanation").
+% attr(s, class, ("border";"bg-info";"bg-opacity-10")).
 
-% attr((right;left), class, ("d-flex"; "w-100")).
-
-% elem(explanation_modal, modal, w).
-% attr(explanation_modal, visibility, shown).
-% attr(explanation_modal, size, xl).
-%     elem(explanation_modal_container, container, explanation_modal).
+%         elem(main_explaination, container, s).
+%         attr(main_explaination, class, ("mt-4")).
 
 
 elem(main(explanation_conf), container, right).
@@ -202,33 +197,17 @@ attr(main(explanation_conf), order, 1).
                 when(footer_item(next_explanation), click, call, next_explanation).
 
 
-    elem(graph_container, container, right).
-    attr(graph_container, order, 3).
-    attr(graph_container, class, ("d-flex";"justify-content-center";"align-items-center";"p-2")).
-
-        %%%%%%%%%%%%%%%%%%%%%%%%
-        % Clingraph image
-        %%%%%%%%%%%%%%%%%%%%%%%%
-
-        vnode(X):-node(G, X), not tag(G, X, disabled), show(G).
-        vedge((X,Y)):-edge(G, _,(X, Y)), show(G).
-        vtag(X,T):-tag(G, X, T), show(G).
-
-        elem(c, canvas, graph_container).
-        attr(c, order, 2).
-        attr(c, image_type, clingraph).
-            elem(n(X), svg_node, c) :- vnode(X).
-            attr(n(X), clingraph_id, X) :- vnode(X).
-            when(n(X), mouseenter, update, ((rule(X);label(X)),display,block)):- vnode(X).
-            when(n(X), mouseleave, update, ((rule(X);label(X)),display,none)):- vnode(X).
+elem(main(explanation_info), container, right).
+attr(main(explanation_info), order, 2).
+attr(main(explanation_info), class, ("d-flex";"justify-content-center";"align-items-center")).
 
 
-    elem(info_container, container, right).
+    elem(info_container, container, main(explanation_info)).
     attr(info_container, order, 2).
     attr(info_container, height, 50).
     attr(info_container, class, ("mb-3")).
 
-        % elem(info_container(X), container, right):-vnode(X).
+        % elem(info_container(X), container, main_explaination):-vnode(X).
         % attr(info_container(X), class, "border"):-vnode(X).
 
             elem(rule(X), label, info_container):-vnode(X).
@@ -245,6 +224,44 @@ attr(main(explanation_conf), order, 1).
             attr(label(X), label, ""):-vnode(X), not tag(_,X,label(_,_)).
             attr(label(X), display, none):-vnode(X).
 
+
+elem(main(explanation_graph), container, right).
+attr(main(explanation_graph), order, 3).
+attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-items-center")).
+
+    elem(graph_container, container, main(explanation_graph)).
+    attr(graph_container, order, 3).
+    attr(graph_container, class, ("d-flex";"justify-content-center";"align-items-center";"p-2";"border")).
+    attr(graph_container, "overflow-y", auto).
+    attr(graph_container, "overflow-x", auto).
+
+        %%%%%%%%%%%%%%%%%%%%%%%%
+        % Clingraph image
+        %%%%%%%%%%%%%%%%%%%%%%%%
+
+        vnode(X):-node(G, X), not tag(G, X, disabled), show(G).
+        vedge((X,Y)):-edge(G, _,(X, Y)), show(G).
+        vtag(X,T):-tag(G, X, T), show(G).
+
+        elem(c, canvas, graph_container).
+        attr(c, order, 2).
+        % attr(c, "transform-origin", "top left").
+        % attr(c, display, "inline-block").
+        attr(c, height, 1000).
+        attr(c, width, 600).
+        % attr(c, transform, "scale(0.1)").
+        % attr(c, "transform-origin", "0 0").
+
+        attr(c, image_type, clingraph).
+            elem(n(X), svg_node, c) :- vnode(X).
+            attr(n(X), clingraph_id, X) :- vnode(X).
+            when(n(X), mouseenter, update, ((rule(X);label(X)),display,block)):- vnode(X).
+            when(n(X), mouseleave, update, ((rule(X);label(X)),display,none)):- vnode(X).
+
+
+
+elem(left, container, w).
+attr(left, order, 1).
 
 elem(main(state), container, left).
 attr(main(state), order, 1).
