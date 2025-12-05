@@ -1,8 +1,7 @@
 import json
-import warnings
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Tuple, Set
+from typing import Dict, Optional, Set, Tuple
 
 import clingo
 
@@ -42,7 +41,8 @@ class NodeJSON:
     tags: Set[TagJSON]
 
     def __str__(self) -> str:
-        return f"<Node {self.id}: {self.label} tags=[{", ".join([str(tag) for tag in self.tags])}]>"
+        tags = ", ".join([str(tag) for tag in self.tags])
+        return f"<Node {self.id}: {self.label} tags=[{tags}]>"
 
     def add_tag(self, origin: Origin, tag: str) -> None:
         tag_json = TagJSON(origin=origin, tag=tag)

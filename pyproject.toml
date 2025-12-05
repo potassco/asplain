@@ -17,7 +17,7 @@ Homepage = "asplain"
 
 [project.optional-dependencies]
 ui = ["clinguin>=2.7.5"]
-llm = ["openai>=2.8.1"]
+llm = ["openai>=2.8.1", "dotenv"]
 format = ["black", "isort", "autoflake"]
 lint_pylint = ["pylint"]
 typecheck = ["types-setuptools", "mypy"]
