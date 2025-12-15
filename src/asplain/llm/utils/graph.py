@@ -1,9 +1,12 @@
 import json
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple
 
 import clingo
+
+log = logging.getLogger(__name__)
 
 
 class Origin(Enum):
@@ -153,7 +156,7 @@ class GraphJSON:
 
 
 def graph_program_to_json(graph_program: str) -> GraphJSON:
-    print("INPUT", graph_program)
+    log.debug(f"INPUT: {graph_program}")
     graph_json = GraphJSON()
     edge_rules = []
     tag_rules = []
@@ -177,7 +180,7 @@ def graph_program_to_json(graph_program: str) -> GraphJSON:
         node = graph_json.get_node_by_label(node)
         node.add_tag(origin=origin, tag=tag)
 
-    print("GRAPH", graph_json)
+    log.debug(f"GRAPH :{graph_json}")
     return graph_json
 
 
@@ -212,7 +215,7 @@ def parse_node(node_string: str) -> Tuple[Origin, str]:
 
 
 def parse_edge(edge_string: str) -> Tuple[Origin, str, str, str, bool]:
-    print("STRING", edge_string)
+    log.debug(f"STRING: {edge_string}")
     term = clingo.parse_term(edge_string.removesuffix("."))
     origin = parse_origin(str(term.arguments[0]))
     positive = parse_positive(str(term.arguments[1]))
