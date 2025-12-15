@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from .base import Template
-from ..utils.graph import graph_program_to_json
+from ..utils import Graph
 
 PROMPT_FILE_INSTRUCTIONS = "prompt_templates/explain_instructions.txt"
 PROMPT_FILE_INPUT = "prompt_templates/explain_input.txt"
@@ -16,7 +16,7 @@ class ExplainTemplate(Template):
         super().__init__()
         self._contrastive_program_graph = contrastive_program_graph
         self._query_program = query_program
-        self._graph = graph_program_to_json(self._contrastive_program_graph)
+        self._graph = Graph(self._contrastive_program_graph)
 
     def compose_instructions(self) -> str:
         with open(Path(__file__).parent / PROMPT_FILE_INSTRUCTIONS, "r", encoding="utf-8") as prompt_file:
