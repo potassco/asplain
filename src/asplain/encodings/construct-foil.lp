@@ -16,4 +16,10 @@ fail_query:- _query(Atom,exclude),  hold(atom(Atom)).
 fail_query:- _query(Atom,include), not hold(atom(Atom)).
 :- fail_query.
 
-% TODO distance
+% ------------------------------------------------
+% # Preferred foil
+
+
+%! cost(N, V, L). Cost of with name N value V and level L.
+cost(default, 1, 1). % A default cost for each model with level 1 so that there is always some optimization
+:~ cost(Name, Value, Level). [Value@Level, Name]

@@ -114,21 +114,21 @@ def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = N
 def set_foil_ctl(
     pg: str,
     query_prg: Optional[str] = None,
-    distance_prg: Optional[str] = None,
+    cost_prg: Optional[str] = None,
     number_of_foils: int = 1,
 ) -> Control:
     """Constructs a foil to explain a query.
     Args:
         pg: The reference program graph string which might include facts for the reference model graph.
         query_prg: The query program string.
-        distance_prg: The distance program string.
+        cost_prg: The distance program string.
         number_of_foils: The number of foils to construct.
     """
     log.info(query_prg)
-    ctl = Control([str(number_of_foils), "-c graph=foil"])
+    ctl = Control([str(number_of_foils), "-c graph=foil", "--opt-mode=optN"])
     ctl.add("base", [], pg)
     ctl.add("base", [], query_prg or "")
-    ctl.add("base", [], distance_prg or "")
+    ctl.add("base", [], cost_prg or "")
     load_encoding(ctl, "construct-foil.lp")
     load_encoding(ctl, "model-subgraph.lp")
     ctl.ground([("base", [])])

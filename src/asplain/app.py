@@ -30,6 +30,7 @@ class AsplainApp(Application):
         self._number_explanations = 1
 
         self._dynamic_tags = []
+        self._cost_encoding = []
         self._model_symbols = None
 
     def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
@@ -182,6 +183,18 @@ class AsplainApp(Application):
             multi=True,
         )
 
+        options.add(
+            group,
+            "cost-encoding",
+            dedent(
+                """\
+                Encoding defining the cost function to calculate the best foils via optimization."""
+            ),
+            self.parse_file("_cost_encoding", multi=True),
+            argument="<cost-encoding>",
+            multi=True,
+        )
+
     def print_model(self, model: Model, _) -> None:
         symbols = model.symbols(shown=True)
         print(" ".join([str(s) for s in model_symbols(symbols)]))
@@ -193,7 +206,12 @@ class AsplainApp(Application):
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
         query_prg = get_query_prg(self._query_include, self._query_exclude)
-        distance_prg = ""  # TODO Get from command line
+        cost_prg = ""
+        if self._cost_encoding:
+            for cost_file in self._cost_encoding:
+                log.info("Loading cost encoding file: %s", cost_file)
+                with open(cost_file, "r", encoding="utf-8") as cf:
+                    cost_prg += cf.read() + "\n"
 
         reference_pg = construct_program_graph(
             list(files),
@@ -224,14 +242,18 @@ class AsplainApp(Application):
                 )
                 foil_ctl = set_foil_ctl(
                     pg=reference_model_pg,
-                    number_of_foils=self._number_explanations,
                     query_prg=query_prg,
-                    distance_prg=distance_prg,
+                    cost_prg=cost_prg,
+                    number_of_foils=self._number_explanations,
                 )
                 with foil_ctl.solve(yield_=True) as foil_hnd:
                     foil_found = False
                     for foil_model in foil_hnd:
                         foil_found = True
+                        if not foil_model.optimality_proven:
+                            log.info("Skipping non-optimal foil model %s", foil_model.number)
+                            continue
+                        print(foil_model.cost)
                         foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
                         save_out(f"foil_model_pg_{model.number}_{foil_model.number}.lp", foil_model_pg)
                         viz_graph(
@@ -261,7 +283,7 @@ class AsplainApp(Application):
                     pg=reference_pg,
                     number_of_foils=self._number_explanations,
                     query_prg=query_prg,
-                    distance_prg=distance_prg,
+                    cost_prg=cost_prg,
                 )
                 with foil_ctl.solve(yield_=True) as foil_hnd:
                     foil_found = False
