@@ -83,6 +83,11 @@ class ASPlainBackend(ClingoBackend):
                 shown_graphs.remove("foil")
             if "model(foil)" in shown_graphs:
                 shown_graphs.remove("model(foil)")
+            if "contrastive" in shown_graphs:
+                shown_graphs.remove("contrastive")
+            if len(shown_graphs) == 0:
+                shown_graphs.append("reference")
+                shown_graphs.append("model(reference)")
         return shown_graphs
 
     @property
@@ -127,6 +132,7 @@ class ASPlainBackend(ClingoBackend):
 
             domain_state (str): The model, brave, and cautious consequences (domain-state)
         """
+        print(self._contrastive_pg)
         if not self._contrastive_pg:
             self._logger.info("No contrastive program graph to visualize")
             return None

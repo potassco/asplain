@@ -45,5 +45,8 @@ def viz_graph(
     ctl.solve(on_model=fb.add_model)
     graphs = compute_graphs(fb, graphviz_type="directed")
     files = render(graphs, view=open, directory="out", name_format=f"{name}", format=format)
+    if len(files) == 0:
+        log.warning("No graphs were generated.")
+        return graphs
     log.info("Graph image saved in: %s", files["default"])
     return graphs

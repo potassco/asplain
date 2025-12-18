@@ -245,7 +245,7 @@ class AsplainApp(Application):
                             pg=foil_model_pg,
                             query_prg=query_prg,
                         )
-                        save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
+                        save_out(f"contrastive_{model.number}_{foil_model.number}.lp", contrastive_pg)
                         viz_graph(
                             pg=contrastive_pg,
                             graphs=["foil", "model(foil)", "reference", "model(reference)"],

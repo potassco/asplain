@@ -3,9 +3,9 @@
 {added(R)}:-tag(reference, R, abducible(add)).
 
 
-node(graph, X):-node(reference, X), not removed(X).
-tag(graph, X, disabled):- tag(reference, X, disabled), not added(X).
-edge(graph, S, (X,Y)):-edge(reference, S, (X,Y)), not removed(X), not removed(Y).
+node(foil, X):-node(reference, X), not removed(X).
+tag(foil, X, disabled):- tag(reference, X, disabled), not added(X).
+edge(foil, S, (X,Y)):-edge(reference, S, (X,Y)), not removed(X), not removed(Y).
 
 % ------------------------------------------------
 % # Check query

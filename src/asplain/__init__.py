@@ -30,7 +30,7 @@ def reify_program(
     Returns:
         The reified program as a string.
     """
-    extensions = [TagExtension(include_program=True), ShowExtension()]
+    extensions = [TagExtension(include_program=True, include_loc=True, include_id=True), ShowExtension()]
     program_str = transform(file_paths, prg, extensions)
     rsymbols = classic_reify(
         constants_to_args(constants) + ["--preserve-facts=symtab"],
