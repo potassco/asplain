@@ -90,6 +90,7 @@ def load_encoding(ctl: Control, encoding_name: str) -> None:
     Load an encoding into the given clingo Control object.
     """
     with path("asplain.encodings", encoding_name) as base_encoding:
+        log.debug("Loading encoding: %s", base_encoding)
         ctl.load(str(base_encoding))
 
 
@@ -142,6 +143,6 @@ def print_foil(foil_pg: str) -> None:
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:
-    qi = "".join([f"_query({str(s)},include)." for s in query_include])
-    qe = "".join([f"_query({str(s)},exclude)." for s in query_exclude])
+    qi = "".join([f"query({str(s)},include)." for s in query_include])
+    qe = "".join([f"query({str(s)},exclude)." for s in query_exclude])
     return qi + qe

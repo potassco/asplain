@@ -17,9 +17,4 @@ hold(atom(A)) : edge(graph, positive, (rule(disjunction(H),B),atom(A))) :- hold(
 node(model(graph), X):-hold(X).
 edge(model(graph), positive, (X,Y)):-hold(X), hold(Y), edge(graph, positive, (X,Y)).
 
-#show node/2.
-#show edge/3.
-#show tag/3.
-#show abducible/2.
-#show added/1.
-#show removed/1.
+#include "show.lp".

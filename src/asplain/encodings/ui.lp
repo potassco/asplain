@@ -70,20 +70,20 @@ attr(main(explanation_conf), order, 1).
 
         elem(content(queries), container, section(queries)).
 
-            elem(elem_container(query(A)), container, content(queries)):-_query(A,V).
+            elem(elem_container(query(A)), container, content(queries)):-query(A,V).
 
-                elem(elem_title(query(A)), label, elem_container(query(A))):-_query(A,V).
-                attr(elem_title(query(A)), label, A):-_query(A,V).
-                attr(elem_title(query(A)), class, "text-success"):-_query(A,include).
-                attr(elem_title(query(A)), class, "text-danger"):-_query(A,exclude).
-                attr(elem_title(query(A)), class, "font-monospace"):-_query(A,V).
-                attr(elem_title(query(A)), tooltip, @format("_query({},{})",A,V)):-_query(A,V).
+                elem(elem_title(query(A)), label, elem_container(query(A))):-query(A,V).
+                attr(elem_title(query(A)), label, A):-query(A,V).
+                attr(elem_title(query(A)), class, "text-success"):-query(A,include).
+                attr(elem_title(query(A)), class, "text-danger"):-query(A,exclude).
+                attr(elem_title(query(A)), class, "font-monospace"):-query(A,V).
+                attr(elem_title(query(A)), tooltip, @format("query({},{})",A,V)):-query(A,V).
 
-                elem(elem_val(query(A)), button, elem_container(query(A))):-_query(A,V).
-                % attr(elem_val(query(A)), label, "remove"):-_query(A,V).
-                attr(elem_val(query(A)), icon, "fa-trash"):-_query(A,V).
-                attr(elem_val(query(A)), class, ("text-danger")):-_query(A,V).
-                when(elem_val(query(A)), click, call, remove_query(A)):-_query(A,V).
+                elem(elem_val(query(A)), button, elem_container(query(A))):-query(A,V).
+                % attr(elem_val(query(A)), label, "remove"):-query(A,V).
+                attr(elem_val(query(A)), icon, "fa-trash"):-query(A,V).
+                attr(elem_val(query(A)), class, ("text-danger")):-query(A,V).
+                when(elem_val(query(A)), click, call, remove_query(A)):-query(A,V).
 
         elem(footer(queries), container, section(queries)).
 
@@ -248,7 +248,7 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
         % attr(c, "transform-origin", "top left").
         % attr(c, display, "inline-block").
         attr(c, height, 1000).
-        attr(c, width, 1000).
+        attr(c, width, 1500).
         % attr(c, transform, "scale(0.1)").
         % attr(c, "transform-origin", "0 0").
 

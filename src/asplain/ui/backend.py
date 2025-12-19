@@ -298,10 +298,10 @@ class ASPlainBackend(ClingoBackend):
             self._start_explanation()
         try:
             foil_model = next(self._explanation_iterator)
-            print(foil_model)
             while not foil_model.optimality_proven:
-                self._logger.info("Skipping intermediate none optimal model...")
+                self._logger.info("Skipping intermediate none optimal model with cost %s...", foil_model.cost)
                 foil_model = next(self._explanation_iterator)
+            print(foil_model.cost)
             foil_pg_and_model = foil_model.symbols(shown=True)  # shown should include the foil model and pg
             self._contrastive_pg = construct_contrastive(
                 pg=symbols_to_prg(foil_pg_and_model),

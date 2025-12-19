@@ -102,7 +102,7 @@ def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = N
     ctl = ctl or Control(["0", "-c graph=reference"])
     ctl.add("base", [], pg)
     if model_symbols is not None:
-        model_prg = "\n".join([f"_model({str(s)})." for s in model_symbols])
+        model_prg = "\n".join([f"model({str(s)})." for s in model_symbols])
         ctl.add("base", [], model_prg)
         load_encoding(ctl, "force-model.lp")
 
@@ -145,7 +145,7 @@ def construct_contrastive(
     Args:
         pg: The set of facts defining the reference program graph,
             foil program graph, foil model graph and optionally the reference model graph.
-        query_prg: The query program string defined via _query/2 facts.
+        query_prg: The query program string defined via query/2 facts.
     Returns:
         The contrastive explanation program graph as a string,
         which includes the facts for the input graphs in pg.

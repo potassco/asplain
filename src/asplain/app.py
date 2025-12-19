@@ -6,7 +6,7 @@ import sys
 from textwrap import dedent
 from typing import Any, Callable, Optional, Sequence
 
-from clingo import Application, ApplicationOptions, Control, Model, parse_term
+from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
 
 from asplain import construct_contrastive, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
 from asplain.utils.clingo import divide_space_string, get_query_prg, model_symbols, print_foil, symbols_to_prg
@@ -32,6 +32,8 @@ class AsplainApp(Application):
         self._dynamic_tags = []
         self._cost_encoding = []
         self._model_symbols = None
+
+        self._open: Flag = Flag()
 
     def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
         """
@@ -195,6 +197,16 @@ class AsplainApp(Application):
             multi=True,
         )
 
+        options.add_flag(
+            group,
+            "open",
+            dedent(
+                """\
+                If active the graphs for all contrastive explanations will be opened automatically."""
+            ),
+            self._open,
+        )
+
     def print_model(self, model: Model, _) -> None:
         symbols = model.symbols(shown=True)
         print(" ".join([str(s) for s in model_symbols(symbols)]))
@@ -249,11 +261,10 @@ class AsplainApp(Application):
                 with foil_ctl.solve(yield_=True) as foil_hnd:
                     foil_found = False
                     for foil_model in foil_hnd:
-                        foil_found = True
                         if not foil_model.optimality_proven:
                             log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
-                        print(foil_model.cost)
+                        foil_found = True
                         foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
                         save_out(f"foil_model_pg_{model.number}_{foil_model.number}.lp", foil_model_pg)
                         viz_graph(
@@ -273,6 +284,7 @@ class AsplainApp(Application):
                             graphs=["foil", "model(foil)", "reference", "model(reference)"],
                             title="Contrastive Graph",
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
+                            open=self._open.flag,
                         )
                     if not foil_found:
                         log.warning("No foil found.")
@@ -288,6 +300,9 @@ class AsplainApp(Application):
                 with foil_ctl.solve(yield_=True) as foil_hnd:
                     foil_found = False
                     for foil_model in foil_hnd:
+                        if not foil_model.optimality_proven:
+                            log.info("Skipping non-optimal foil model %s", foil_model.number)
+                            continue
                         foil_found = True
                         foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
                         save_out(f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg)
@@ -296,6 +311,7 @@ class AsplainApp(Application):
                             graphs=["foil", "model(foil)"],
                             title="Foil Graph",
                             name=f"foil_model_pg_UNSAT_{foil_model.number}",
+                            open=self._open.flag,
                         )
                         print_foil(foil_model_pg)
                         contrastive_pg = construct_contrastive(
