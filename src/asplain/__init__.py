@@ -124,7 +124,9 @@ def set_foil_ctl(
         cost_prg: The distance program string.
         number_of_foils: The number of foils to construct.
     """
-    log.info(query_prg)
+    log.debug("Query program : %s", query_prg or "<none>")
+    log.debug("Cost program  : %s", cost_prg or "<none>")
+    log.debug("Program graph: %s", pg)
     ctl = Control([str(number_of_foils), "-c graph=foil", "--opt-mode=optN"])
     ctl.add("base", [], pg)
     ctl.add("base", [], query_prg or "")

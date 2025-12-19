@@ -7,7 +7,6 @@
 #const graph=reference.
 
 hold(R) :- node(graph, R), R=rule(H,B),
-    not tag(graph, R, disabled),
     hold(atom(A)) : edge(graph, positive, (atom(A),R));
     not hold(atom(A)) : edge(graph, negative, (atom(A),R)).
 
@@ -21,3 +20,6 @@ edge(model(graph), positive, (X,Y)):-hold(X), hold(Y), edge(graph, positive, (X,
 #show node/2.
 #show edge/3.
 #show tag/3.
+#show abducible/2.
+#show added/1.
+#show removed/1.

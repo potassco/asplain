@@ -36,6 +36,7 @@ class ASPlainBackend(ClingoBackend):
     def _init_command_line(self):
         super()._init_command_line()
         self._dynamic_tags_files = self._args.dynamic_tags
+        self._cost_encoding = self._args.cost_encoding
 
     @classmethod
     def register_options(cls, parser):
@@ -46,6 +47,13 @@ class ASPlainBackend(ClingoBackend):
             nargs="*",
             default=[],
             help="List of dynamic tags files to load.",
+        )
+
+        parser.add_argument(
+            "--cost-encoding",
+            nargs="*",
+            default=[],
+            help="List of cost encoding files to load.",
         )
 
     def _is_unsat(self) -> bool:
@@ -132,7 +140,6 @@ class ASPlainBackend(ClingoBackend):
 
             domain_state (str): The model, brave, and cautious consequences (domain-state)
         """
-        print(self._contrastive_pg)
         if not self._contrastive_pg:
             self._logger.info("No contrastive program graph to visualize")
             return None
@@ -229,10 +236,16 @@ class ASPlainBackend(ClingoBackend):
         pg = self._reference_pg or ""
         if self._reference_model_pg is not None:
             pg += self._reference_model_pg
+        cost_prg = ""
+        if self._cost_encoding:
+            for cost_file in self._cost_encoding:
+                with open(cost_file, "r", encoding="utf-8") as cf:
+                    cost_prg += cf.read() + "\n"
         self._foil_ctl = set_foil_ctl(
             pg=pg,
             query_prg=get_query_prg(self._query_include, self._query_exclude),
             number_of_foils=0,
+            cost_prg=cost_prg,
         )
         self._explanation_handler = self._foil_ctl.solve(yield_=True)
         self._explanation_iterator = iter(self._explanation_handler)
@@ -285,6 +298,10 @@ class ASPlainBackend(ClingoBackend):
             self._start_explanation()
         try:
             foil_model = next(self._explanation_iterator)
+            print(foil_model)
+            while not foil_model.optimality_proven:
+                self._logger.info("Skipping intermediate none optimal model...")
+                foil_model = next(self._explanation_iterator)
             foil_pg_and_model = foil_model.symbols(shown=True)  # shown should include the foil model and pg
             self._contrastive_pg = construct_contrastive(
                 pg=symbols_to_prg(foil_pg_and_model),

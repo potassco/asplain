@@ -1,11 +1,15 @@
 
-{removed(R)}:-tag(reference, R, abducible(remove)).
-{added(R)}:-tag(reference, R, abducible(add)).
+{removed(rule(H,B))}:-abducible(remove, rule(H,B)), node(reference, rule(H,B)).
+{added(rule(H,B))}:-abducible(add, rule(H,B)), not node(reference, rule(H,B)).
+% :- added(R), removed(R).
 
-
-node(foil, X):-node(reference, X), not removed(X).
-tag(foil, X, disabled):- tag(reference, X, disabled), not added(X).
+% Nodes that are in the reference and not removed, plus added nodes
+node(foil, R):-node(reference, R), not removed(R).
+node(foil, R):- added(R).
+% Edges that are in the reference and not removed, plus edges from added nodes
 edge(foil, S, (X,Y)):-edge(reference, S, (X,Y)), not removed(X), not removed(Y).
+edge(foil, S, (R,A)):-added(R), abducible(add, edge(S,(R,A))).
+edge(foil, S, (R,A)):-added(R), abducible(add, edge(S,(A,R))).
 
 % ------------------------------------------------
 % # Check query
