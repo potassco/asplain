@@ -1,6 +1,7 @@
 import json
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Set
 
 from clorm import Predicate, ConstantStr, FactBase
 from clorm.clingo import Model as ClormModel
@@ -16,6 +17,14 @@ class Origin(ConstantStr, Enum):
 
 class Label(Predicate, name="label"):
     value: str
+
+
+class Abducible(Predicate, name="abducible"):
+    type: ConstantStr
+
+
+class RuleFirstOrder(Predicate, name="rule_fo"):
+    first_order: str
 
 
 class Disjunction(Predicate, name="disjunction"):
@@ -38,7 +47,7 @@ class Atom(Predicate, name="atom"):
 class Tag(Predicate, name="tag"):
     origin: Origin
     node: Rule | Atom
-    tag: Label
+    tag: Label | Abducible | RuleFirstOrder | ConstantStr
 
 
 class Node(Predicate, name="node"):
@@ -57,11 +66,23 @@ class Edge(Predicate, name="edge"):
     edge: Tuple[Rule | Atom, Rule | Atom]
 
 
+@dataclass
+class TagBehaviour:
+    tag: Abducible
+    include: bool
+
+    def __hash__(self) -> int:
+        return hash(self.tag)
+
+
 class Graph:
 
     def __init__(self, contrastive_program_graph: str) -> None:
         self.contrastive_program_graph = contrastive_program_graph
         self._facts: Optional[FactBase] = None
+        self._behaviours = {TagBehaviour(Abducible("remove"), include=False)}
+
+        print(self.contrastive_program_graph)
 
         self.get_facts(self.contrastive_program_graph)
 
@@ -75,7 +96,11 @@ class Graph:
         ctl.solve(on_model=self._on_facts_model)
 
     def json(self) -> str:
-        nodes = [node_to_json_dict(n, self._facts) for n in self._facts.query(Node).select(Node).all()]
+        nodes = [
+            node_to_json_dict(n, self._facts, behaviours=self._behaviours)
+            for n in self._facts.query(Node).select(Node).all()
+        ]
+        nodes = filter(lambda x: x is not None, nodes)
         edges = [edge_to_json_dict(e) for e in self._facts.query(Edge).select(Edge).all()]
 
         return json.dumps([nodes, edges])
@@ -99,8 +124,14 @@ def edge_to_json_dict(edge: Edge) -> Dict[str, str | int | bool]:
     }
 
 
-def node_to_json_dict(node: Node, facts: FactBase) -> Dict[str, str | int]:
+def node_to_json_dict(node: Node, facts: FactBase, behaviours: Set[TagBehaviour]) -> Dict[str, str | int] | None:
     tag_query = facts.query(Tag).where(Tag.node == node.entity).select(Tag)
+    tags = [t.tag for t in tag_query.all()]
+
+    for behaviour in behaviours:
+        if not behaviour.include and behaviour.tag in tags:
+            return None
+
     json_tags = [tag_to_json_dict(tag) for tag in tag_query.all()]
     return {
         "type": "node",
