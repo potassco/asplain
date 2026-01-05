@@ -12,6 +12,7 @@ from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_
 
 from asplain import construct_contrastive, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
 from asplain.llm.models import ModelTag, OpenAIModel
+from asplain.llm.models.google import GoogleModel
 from asplain.llm.templates import ExplainTemplate
 from asplain.utils.clingo import divide_space_string, get_query_prg, model_symbols, print_foil, symbols_to_prg
 from asplain.utils.logging import colored, configure_logging, save_out, COLORS
@@ -313,14 +314,24 @@ class AsplainApp(Application):
                         )
                         if self._llm_tag is not None:
                             # Prompt the LLM
-                            llm = OpenAIModel(model_tag=self._llm_tag)
+                            if self._llm_tag.value.openai is not None:
+                                llm = OpenAIModel(model_tag=self._llm_tag)
+                            if self._llm_tag.value.google is not None:
+                                llm = GoogleModel(model_tag=self._llm_tag)
+                            else:
+                                raise ValueError(f"LLM tag {self._llm_tag} is not supported.")
                             template = ExplainTemplate(
                                 contrastive_program_graph=contrastive_pg,
                                 query_program=query_prg,
                             )
                             print("LLM Explanation:")
                             response = asyncio.run(llm.prompt_template(template))
-                            print(colored("grey", str(json.loads(response, strict=False).get("explanation").strip())))
+                            try:
+                                response = response.strip().removeprefix("```json").removesuffix("```").strip()
+                                response_json = json.loads(response, strict=False)
+                                print(colored("grey", str(response_json.get("explanation").strip())))
+                            except json.JSONDecodeError:
+                                print(colored("grey", response))
                     if not foil_found:
                         log.warning("No foil found.")
 

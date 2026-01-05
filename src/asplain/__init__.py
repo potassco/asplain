@@ -30,13 +30,16 @@ def reify_program(
     Returns:
         The reified program as a string.
     """
+<<<<<<< HEAD
     extensions = [TagExtension(include_program=True, include_loc=True, include_id=True), ShowExtension()]
+=======
+    extensions = [TagExtension(), ShowExtension()]
+>>>>>>> 2095025 (Added gemini backend and google model tags)
     program_str = transform(file_paths, prg, extensions)
     log.debug("Transformed program:\n%s", program_str)
     rsymbols = classic_reify(
         constants_to_args(constants) + ["--preserve-facts=symtab"],
         program_str,
-        programs=[("base", []), ("addable", [])],
     )
     extend_with_theory_symbols(rsymbols)
     reified_prg = "\n".join([f"{str(s)}." for s in rsymbols])
