@@ -131,7 +131,7 @@ def edge_to_json_dict(edge: Edge) -> Dict[str, str | int | bool]:
 
 def node_to_json_dict(
     node: Node, facts: FactBase, behaviours: Set[TagBehaviour]
-) -> Dict[str, str | int] | None:
+) -> Dict[str, Any] | None:
     duplicate_node_entities_query = (
         facts.query(Node).where(Node.entity == node.entity).select(Node)
     )
