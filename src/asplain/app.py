@@ -10,12 +10,23 @@ from typing import Any, Callable, Optional, Sequence
 
 from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
 
-from asplain import construct_contrastive, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
+from asplain import (
+    construct_contrastive,
+    construct_program_graph,
+    set_foil_ctl,
+    set_model_subgraphs_ctl,
+)
 from asplain.llm.models import ModelTag, OpenAIModel
 from asplain.llm.models.google import GoogleModel
 from asplain.llm.templates import ExplainTemplate
-from asplain.utils.clingo import divide_space_string, get_query_prg, model_symbols, print_foil, symbols_to_prg
-from asplain.utils.logging import colored, configure_logging, save_out, COLORS
+from asplain.utils.clingo import (
+    divide_space_string,
+    get_query_prg,
+    model_symbols,
+    print_foil,
+    symbols_to_prg,
+)
+from asplain.utils.logging import COLORS, colored, configure_logging, save_out
 from asplain.utils.viz import viz_graph
 
 log = logging.getLogger(__name__)
@@ -58,7 +69,9 @@ class AsplainApp(Application):
                     log.error("Setting value to list")
                     current_value = [current_value]
                 current_value.append(value)
-                self.__setattr__(attr_name, current_value)  # Use direct assignment instead of __setattr__
+                self.__setattr__(
+                    attr_name, current_value
+                )  # Use direct assignment instead of __setattr__
             return True
 
         return setter
@@ -191,8 +204,8 @@ class AsplainApp(Application):
             "llm",
             dedent(
                 f"""\
-                Generate a natural language explanation using an LLM. 
-                            <llm-tag> ={{{'|'.join([str(m) for m in ModelTag.__members__])}}}
+                Generate a natural language explanation using an LLM.
+                            <llm-tag> ={{{"|".join([str(m) for m in ModelTag.__members__])}}}
                 """
             ),
             self.parse_llm_tag,
@@ -264,7 +277,9 @@ class AsplainApp(Application):
             title="Reference Graph",
             name="reference_pg",
         )
-        model_subgraphs_ctl = set_model_subgraphs_ctl(pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols)
+        model_subgraphs_ctl = set_model_subgraphs_ctl(
+            pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols
+        )
         with model_subgraphs_ctl.solve(yield_=True) as hnd:
             model_found = False
             for model in hnd:
@@ -291,8 +306,13 @@ class AsplainApp(Application):
                             log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
-                        save_out(f"foil_model_pg_{model.number}_{foil_model.number}.lp", foil_model_pg)
+                        foil_model_pg = symbols_to_prg(
+                            list(foil_model.symbols(shown=True))
+                        )
+                        save_out(
+                            f"foil_model_pg_{model.number}_{foil_model.number}.lp",
+                            foil_model_pg,
+                        )
                         viz_graph(
                             pg=foil_model_pg,
                             graphs=["foil", "model(foil)"],
@@ -307,7 +327,12 @@ class AsplainApp(Application):
                         save_out(f"contrastive_{model.number}_{foil_model.number}.lp", contrastive_pg)
                         viz_graph(
                             pg=contrastive_pg,
-                            graphs=["foil", "model(foil)", "reference", "model(reference)"],
+                            graphs=[
+                                "foil",
+                                "model(foil)",
+                                "reference",
+                                "model(reference)",
+                            ],
                             title="Contrastive Graph",
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
                             open=self._open.flag,
@@ -315,11 +340,15 @@ class AsplainApp(Application):
                         if self._llm_tag is not None:
                             # Prompt the LLM
                             if self._llm_tag.value.openai is not None:
+                                log.info("Using OpenAI API")
                                 llm = OpenAIModel(model_tag=self._llm_tag)
-                            if self._llm_tag.value.google is not None:
+                            elif self._llm_tag.value.google is not None:
+                                log.info("Using Google API")
                                 llm = GoogleModel(model_tag=self._llm_tag)
                             else:
-                                raise ValueError(f"LLM tag {self._llm_tag} is not supported.")
+                                raise ValueError(
+                                    f"LLM tag {self._llm_tag} is not supported."
+                                )
                             template = ExplainTemplate(
                                 contrastive_program_graph=contrastive_pg,
                                 query_program=query_prg,
@@ -327,9 +356,19 @@ class AsplainApp(Application):
                             print("LLM Explanation:")
                             response = asyncio.run(llm.prompt_template(template))
                             try:
-                                response = response.strip().removeprefix("```json").removesuffix("```").strip()
+                                response = (
+                                    response.strip()
+                                    .removeprefix("```json")
+                                    .removesuffix("```")
+                                    .strip()
+                                )
                                 response_json = json.loads(response, strict=False)
-                                print(colored("grey", str(response_json.get("explanation").strip())))
+                                print(
+                                    colored(
+                                        "grey",
+                                        str(response_json.get("explanation").strip()),
+                                    )
+                                )
                             except json.JSONDecodeError:
                                 print(colored("grey", response))
                     if not foil_found:
@@ -350,8 +389,12 @@ class AsplainApp(Application):
                             log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
-                        save_out(f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg)
+                        foil_model_pg = symbols_to_prg(
+                            list(foil_model.symbols(shown=True))
+                        )
+                        save_out(
+                            f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg
+                        )
                         viz_graph(
                             pg=foil_model_pg,
                             graphs=["foil", "model(foil)"],
@@ -367,7 +410,12 @@ class AsplainApp(Application):
                         save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
                         viz_graph(
                             pg=contrastive_pg,
-                            graphs=["foil", "model(foil)", "reference", "model(reference)"],
+                            graphs=[
+                                "foil",
+                                "model(foil)",
+                                "reference",
+                                "model(reference)",
+                            ],
                             title="Contrastive Graph",
                             name=f"contrastive_pg_UNSAT_{foil_model.number}",
                         )
