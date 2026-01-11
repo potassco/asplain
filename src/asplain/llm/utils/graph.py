@@ -4,8 +4,8 @@ from enum import Enum
 from typing import Dict, Optional, Set, Tuple
 
 from clorm import ConstantStr, FactBase, Predicate
-from clorm.clingo import Control
-from clorm.clingo import Model as ClormModel
+from clorm.clingo import ClormControl as Control
+from clorm.clingo import ClormModel
 
 
 class Origin(ConstantStr, Enum):
