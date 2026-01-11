@@ -1,11 +1,11 @@
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Tuple, Set
+from typing import Dict, Optional, Set, Tuple
 
-from clorm import Predicate, ConstantStr, FactBase
-from clorm.clingo import Model as ClormModel
+from clorm import ConstantStr, FactBase, Predicate
 from clorm.clingo import Control
+from clorm.clingo import Model as ClormModel
 
 
 class Origin(ConstantStr, Enum):
@@ -76,7 +76,6 @@ class TagBehaviour:
 
 
 class Graph:
-
     def __init__(self, contrastive_program_graph: str) -> None:
         self.contrastive_program_graph = contrastive_program_graph
         self._facts: Optional[FactBase] = None
@@ -101,7 +100,9 @@ class Graph:
             for n in self._facts.query(Node).select(Node).all()
         ]
         nodes = filter(lambda x: x is not None, nodes)
-        edges = [edge_to_json_dict(e) for e in self._facts.query(Edge).select(Edge).all()]
+        edges = [
+            edge_to_json_dict(e) for e in self._facts.query(Edge).select(Edge).all()
+        ]
 
         return json.dumps([nodes, edges])
 
@@ -124,7 +125,9 @@ def edge_to_json_dict(edge: Edge) -> Dict[str, str | int | bool]:
     }
 
 
-def node_to_json_dict(node: Node, facts: FactBase, behaviours: Set[TagBehaviour]) -> Dict[str, str | int] | None:
+def node_to_json_dict(
+    node: Node, facts: FactBase, behaviours: Set[TagBehaviour]
+) -> Dict[str, str | int] | None:
     tag_query = facts.query(Tag).where(Tag.node == node.entity).select(Tag)
     tags = [t.tag for t in tag_query.all()]
 
