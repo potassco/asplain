@@ -99,7 +99,7 @@ class Graph:
             node_to_json_dict(n, self._facts, behaviours=self._behaviours)
             for n in self._facts.query(Node).select(Node).all()
         ]
-        nodes = filter(lambda x: x is not None, nodes)
+        nodes = list(filter(lambda x: x is not None, nodes))
         edges = [
             edge_to_json_dict(e) for e in self._facts.query(Edge).select(Edge).all()
         ]
