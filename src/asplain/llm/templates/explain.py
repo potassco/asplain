@@ -18,6 +18,8 @@ class ExplainTemplate(Template):
         self._query_program = query_program
         self._graph = Graph(self._contrastive_program_graph)
 
+        print("GRAPH", self._graph.json())
+
     def compose_instructions(self) -> str:
         with open(
             Path(__file__).parent / PROMPT_FILE_INSTRUCTIONS, "r", encoding="utf-8"

@@ -1,11 +1,12 @@
 import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from clorm import ConstantStr, FactBase, Predicate
 from clorm.clingo import ClormControl as Control
 from clorm.clingo import ClormModel
+from typing_extensions import Iterable
 
 
 class Origin(ConstantStr, Enum):
@@ -95,11 +96,14 @@ class Graph:
         ctl.solve(on_model=self._on_facts_model)
 
     def json(self) -> str:
-        nodes = [
-            node_to_json_dict(n, self._facts, behaviours=self._behaviours)
-            for n in self._facts.query(Node).select(Node).all()
-        ]
-        nodes = list(filter(lambda x: x is not None, nodes))
+        if self._facts is None:
+            return ""
+
+        nodes = nodes_to_json_dict(
+            self._facts.query(Node).select(Node).all(), self._facts, self._behaviours
+        )
+        # Filter out duplicate nodes
+        nodes = remove_duplicate_node_dicts(nodes)
         edges = [
             edge_to_json_dict(e) for e in self._facts.query(Edge).select(Edge).all()
         ]
@@ -128,6 +132,11 @@ def edge_to_json_dict(edge: Edge) -> Dict[str, str | int | bool]:
 def node_to_json_dict(
     node: Node, facts: FactBase, behaviours: Set[TagBehaviour]
 ) -> Dict[str, str | int] | None:
+    duplicate_node_entities_query = (
+        facts.query(Node).where(Node.entity == node.entity).select(Node)
+    )
+    node_origins = [n.origin.value for n in duplicate_node_entities_query.all()]
+
     tag_query = facts.query(Tag).where(Tag.node == node.entity).select(Tag)
     tags = [t.tag for t in tag_query.all()]
 
@@ -139,6 +148,30 @@ def node_to_json_dict(
     return {
         "type": "node",
         "label": str(node.entity),
-        "origin": node.origin.value,
+        "origins": node_origins,
         "tags": json_tags,
     }
+
+
+def nodes_to_json_dict(
+    nodes: Iterable[Node], facts: FactBase, behaviours: Set[TagBehaviour]
+) -> List[Dict[str, Any]]:
+    json_dicts = []
+    for node in nodes:
+        json_dict = node_to_json_dict(node, facts, behaviours=behaviours)
+        if json_dict is not None:
+            json_dicts.append(json_dict)
+    return json_dicts
+
+
+def remove_duplicate_node_dicts(
+    node_dicts: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    node_labels = set()
+    nodes_unique = []
+    for node in node_dicts:
+        label = node.get("label")
+        if label is not None and label not in node_labels:
+            node_labels.add(label)
+            nodes_unique.append(node)
+    return nodes_unique
