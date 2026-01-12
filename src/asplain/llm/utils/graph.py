@@ -60,25 +60,10 @@ class Graph:
             ProcessAbducibleRemoved(),
         }
 
-        print("GRAPH", self._graph)
-
         self.get_facts(self._graph)
-
-        print("FACTS", self._facts)
-
         self.compute_nodes()
-
-        print("NODES", self._nodes)
-
         self.compute_edges()
-
-        print("EDGES", self._edges)
-
         self.compute_tags()
-
-        print("NODES", self._nodes)
-
-        print("JSON", self.json())
 
     def json(self) -> Dict[str, List[Dict[str, str | int | bool]]]:
         json_nodes = []
@@ -118,13 +103,10 @@ class Graph:
             return RuleType.NORMAL
         match rule.head:
             case Normal():
-                print("T NORMAL", node)
                 return RuleType.NORMAL
             case Disjunction():
-                print("T DISJUNCTION", node)
                 return RuleType.DISJUNCTION
             case Choice():
-                print("T CHOICE", node)
                 return RuleType.CHOICE
 
     def parse_tag(self, tag: Tag) -> Tuple[str, str | bool]:
