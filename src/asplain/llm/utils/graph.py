@@ -32,6 +32,7 @@ class Origin(Enum):
 
 
 class RuleType(Enum):
+    ATOM = "atom"
     NORMAL = "normal"
     DISJUNCTION = "disjunction"
     CHOICE = "choice"
@@ -95,10 +96,11 @@ class Graph:
             json_node = {
                 "type": "node",
                 "id": node.id,
-                "rule_type": node.rule_type.value,
                 "origins": list(node.origins),
                 **node.tags,
             }
+            if node.rule_type != RuleType.ATOM:
+                json_node["rule_type"] = node.rule_type.value
             json_nodes.append(json_node)
         json_edges = []
         for edge in self._edges.values():
@@ -123,7 +125,7 @@ class Graph:
     def parse_rule_type(self, node: Node) -> RuleType:
         rule = node.id
         if isinstance(rule, Atom):
-            return RuleType.NORMAL
+            return RuleType.ATOM
         match rule.head:
             case Normal():
                 return RuleType.NORMAL
