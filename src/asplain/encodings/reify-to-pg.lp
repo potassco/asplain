@@ -47,6 +47,8 @@ tag(R, label("User assumed {} as {}",(A,F))):-tag(R, assume(F)), edge(G, _, (ato
 % Labels without vars
 tag(R, label(L,())):-tag(R, label(L)).
 
+tag(atom(E), shown):-show(A,L),symbol_literal(A,E).
+
 
 #show tag(G, E, T):tag(G, E, T), edge(G,_,E).
 #show tag(G, N, T):tag(G, N, T), node(G,N).

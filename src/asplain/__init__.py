@@ -32,6 +32,7 @@ def reify_program(
     """
     extensions = [TagExtension(include_program=True, include_loc=True, include_id=True), ShowExtension()]
     program_str = transform(file_paths, prg, extensions)
+    log.debug("Transformed program:\n%s", program_str)
     rsymbols = classic_reify(
         constants_to_args(constants) + ["--preserve-facts=symtab"],
         program_str,

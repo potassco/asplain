@@ -53,8 +53,10 @@ vattr(node,rule(disjunction(H),B),(label,output),"disjunction"):-
     vnode(rule(disjunction(H),B)).
 
 % WARNING this just works with a single file and being already grounded, otherwise you get repeated ids
-vattr(node,rule(H,B),(label,value),ID):-
-    vnode(rule(H,B)), tag(_, rule(H,B), rule_id(ID)).
+% vattr(node,rule(H,B),(label,value),ID):-
+    % vnode(rule(H,B)), tag(_, rule(H,B), rule_id(ID)).
+vattr(node,rule(H,B),(label,value),(H,B)):-
+    vnode(rule(H,B)).
 % vattr(node,rule(H,B),(label,value),@rule_id(rule(H,B))):-
 %     vnode(rule(H,B)).
 
@@ -72,9 +74,9 @@ vattr(node,N,style,"filled,dashed"):- vnode(N), abducible(_, N).
 
 % Tooltips
 vattr(node,N,tooltip,"<{{rule}}    {{label}}>"):- vnode(N), vtag( N, rule_fo(S)).
-vattr(node,N,(tooltip,rule),S):- vnode(N), vtag( N, rule_fo(S)).
-vattr(node,N,(tooltip,label),S):- vnode(N), vtag( N, label(S)).
-vattr(node,atom(A),tooltip,S):- vnode(atom(A)), vtag( atom(A), label(S)).
+vattr(node,N,(tooltip,rule),@html_escape(S)):- vnode(N), vtag( N, rule_fo(S)).
+vattr(node,N,(tooltip,label),@html_escape(S)):- vnode(N), vtag( N, label(S)).
+vattr(node,atom(A),tooltip,@html_escape(S)):- vnode(atom(A)), vtag( atom(A), label(S)).
 
 % Colors
 no_model(N):- vnode(N), show(model(_)), not node(model(G), N):show(model(G)).

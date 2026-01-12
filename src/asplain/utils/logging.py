@@ -124,8 +124,8 @@ def save_out(file_name: str, content: str) -> None:
         file_path: The path to the file.
         content: The content to save.
     """
-    if _current_logging_level is DEBUG or _current_logging_level is INFO:  # 30 is WARNING, 40 is ERROR
-        return
+    # if _current_logging_level is DEBUG or _current_logging_level is INFO:  # 30 is WARNING, 40 is ERROR
+    #     return
     out_dir = os.path.join(os.getcwd(), "out")
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, file_name)
