@@ -98,21 +98,18 @@ class Graph:
         json_nodes = []
         for node in self._nodes.values():
             json_node = {
-                "type": "node",
+                "type": node.rule_type.value,
                 "id": node.id,
                 "origins": list(node.origins),
                 **node.tags,
             }
-            if node.rule_type != RuleType.ATOM:
-                json_node["rule_type"] = node.rule_type.value
             json_nodes.append(json_node)
         json_edges = []
         for edge in self._edges.values():
             json_edge = {
-                "type": "edge",
+                "type": edge.sign.value,
                 "source": edge.source,
                 "target": edge.target,
-                "edge_type": edge.sign.value,
                 "origins": list(edge.origins),
             }
             json_edges.append(json_edge)
