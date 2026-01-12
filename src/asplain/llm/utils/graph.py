@@ -15,10 +15,13 @@ from .predicates import (
     Label,
     Node,
     Normal,
+    Rule,
     RuleFirstOrder,
     Tag,
 )
 from .processes import ProcessAbducibleRemoved, TagProcess
+
+RULE_ID_PREDICATE = "rule"
 
 
 class Origin(Enum):
@@ -34,6 +37,27 @@ class RuleType(Enum):
     CHOICE = "choice"
 
 
+class RuleIDSet:
+    def __init__(self) -> None:
+        self._data: Dict[str, int] = {}
+        self._id: int = 1
+
+    def add(self, item: str) -> int:
+        if item not in self._data:
+            self._data[item] = self._id
+            self._id += 1
+        return self._data[item]
+
+    def get(self, item: str) -> Optional[int]:
+        return self._data.get(item)
+
+    def get_by_id(self, index: int) -> Optional[str]:
+        if index > len(self._data) or index <= 0:
+            return None
+        (rule_id, _) = sorted(self._data.items(), key=lambda item: item[1])[index]
+        return rule_id
+
+
 @dataclass
 class GraphNode:
     id: str
@@ -44,7 +68,6 @@ class GraphNode:
 
 @dataclass
 class GraphEdge:
-    id: str
     source: str
     target: str
     origins: Set[str]
@@ -52,6 +75,7 @@ class GraphEdge:
 
 class Graph:
     def __init__(self, contrastive_program_graph: str) -> None:
+        self._rule_ids = RuleIDSet()
         self._graph: str = contrastive_program_graph
         self._facts: Optional[FactBase] = None
         self._nodes: Dict[str, GraphNode] = {}
@@ -80,7 +104,6 @@ class Graph:
         for edge in self._edges.values():
             json_edge = {
                 "type": "edge",
-                "id": edge.id,
                 "source": edge.source,
                 "target": edge.target,
                 "origins": list(edge.origins),
@@ -120,6 +143,14 @@ class Graph:
             case RuleFirstOrder():
                 return "rule_fo", tag.tag.first_order
 
+    def parse_rule_id(self, rule: Atom | Rule) -> str:
+        match rule:
+            case Atom():
+                return str(rule)
+            case Rule():
+                rule_id = self._rule_ids.add(str(rule))
+                return f"{RULE_ID_PREDICATE}({rule_id})"
+
     def compute_nodes(self) -> None:
         if self._facts is None:
             return
@@ -129,8 +160,9 @@ class Graph:
             if node_string not in self._nodes:
                 # Create & register GraphNode
                 rule_type = self.parse_rule_type(node)
+                rule_id = self.parse_rule_id(node.id)
                 graph_node = GraphNode(
-                    id=node_string,
+                    id=rule_id,
                     rule_type=rule_type,
                     origins={str(node.origin)},
                     tags={},
@@ -151,10 +183,11 @@ class Graph:
             (edge_source, edge_target) = edge.edge
             edge_tuple = (str(edge_source), str(edge_target))
             if edge_tuple not in self._edges:
+                rule_id_source = self.parse_rule_id(edge_source)
+                rule_id_target = self.parse_rule_id(edge_target)
                 graph_edge = GraphEdge(
-                    id=str(edge_tuple),
-                    source=str(edge_source),
-                    target=str(edge_target),
+                    source=rule_id_source,
+                    target=rule_id_target,
                     origins={str(edge.origin)},
                 )
                 self._edges[edge_tuple] = graph_edge
