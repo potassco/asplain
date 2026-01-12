@@ -1,11 +1,23 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
+from warnings import warn
 
 from clorm import FactBase
 from clorm.clingo import ClormControl, ClormModel
 
-from .predicates import Atom, Choice, Disjunction, Edge, Node, Normal, Tag
+from .predicates import (
+    Abducible,
+    Atom,
+    Choice,
+    Disjunction,
+    Edge,
+    Label,
+    Node,
+    Normal,
+    RuleFirstOrder,
+    Tag,
+)
 from .processes import ProcessAbducibleRemoved, TagProcess
 
 
@@ -62,6 +74,10 @@ class Graph:
 
         print("EDGES", self._edges)
 
+        self.compute_tags()
+
+        print("NODES", self._nodes)
+
     def json(self) -> Dict[str, List[Dict[str, str | int | bool]]]:
         return {"nodes": [], "edges": []}
 
@@ -74,21 +90,31 @@ class Graph:
         ctl.ground([("base", [])])
         ctl.solve(on_model=self._on_facts_model)
 
-    def get_rule_type_of_node(self, node: Node) -> RuleType:
-        if isinstance(node.id, Atom):
+    def parse_rule_type(self, node: Node) -> RuleType:
+        rule = node.id
+        if isinstance(rule, Atom):
             return RuleType.NORMAL
-        else:
-            rule = node.id
-            match rule.head:
-                case Normal():
-                    print("T NORMAL", node)
-                    return RuleType.NORMAL
-                case Disjunction():
-                    print("T DISJUNCTION", node)
-                    return RuleType.DISJUNCTION
-                case Choice():
-                    print("T CHOICE", node)
-                    return RuleType.CHOICE
+        match rule.head:
+            case Normal():
+                print("T NORMAL", node)
+                return RuleType.NORMAL
+            case Disjunction():
+                print("T DISJUNCTION", node)
+                return RuleType.DISJUNCTION
+            case Choice():
+                print("T CHOICE", node)
+                return RuleType.CHOICE
+
+    def parse_tag(self, tag: Tag) -> Tuple[str, str | bool]:
+        match tag.tag:
+            case str():
+                return str(tag.tag), True
+            case Label():
+                return "label", tag.tag.value
+            case Abducible():
+                return "abducible", tag.tag.type
+            case RuleFirstOrder():
+                return "rule_fo", tag.tag.first_order
 
     def compute_nodes(self) -> None:
         if self._facts is None:
@@ -98,7 +124,7 @@ class Graph:
             node_string = str(node.id)
             if node_string not in self._nodes:
                 # Create & register GraphNode
-                rule_type = self.get_rule_type_of_node(node)
+                rule_type = self.parse_rule_type(node)
                 graph_node = GraphNode(
                     id=node_string,
                     rule_type=rule_type,
@@ -133,3 +159,16 @@ class Graph:
                 if graph_edge is None:
                     continue
                 graph_edge.origins.add(str(edge.origin))
+
+    def compute_tags(self) -> None:
+        if self._facts is None:
+            return
+        query_tags = self._facts.query(Tag).select(Tag)
+        for tag in query_tags.all():
+            node_string = str(tag.node)
+            graph_node = self._nodes.get(node_string)
+            if graph_node is None:
+                warn(f"No matching node found for tag: {str(tag)}")
+                continue
+            tag_id, tag_value = self.parse_tag(tag)
+            graph_node.tags[tag_id] = tag_value
