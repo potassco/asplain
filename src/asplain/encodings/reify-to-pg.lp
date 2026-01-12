@@ -54,7 +54,8 @@ tag(R, label(L,())):-tag(R, label(L)).
 % ----- Abducibles -----
 
 % Abducible to remove
-abducible(remove,R):-tag(R, assume(_)).
+abducible(remove,R):-tag(reference, R, assume(_)).
+abducible(remove,R):-tag(reference, R, removable).
 abducible(remove, rule(disjunction(H),B)):-
     tag(G, rule(disjunction(H),B),fact), %is a fact
     removable_if_fact(A), %flagged as removable if A

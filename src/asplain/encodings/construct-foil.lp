@@ -8,7 +8,7 @@ node(foil, R):- added(R).
 % Edges that are in the reference and not removed, plus edges from added nodes
 edge(foil, S, (X,Y)):-edge(reference, S, (X,Y)), not removed(X), not removed(Y).
 edge(foil, S, (R,A)):-added(R), abducible(add, edge(S,(R,A))).
-edge(foil, S, (R,A)):-added(R), abducible(add, edge(S,(A,R))).
+edge(foil, S, (A,R)):-added(R), abducible(add, edge(S,(A,R))).
 
 % ------------------------------------------------
 % # Check query

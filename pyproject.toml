@@ -10,7 +10,7 @@ requires-python = ">=3.10"
 license = { file = "LICENSE" }
 dynamic = ["version"]
 readme = "README.md"
-dependencies = ["clingo>=5.6.0", "meta-tools-clingo>=0.3.0"]
+dependencies = ["clingo>=5.6.0", "meta-tools-clingo>=0.3.3"]
 
 [project.urls]
 Homepage = "asplain"
@@ -21,8 +21,14 @@ format = ["black", "isort", "autoflake"]
 lint_pylint = ["pylint"]
 typecheck = ["types-setuptools", "mypy"]
 test = ["coverage[toml]"]
-doc = ["mkdocs", "mkdocs-material", "mkdocstrings[python]", "mkdoclingo"]
-dev = ["asplain[test,typecheck,lint_pylint]"]
+doc = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "mkdoclingo",
+    "mkdocs-literate-nav",
+]
+dev = ["asplain[test,typecheck,lint_pylint,doc]"]
 
 [project.scripts]
 asplain = "asplain.__main__:main"

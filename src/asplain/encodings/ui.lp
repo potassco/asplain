@@ -47,8 +47,9 @@ attr(elem_val(C), class, ("pe-3";"pt-1";"pb-1")):-elem(elem_val(C),label,_).
 %     attr((main_explaination_tab;left_tab), active_class, ("bg-info";"bg-opacity-25";"h3")).
 
 elem(right, container, w).
-attr(right, class, ("d-flex"; "flex-column";"w-75";"me-2";"mt-2")).
+attr(right, class, ("d-flex"; "flex-column";"me-2";"mt-2")).
 attr(right, order, 2).
+attr(left, width, "90%").
 
 % elem(s, container, right).
 % attr(s, order, 2).
@@ -204,7 +205,7 @@ attr(main(explanation_info), class, ("d-flex";"justify-content-center";"align-it
 
     elem(info_container, container, main(explanation_info)).
     attr(info_container, order, 2).
-    attr(info_container, height, 50).
+    attr(info_container, height, 30).
     attr(info_container, class, ("mb-3")).
 
         % elem(info_container(X), container, main_explaination):-vnode(X).
@@ -231,7 +232,7 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
 
     elem(graph_container, container, main(explanation_graph)).
     attr(graph_container, order, 3).
-    attr(graph_container, class, ("d-flex";"justify-content-center";"align-items-center";"p-2";"border")).
+    attr(graph_container, class, ("d-flex";"justify-content-center";"align-items-center";"p-2")).
     attr(graph_container, "overflow-y", auto).
     attr(graph_container, "overflow-x", auto).
 
@@ -248,7 +249,7 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
         % attr(c, "transform-origin", "top left").
         % attr(c, display, "inline-block").
         attr(c, height, 1000).
-        attr(c, width, 1500).
+        attr(c, width, 1000).
         % attr(c, transform, "scale(0.1)").
         % attr(c, "transform-origin", "0 0").
 
@@ -262,9 +263,10 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
 
 elem(left, container, w).
 attr(left, order, 1).
+attr(left, width, "20%").
 
-elem(main(state), container, left).
-attr(main(state), order, 1).
+% elem(main(state), container, left).
+% attr(main(state), order, 1).
 
     % % ## Files
     % % ------------
@@ -277,175 +279,175 @@ attr(main(state), order, 1).
     %     elem(content(files), container, section(files)).
 
 
-    % ## Constants
-    % ------------
+    % % ## Constants
+    % % ------------
 
-    elem(section(constants), container, main(state)).
+    % elem(section(constants), container, main(state)).
 
-        elem(title(constants), label, section(constants)).
-        attr(title(constants), label, "Constants").
+    %     elem(title(constants), label, section(constants)).
+    %     attr(title(constants), label, "Constants").
 
-        elem(content(constants), container, section(constants)).
+    %     elem(content(constants), container, section(constants)).
 
-            elem(elem_container(const(C)), container, content(constants)):-_clinguin_const(C,V).
+    %         elem(elem_container(const(C)), container, content(constants)):-_clinguin_const(C,V).
 
-                elem(elem_title(const(C)), label, elem_container(const(C))):-_clinguin_const(C,V).
-                attr(elem_title(const(C)), label, @format("#const {}",C)):-_clinguin_const(C,V).
+    %             elem(elem_title(const(C)), label, elem_container(const(C))):-_clinguin_const(C,V).
+    %             attr(elem_title(const(C)), label, @format("#const {}",C)):-_clinguin_const(C,V).
 
-                elem(elem_val(const(C)), label, elem_container(const(C))):-_clinguin_const(C,V).
-                attr(elem_val(const(C)), label,V):-_clinguin_const(C,V).
-                % attr(const_label(C), class, "w-100"):-_clinguin_const(C,V).
+    %             elem(elem_val(const(C)), label, elem_container(const(C))):-_clinguin_const(C,V).
+    %             attr(elem_val(const(C)), label,V):-_clinguin_const(C,V).
+    %             % attr(const_label(C), class, "w-100"):-_clinguin_const(C,V).
 
-        elem(footer(constants), container, section(constants)).
+    %     elem(footer(constants), container, section(constants)).
 
-            elem(footer_elem(constants), container, footer(constants)).
+    %         elem(footer_elem(constants), container, footer(constants)).
 
-                elem(footer_item(const(name)),textfield,footer_elem(constants)).
-                attr(footer_item(const(name)),placeholder,"name").
-                attr(footer_item(const(name)),width,"60pt").
-                when(footer_item(const(name)),input,context,(const_name,_value)).
+    %             elem(footer_item(const(name)),textfield,footer_elem(constants)).
+    %             attr(footer_item(const(name)),placeholder,"name").
+    %             attr(footer_item(const(name)),width,"60pt").
+    %             when(footer_item(const(name)),input,context,(const_name,_value)).
 
-                elem(footer_item(const(val)),textfield,footer_elem(constants)).
-                attr(footer_item(const(val)),placeholder,"value").
-                attr(footer_item(const(val)),width,"60pt").
-                when(footer_item(const(val)),input,context,(const_value,_value)).
+    %             elem(footer_item(const(val)),textfield,footer_elem(constants)).
+    %             attr(footer_item(const(val)),placeholder,"value").
+    %             attr(footer_item(const(val)),width,"60pt").
+    %             when(footer_item(const(val)),input,context,(const_value,_value)).
 
-                elem(footer_item(const(btn)),button,footer_elem(constants)).
-                attr(footer_item(const(btn)),label,"Set constant").
-                when(footer_item(const(btn)),click,call, set_constant(_context_value(const_name),_context_value(const_value))).
+    %             elem(footer_item(const(btn)),button,footer_elem(constants)).
+    %             attr(footer_item(const(btn)),label,"Set constant").
+    %             when(footer_item(const(btn)),click,call, set_constant(_context_value(const_name),_context_value(const_value))).
 
 
     % #Todo how do we pass the opt properly?
 
 
-    % ## Optimization
-    % -------------
-    elem(section(opt), container, main(state)).
+    % % ## Optimization
+    % % -------------
+    % elem(section(opt), container, main(state)).
 
-        elem(title(opt), label, section(opt)).
-        attr(title(opt), label, "Optimization").
-
-
-        elem(content(opt), container, section(opt)).
-        elem(elem_container(opt(cost)), container, content(opt)).
-        elem(elem_container(opt(optimizing)), container, content(opt)).
-        elem(elem_container(opt(optimal)), container, content(opt)).
-
-            elem(elem_title(opt(cost)), label, elem_container(opt(cost))).
-            attr(elem_title(opt(cost)), label, "Cost").
-
-            elem(elem_val(opt(cost)), label, elem_container(opt(cost))).
-            attr(elem_val(opt(cost)), icon, "fa-circle-check").
-            attr(elem_val(opt(cost)), label, Cost):-_clinguin_cost(Cost).
+    %     elem(title(opt), label, section(opt)).
+    %     attr(title(opt), label, "Optimization").
 
 
+    %     elem(content(opt), container, section(opt)).
+    %     elem(elem_container(opt(cost)), container, content(opt)).
+    %     elem(elem_container(opt(optimizing)), container, content(opt)).
+    %     elem(elem_container(opt(optimal)), container, content(opt)).
 
-            elem(elem_title(opt(optimal)), label, elem_container(opt(optimal))).
-            attr(elem_title(opt(optimal)), label, "Optimal").
+    %         elem(elem_title(opt(cost)), label, elem_container(opt(cost))).
+    %         attr(elem_title(opt(cost)), label, "Cost").
 
-            elem(elem_val(opt(optimal)), button, elem_container(opt(optimal))).
-            attr(elem_val(opt(optimal)), icon, "fa-circle-check").
-            attr(elem_val(opt(optimal)), class, ("disabled";"border-0";"opacity-100")).
-            attr(elem_val(opt(optimal)), icon, "fa-circle-check"):-_clinguin_optimal.
-            attr(elem_val(opt(optimal)), class, ("text-success")):-_clinguin_optimal.
-            attr(elem_val(opt(optimal)), icon, "fa-circle-xmark"):-not _clinguin_optimal.
-            attr(elem_val(opt(optimal)), class, ("text-danger")):-not _clinguin_optimal.
-
-            elem(elem_title(opt(optimizing)), label, elem_container(opt(optimizing))).
-            attr(elem_title(opt(optimizing)), label, "Optimizing").
-
-            elem(elem_val(opt(optimizing)), button, elem_container(opt(optimizing))).
-            attr(elem_val(opt(optimizing)), class, ("disabled";"border-0";"opacity-100")).
-            attr(elem_val(opt(optimizing)), icon, "fa-circle-check"):-_clinguin_optimizing.
-            attr(elem_val(opt(optimizing)), class, ("text-success")):-_clinguin_optimizing.
-            attr(elem_val(opt(optimizing)), icon, "fa-circle-xmark"):-not _clinguin_optimizing.
-            attr(elem_val(opt(optimizing)), class, ("text-danger")):-not _clinguin_optimizing.
+    %         elem(elem_val(opt(cost)), label, elem_container(opt(cost))).
+    %         attr(elem_val(opt(cost)), icon, "fa-circle-check").
+    %         attr(elem_val(opt(cost)), label, Cost):-_clinguin_cost(Cost).
 
 
 
-elem(main(input), container, left).
-attr(main(input), order, 2).
+    %         elem(elem_title(opt(optimal)), label, elem_container(opt(optimal))).
+    %         attr(elem_title(opt(optimal)), label, "Optimal").
+
+    %         elem(elem_val(opt(optimal)), button, elem_container(opt(optimal))).
+    %         attr(elem_val(opt(optimal)), icon, "fa-circle-check").
+    %         attr(elem_val(opt(optimal)), class, ("disabled";"border-0";"opacity-100")).
+    %         attr(elem_val(opt(optimal)), icon, "fa-circle-check"):-_clinguin_optimal.
+    %         attr(elem_val(opt(optimal)), class, ("text-success")):-_clinguin_optimal.
+    %         attr(elem_val(opt(optimal)), icon, "fa-circle-xmark"):-not _clinguin_optimal.
+    %         attr(elem_val(opt(optimal)), class, ("text-danger")):-not _clinguin_optimal.
+
+    %         elem(elem_title(opt(optimizing)), label, elem_container(opt(optimizing))).
+    %         attr(elem_title(opt(optimizing)), label, "Optimizing").
+
+    %         elem(elem_val(opt(optimizing)), button, elem_container(opt(optimizing))).
+    %         attr(elem_val(opt(optimizing)), class, ("disabled";"border-0";"opacity-100")).
+    %         attr(elem_val(opt(optimizing)), icon, "fa-circle-check"):-_clinguin_optimizing.
+    %         attr(elem_val(opt(optimizing)), class, ("text-success")):-_clinguin_optimizing.
+    %         attr(elem_val(opt(optimizing)), icon, "fa-circle-xmark"):-not _clinguin_optimizing.
+    %         attr(elem_val(opt(optimizing)), class, ("text-danger")):-not _clinguin_optimizing.
 
 
-    %  ## Input Atoms
-    %  ---------------
-    elem(section(atoms), container, main(input)).
 
-        elem(title(atoms), label, section(atoms)).
-        attr(title(atoms), label, "Added atoms").
-
-        elem(content(atoms), container, section(atoms)).
-
-            elem(elem_container(atom(A)), container, content(atoms)):-_clinguin_atom(A).
-
-                elem(elem_title(atom(A)), label, elem_container(atom(A))):-_clinguin_atom(A).
-                attr(elem_title(atom(A)), label, A):-_clinguin_atom(A).
-                attr(elem_title(atom(A)), class, "font-monospace"):-_clinguin_atom(A).
-
-                elem(elem_val(atom(A)), button, elem_container(atom(A))):-_clinguin_atom(A).
-                % attr(elem_val(atom(A)), label, "remove"):-_clinguin_atom(A).
-                attr(elem_val(atom(A)), icon, "fa-trash"):-_clinguin_atom(A).
-                attr(elem_val(atom(A)), class, ("text-danger")):-_clinguin_atom(A).
-                when(elem_val(atom(A)), click, call, remove_atom(A)):-_clinguin_atom(A).
-
-        elem(footer(atoms), container, section(atoms)).
-
-            elem(footer_elem(atoms), container, footer(atoms)).
-
-                elem(footer_item(atom(name)),textfield,footer_elem(atoms)).
-                attr(footer_item(atom(name)),placeholder,"atom").
-                attr(footer_item(atom(name)),class,("align-middle")).
-                when(footer_item(atom(name)),input,context,(atom_name,_value)).
-
-                elem(footer_item(atom(btn)),button,footer_elem(atoms)).
-                attr(footer_item(atom(btn)),label,"Add atom").
-                when(footer_item(atom(btn)),click,call, add_atom(_context_value(atom_name))).
-
-            elem(footer_elem(clear_atoms), container, footer(atoms)).
-
-            elem(footer_item(clear_atoms), button, footer(atoms)).
-            attr(footer_item(clear_atoms), label, "Clear").
-            attr(footer_item(clear_atoms), class, "btn-danger").
-            attr(footer_item(clear_atoms), icon, "fa-trash").
-            when(footer_item(clear_atoms), click, call, clear_atoms).
+% elem(main(input), container, left).
+% attr(main(input), order, 2).
 
 
-    %  ## Input Externals
-    %  ---------------
-    elem(section(externals), container, main(input)).
+    % %  ## Input Atoms
+    % %  ---------------
+    % elem(section(atoms), container, main(input)).
 
-        elem(title(externals), label, section(externals)).
-        attr(title(externals), label, "Externals").
+    %     elem(title(atoms), label, section(atoms)).
+    %     attr(title(atoms), label, "Added atoms").
 
-        elem(content(externals), container, section(externals)).
+    %     elem(content(atoms), container, section(atoms)).
 
-            elem(elem_container(external(A)), container, content(externals)):-_clinguin_external(A,V).
+    %         elem(elem_container(atom(A)), container, content(atoms)):-_clinguin_atom(A).
 
-                elem(elem_title(external(A)), label, elem_container(external(A))):-_clinguin_external(A,V).
-                attr(elem_title(external(A)), label, A):-_clinguin_external(A,V).
-                % attr(elem_title(external(A)), class, "text-success"):-_clinguin_external(A,true).
-                % attr(elem_title(external(A)), class, "text-danger"):-_clinguin_external(A,false).
-                attr(elem_title(external(A)), class, "font-monospace"):-_clinguin_external(A,V).
+    %             elem(elem_title(atom(A)), label, elem_container(atom(A))):-_clinguin_atom(A).
+    %             attr(elem_title(atom(A)), label, A):-_clinguin_atom(A).
+    %             attr(elem_title(atom(A)), class, "font-monospace"):-_clinguin_atom(A).
 
-                elem(elem_val(external(A)), dropdown_menu, elem_container(external(A))):-_clinguin_external(A,V).
-                attr(elem_val(external(A)), selected, V):-_clinguin_external(A,V).
-                attr(elem_val(external(A)), class, "text-success"):-_clinguin_external(A,true).
-                attr(elem_val(external(A)), class, "text-danger"):-_clinguin_external(A,false).
+    %             elem(elem_val(atom(A)), button, elem_container(atom(A))):-_clinguin_atom(A).
+    %             % attr(elem_val(atom(A)), label, "remove"):-_clinguin_atom(A).
+    %             attr(elem_val(atom(A)), icon, "fa-trash"):-_clinguin_atom(A).
+    %             attr(elem_val(atom(A)), class, ("text-danger")):-_clinguin_atom(A).
+    %             when(elem_val(atom(A)), click, call, remove_atom(A)):-_clinguin_atom(A).
+
+    %     elem(footer(atoms), container, section(atoms)).
+
+    %         elem(footer_elem(atoms), container, footer(atoms)).
+
+    %             elem(footer_item(atom(name)),textfield,footer_elem(atoms)).
+    %             attr(footer_item(atom(name)),placeholder,"atom").
+    %             attr(footer_item(atom(name)),class,("align-middle")).
+    %             when(footer_item(atom(name)),input,context,(atom_name,_value)).
+
+    %             elem(footer_item(atom(btn)),button,footer_elem(atoms)).
+    %             attr(footer_item(atom(btn)),label,"Add atom").
+    %             when(footer_item(atom(btn)),click,call, add_atom(_context_value(atom_name))).
+
+    %         elem(footer_elem(clear_atoms), container, footer(atoms)).
+
+    %         elem(footer_item(clear_atoms), button, footer(atoms)).
+    %         attr(footer_item(clear_atoms), label, "Clear").
+    %         attr(footer_item(clear_atoms), class, "btn-danger").
+    %         attr(footer_item(clear_atoms), icon, "fa-trash").
+    %         when(footer_item(clear_atoms), click, call, clear_atoms).
 
 
-                    elem(elem_val(external(A),true), dropdown_menu_item, elem_val(external(A))):-_clinguin_external(A,V).
-                    attr(elem_val(external(A),true), label, "true"):-_clinguin_external(A,V).
-                    attr(elem_val(external(A),true), class, "text-success"):-_clinguin_external(A,V).
-                    when(elem_val(external(A),true), click, call, set_external(A,true)):-_clinguin_external(A,V).
+    % %  ## Input Externals
+    % %  ---------------
+    % elem(section(externals), container, main(input)).
 
-                    elem(elem_val(external(A),false), dropdown_menu_item, elem_val(external(A))):-_clinguin_external(A,V).
-                    attr(elem_val(external(A),false), label, "false"):-_clinguin_external(A,V).
-                    attr(elem_val(external(A),false), class, "text-danger"):-_clinguin_external(A,V).
-                    when(elem_val(external(A),false), click, call, set_external(A,false)):-_clinguin_external(A,V).
+    %     elem(title(externals), label, section(externals)).
+    %     attr(title(externals), label, "Externals").
 
-                    elem(elem_val(external(A),release), dropdown_menu_item, elem_val(external(A))):-_clinguin_external(A,V).
-                    attr(elem_val(external(A),release), label, "release"):-_clinguin_external(A,V).
-                    when(elem_val(external(A),release), click, call, set_external(A,release)):-_clinguin_external(A,V).
+    %     elem(content(externals), container, section(externals)).
+
+    %         elem(elem_container(external(A)), container, content(externals)):-_clinguin_external(A,V).
+
+    %             elem(elem_title(external(A)), label, elem_container(external(A))):-_clinguin_external(A,V).
+    %             attr(elem_title(external(A)), label, A):-_clinguin_external(A,V).
+    %             % attr(elem_title(external(A)), class, "text-success"):-_clinguin_external(A,true).
+    %             % attr(elem_title(external(A)), class, "text-danger"):-_clinguin_external(A,false).
+    %             attr(elem_title(external(A)), class, "font-monospace"):-_clinguin_external(A,V).
+
+    %             elem(elem_val(external(A)), dropdown_menu, elem_container(external(A))):-_clinguin_external(A,V).
+    %             attr(elem_val(external(A)), selected, V):-_clinguin_external(A,V).
+    %             attr(elem_val(external(A)), class, "text-success"):-_clinguin_external(A,true).
+    %             attr(elem_val(external(A)), class, "text-danger"):-_clinguin_external(A,false).
+
+
+    %                 elem(elem_val(external(A),true), dropdown_menu_item, elem_val(external(A))):-_clinguin_external(A,V).
+    %                 attr(elem_val(external(A),true), label, "true"):-_clinguin_external(A,V).
+    %                 attr(elem_val(external(A),true), class, "text-success"):-_clinguin_external(A,V).
+    %                 when(elem_val(external(A),true), click, call, set_external(A,true)):-_clinguin_external(A,V).
+
+    %                 elem(elem_val(external(A),false), dropdown_menu_item, elem_val(external(A))):-_clinguin_external(A,V).
+    %                 attr(elem_val(external(A),false), label, "false"):-_clinguin_external(A,V).
+    %                 attr(elem_val(external(A),false), class, "text-danger"):-_clinguin_external(A,V).
+    %                 when(elem_val(external(A),false), click, call, set_external(A,false)):-_clinguin_external(A,V).
+
+    %                 elem(elem_val(external(A),release), dropdown_menu_item, elem_val(external(A))):-_clinguin_external(A,V).
+    %                 attr(elem_val(external(A),release), label, "release"):-_clinguin_external(A,V).
+    %                 when(elem_val(external(A),release), click, call, set_external(A,release)):-_clinguin_external(A,V).
 
 
 elem(main(model), container, left).
@@ -518,42 +520,42 @@ attr(main(model), order, 3).
 
 
 
-            elem(footer_elem(select), container, footer(model)).
-            attr(footer_elem(select), order, 2).
+            % elem(footer_elem(select), container, footer(model)).
+            % attr(footer_elem(select), order, 2).
 
-                elem(footer_item(select(select_show)),textfield,footer_elem(select)).
-                attr(footer_item(select(select_show)),order,1).
-                attr(footer_item(select(select_show)),width,"315pt").
-                attr(footer_item(select(select_show)),placeholder,"Optional #show").
-                when(footer_item(select(select_show)),input,context,(select_show,_value)).
+            %     elem(footer_item(select(select_show)),textfield,footer_elem(select)).
+            %     attr(footer_item(select(select_show)),order,1).
+            %     attr(footer_item(select(select_show)),width,"315pt").
+            %     attr(footer_item(select(select_show)),placeholder,"Optional #show").
+            %     when(footer_item(select(select_show)),input,context,(select_show,_value)).
 
-                elem(footer_item(select(btn)),button,footer_elem(select)).
-                attr(footer_item(select(btn)),order,2).
-                attr(footer_item(select(btn)),label,"Select solution").
-                attr(footer_item(select(btn)),icon,"fa-hand-pointer").
-                attr(footer_item(select(btn)),class,"btn-success").
-                when(footer_item(select(btn)),click,call, select(_context_value(select_show,str," "))).
+            %     elem(footer_item(select(btn)),button,footer_elem(select)).
+            %     attr(footer_item(select(btn)),order,2).
+            %     attr(footer_item(select(btn)),label,"Select").
+            %     attr(footer_item(select(btn)),icon,"fa-hand-pointer").
+            %     attr(footer_item(select(btn)),class,"btn-success").
+            %     when(footer_item(select(btn)),click,call, select(_context_value(select_show,str," "))).
 
 
-            elem(footer_elem(download), container, footer(model)).
-            attr(footer_elem(download), order, 3).
+            % elem(footer_elem(download), container, footer(model)).
+            % attr(footer_elem(download), order, 3).
 
-                elem(footer_item(download(download_show)),textfield,footer_elem(download)).
-                attr(footer_item(download(download_show)),order,2).
-                attr(footer_item(download(download_show)),placeholder,"Optional #show").
-                when(footer_item(download(download_show)),input,context,(download_show,_value)).
+            %     elem(footer_item(download(download_show)),textfield,footer_elem(download)).
+            %     attr(footer_item(download(download_show)),order,2).
+            %     attr(footer_item(download(download_show)),placeholder,"Optional #show").
+            %     when(footer_item(download(download_show)),input,context,(download_show,_value)).
 
-                elem(footer_item(download(download_name)),textfield,footer_elem(download)).
-                attr(footer_item(download(download_name)),order,1).
-                attr(footer_item(download(download_name)),placeholder,"File name").
-                when(footer_item(download(download_name)),input,context,(download_name,_value)).
+            %     elem(footer_item(download(download_name)),textfield,footer_elem(download)).
+            %     attr(footer_item(download(download_name)),order,1).
+            %     attr(footer_item(download(download_name)),placeholder,"File name").
+            %     when(footer_item(download(download_name)),input,context,(download_name,_value)).
 
-                elem(footer_item(download(btn)),button,footer_elem(download)).
-                attr(footer_item(download(btn)),order,3).
-                attr(footer_item(download(btn)),label,"Download solution").
-                attr(footer_item(download(btn)),icon,"fa-download").
-                attr(footer_item(download(btn)),class,"btn-success").
-                when(footer_item(download(btn)),click,call, download(_context_value(download_show,str," "),_context_value(download_name,str,"file.lp"))).
+            %     elem(footer_item(download(btn)),button,footer_elem(download)).
+            %     attr(footer_item(download(btn)),order,3).
+            %     attr(footer_item(download(btn)),label,"Download").
+            %     attr(footer_item(download(btn)),icon,"fa-download").
+            %     attr(footer_item(download(btn)),class,"btn-success").
+            %     when(footer_item(download(btn)),click,call, download(_context_value(download_show,str," "),_context_value(download_name,str,"file.lp"))).
 
 
             elem(footer_elem(browse), container, footer(model)).
@@ -565,11 +567,11 @@ attr(main(model), order, 3).
                 attr(footer_item(next_solution), icon, "fa-forward-step").
                 when(footer_item(next_solution), click, call, next_solution).
 
-                elem(footer_item(next_solution_opt), button, footer_elem(browse)).
-                attr(footer_item(next_solution_opt), order, 2).
-                attr(footer_item(next_solution_opt), label, "Next Optimizing").
-                attr(footer_item(next_solution_opt), icon, "fa-forward-fast").
-                when(footer_item(next_solution_opt), click, call, next_solution(optN)).
+                % elem(footer_item(next_solution_opt), button, footer_elem(browse)).
+                % attr(footer_item(next_solution_opt), order, 2).
+                % attr(footer_item(next_solution_opt), label, "Next Optimizing").
+                % attr(footer_item(next_solution_opt), icon, "fa-forward-fast").
+                % when(footer_item(next_solution_opt), click, call, next_solution(optN)).
 
                 elem(footer_item(stop), button, footer_elem(browse)).
                 attr(footer_item(stop), order, 1).
