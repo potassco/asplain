@@ -1,177 +1,135 @@
-import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
-from clorm import ConstantStr, FactBase, Predicate
-from clorm.clingo import ClormControl as Control
-from clorm.clingo import ClormModel
-from typing_extensions import Iterable
+from clorm import FactBase
+from clorm.clingo import ClormControl, ClormModel
+
+from .predicates import Atom, Choice, Disjunction, Edge, Node, Normal, Tag
+from .processes import ProcessAbducibleRemoved, TagProcess
 
 
-class Origin(ConstantStr, Enum):
+class Origin(Enum):
     REFERENCE = "reference"
     REFERENCE_MODEL = "model(reference)"
     FOIL = "foil"
-    FOIL_MODEL = "model(foil)"
+    FOIL_MODEL = "model(foil))"
 
 
-class Label(Predicate, name="label"):
-    value: str
-
-
-class Abducible(Predicate, name="abducible"):
-    type: ConstantStr
-
-
-class RuleFirstOrder(Predicate, name="rule_fo"):
-    first_order: str
-
-
-class Disjunction(Predicate, name="disjunction"):
-    id: int
-
-
-class Normal(Predicate, name="normal"):
-    id: int
-
-
-class Rule(Predicate, name="rule"):
-    head: Disjunction | Normal
-    body: Disjunction | Normal
-
-
-class Atom(Predicate, name="atom"):
-    atom: ConstantStr
-
-
-class Tag(Predicate, name="tag"):
-    origin: Origin
-    node: Rule | Atom
-    tag: Label | Abducible | RuleFirstOrder | ConstantStr
-
-
-class Node(Predicate, name="node"):
-    origin: Origin
-    entity: Rule | Atom
-
-
-class EdgeSign(ConstantStr, Enum):
-    POSITIVE = "positive"
-    NEGATIVE = "negative"
-
-
-class Edge(Predicate, name="edge"):
-    origin: Origin
-    positive: EdgeSign
-    edge: Tuple[Rule | Atom, Rule | Atom]
+class RuleType(Enum):
+    NORMAL = "normal"
+    DISJUNCTION = "disjunction"
+    CHOICE = "choice"
 
 
 @dataclass
-class TagBehaviour:
-    tag: Abducible
-    include: bool
+class GraphNode:
+    id: str
+    rule_type: RuleType
+    origins: Set[str]
+    tags: Dict[str, str | int | bool]
 
-    def __hash__(self) -> int:
-        return hash(self.tag)
+
+@dataclass
+class GraphEdge:
+    id: str
+    source: str
+    target: str
+    origins: Set[str]
 
 
 class Graph:
     def __init__(self, contrastive_program_graph: str) -> None:
-        self.contrastive_program_graph = contrastive_program_graph
+        self._graph: str = contrastive_program_graph
         self._facts: Optional[FactBase] = None
-        self._behaviours = {TagBehaviour(Abducible("remove"), include=False)}
+        self._nodes: Dict[str, GraphNode] = {}
+        self._edges: Dict[Tuple[str, str], GraphEdge] = {}
+        self._tag_processes: Set[TagProcess] = {
+            ProcessAbducibleRemoved(),
+        }
 
-        print(self.contrastive_program_graph)
+        print("GRAPH", self._graph)
 
-        self.get_facts(self.contrastive_program_graph)
+        self.get_facts(self._graph)
+
+        print("FACTS", self._facts)
+
+        self.compute_nodes()
+
+        print("NODES", self._nodes)
+
+        self.compute_edges()
+
+        print("EDGES", self._edges)
+
+    def json(self) -> Dict[str, List[Dict[str, str | int | bool]]]:
+        return {"nodes": [], "edges": []}
 
     def _on_facts_model(self, model: ClormModel) -> None:
         self._facts = model.facts(atoms=True)
 
     def get_facts(self, program: str) -> None:
-        ctl = Control(unifier=[Tag, Node, Edge])
+        ctl = ClormControl(unifier=[Tag, Node, Edge])
         ctl.add("base", [], program)
         ctl.ground([("base", [])])
         ctl.solve(on_model=self._on_facts_model)
 
-    def json(self) -> str:
+    def get_rule_type_of_node(self, node: Node) -> RuleType:
+        if isinstance(node.id, Atom):
+            return RuleType.NORMAL
+        else:
+            rule = node.id
+            match rule.head:
+                case Normal():
+                    print("T NORMAL", node)
+                    return RuleType.NORMAL
+                case Disjunction():
+                    print("T DISJUNCTION", node)
+                    return RuleType.DISJUNCTION
+                case Choice():
+                    print("T CHOICE", node)
+                    return RuleType.CHOICE
+
+    def compute_nodes(self) -> None:
         if self._facts is None:
-            return ""
+            return
+        query_nodes = self._facts.query(Node).select(Node)
+        for node in query_nodes.all():
+            node_string = str(node.id)
+            if node_string not in self._nodes:
+                # Create & register GraphNode
+                rule_type = self.get_rule_type_of_node(node)
+                graph_node = GraphNode(
+                    id=node_string,
+                    rule_type=rule_type,
+                    origins={str(node.origin)},
+                    tags={},
+                )
+                self._nodes[node_string] = graph_node
+            else:
+                # Add origin to GraphNode
+                graph_node = self._nodes.get(node_string)
+                if graph_node is None:
+                    continue
+                graph_node.origins.add(str(node.origin))
 
-        nodes = nodes_to_json_dict(
-            self._facts.query(Node).select(Node).all(), self._facts, self._behaviours
-        )
-        # Filter out duplicate nodes
-        nodes = remove_duplicate_node_dicts(nodes)
-        edges = [
-            edge_to_json_dict(e) for e in self._facts.query(Edge).select(Edge).all()
-        ]
-
-        return json.dumps([nodes, edges])
-
-
-def tag_to_json_dict(tag: Tag) -> Dict[str, str | int]:
-    return {
-        "tag": str(tag.tag),
-        "origin": tag.origin.value,
-    }
-
-
-def edge_to_json_dict(edge: Edge) -> Dict[str, str | int | bool]:
-    return {
-        "type": "edge",
-        "source": str(edge.edge[0]),
-        "target": str(edge.edge[1]),
-        "positive": str(edge.positive),
-        "label": str(edge.edge),
-        "origin": edge.origin.value,
-    }
-
-
-def node_to_json_dict(
-    node: Node, facts: FactBase, behaviours: Set[TagBehaviour]
-) -> Dict[str, Any] | None:
-    duplicate_node_entities_query = (
-        facts.query(Node).where(Node.entity == node.entity).select(Node)
-    )
-    node_origins = [n.origin.value for n in duplicate_node_entities_query.all()]
-
-    tag_query = facts.query(Tag).where(Tag.node == node.entity).select(Tag)
-    tags = [t.tag for t in tag_query.all()]
-
-    for behaviour in behaviours:
-        if not behaviour.include and behaviour.tag in tags:
-            return None
-
-    json_tags = [tag_to_json_dict(tag) for tag in tag_query.all()]
-    return {
-        "type": "node",
-        "label": str(node.entity),
-        "origins": node_origins,
-        "tags": json_tags,
-    }
-
-
-def nodes_to_json_dict(
-    nodes: Iterable[Node], facts: FactBase, behaviours: Set[TagBehaviour]
-) -> List[Dict[str, Any]]:
-    json_dicts = []
-    for node in nodes:
-        json_dict = node_to_json_dict(node, facts, behaviours=behaviours)
-        if json_dict is not None:
-            json_dicts.append(json_dict)
-    return json_dicts
-
-
-def remove_duplicate_node_dicts(
-    node_dicts: List[Dict[str, Any]],
-) -> List[Dict[str, Any]]:
-    node_labels = set()
-    nodes_unique = []
-    for node in node_dicts:
-        label = node.get("label")
-        if label is not None and label not in node_labels:
-            node_labels.add(label)
-            nodes_unique.append(node)
-    return nodes_unique
+    def compute_edges(self) -> None:
+        if self._facts is None:
+            return
+        query_edges = self._facts.query(Edge).select(Edge)
+        for edge in query_edges.all():
+            (edge_source, edge_target) = edge.edge
+            edge_tuple = (str(edge_source), str(edge_target))
+            if edge_tuple not in self._edges:
+                graph_edge = GraphEdge(
+                    id=str(edge_tuple),
+                    source=str(edge_source),
+                    target=str(edge_target),
+                    origins={str(edge.origin)},
+                )
+                self._edges[edge_tuple] = graph_edge
+            else:
+                graph_edge = self._edges.get(edge_tuple)
+                if graph_edge is None:
+                    continue
+                graph_edge.origins.add(str(edge.origin))
