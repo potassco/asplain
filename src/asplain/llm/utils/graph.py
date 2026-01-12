@@ -78,8 +78,30 @@ class Graph:
 
         print("NODES", self._nodes)
 
+        print("JSON", self.json())
+
     def json(self) -> Dict[str, List[Dict[str, str | int | bool]]]:
-        return {"nodes": [], "edges": []}
+        json_nodes = []
+        for node in self._nodes.values():
+            json_node = {
+                "type": "node",
+                "id": node.id,
+                "rule_type": node.rule_type.value,
+                "origins": list(node.origins),
+                **node.tags,
+            }
+            json_nodes.append(json_node)
+        json_edges = []
+        for edge in self._edges.values():
+            json_edge = {
+                "type": "edge",
+                "id": edge.id,
+                "source": edge.source,
+                "target": edge.target,
+                "origins": list(edge.origins),
+            }
+            json_edges.append(json_edge)
+        return {"nodes": json_nodes, "edges": json_edges}
 
     def _on_facts_model(self, model: ClormModel) -> None:
         self._facts = model.facts(atoms=True)
