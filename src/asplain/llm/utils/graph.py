@@ -12,6 +12,7 @@ from .predicates import (
     Choice,
     Disjunction,
     Edge,
+    EdgeSign,
     Label,
     Node,
     Normal,
@@ -72,6 +73,7 @@ class GraphEdge:
     source: str
     target: str
     origins: Set[str]
+    sign: EdgeSign
 
 
 class Graph:
@@ -89,6 +91,8 @@ class Graph:
         self.compute_nodes()
         self.compute_edges()
         self.compute_tags()
+
+        print("JSON", self.json())
 
     def json(self) -> Dict[str, List[Dict[str, str | int | bool]]]:
         json_nodes = []
@@ -108,6 +112,7 @@ class Graph:
                 "type": "edge",
                 "source": edge.source,
                 "target": edge.target,
+                "edge_type": edge.sign.value,
                 "origins": list(edge.origins),
             }
             json_edges.append(json_edge)
@@ -191,6 +196,7 @@ class Graph:
                     source=rule_id_source,
                     target=rule_id_target,
                     origins={str(edge.origin)},
+                    sign=edge.positive,
                 )
                 self._edges[edge_tuple] = graph_edge
             else:
