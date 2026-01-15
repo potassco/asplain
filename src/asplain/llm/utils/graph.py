@@ -92,8 +92,6 @@ class Graph:
         self.compute_edges()
         self.compute_tags()
 
-        print("JSON", self.json())
-
     def json(self) -> Dict[str, List[Dict[str, str | int | bool]]]:
         json_nodes = []
         for node in self._nodes.values():
