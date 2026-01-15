@@ -18,9 +18,7 @@ sentence(P, innocent) :- person(P), not punish(P).
 
 
 % ----- Instance
-% @removable
 person(gabriel).
-% @removable
 person(clare).
 % @removable
 drive(gabriel).
