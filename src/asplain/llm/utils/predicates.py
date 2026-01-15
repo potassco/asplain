@@ -4,6 +4,16 @@ from typing import Tuple
 from clorm import ConstantStr, Predicate
 
 
+class QueryInclusion(ConstantStr, Enum):
+    INCLUDE = "include"
+    EXCLUDE = "exclude"
+
+
+class Query(Predicate, name="query"):
+    value: str  # TODO: Replace this with wildcard somehow
+    inclusion: QueryInclusion
+
+
 class Model(Predicate, name="model"):
     value: ConstantStr
 

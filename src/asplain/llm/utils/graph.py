@@ -16,6 +16,8 @@ from .predicates import (
     Label,
     Node,
     Normal,
+    Query,
+    QueryInclusion,
     Rule,
     RuleFirstOrder,
     Tag,
@@ -83,16 +85,22 @@ class Graph:
         self._facts: Optional[FactBase] = None
         self._nodes: Dict[str, GraphNode] = {}
         self._edges: Dict[Tuple[str, str], GraphEdge] = {}
+        self._query: Optional[str] = None
         self._tag_processes: Set[TagProcess] = {
             ProcessAbducibleRemoved(),
         }
 
+        print("PRG", self._graph)
+
         self.get_facts(self._graph)
+        self.compute_query()
         self.compute_nodes()
         self.compute_edges()
         self.compute_tags()
 
-    def json(self) -> Dict[str, List[Dict[str, str | int | bool]]]:
+        print("JSON", self.json())
+
+    def json(self) -> Dict[str, List[Dict[str, str | int | bool]] | str]:
         json_nodes = []
         for node in self._nodes.values():
             json_node = {
@@ -111,7 +119,8 @@ class Graph:
                 "origins": list(edge.origins),
             }
             json_edges.append(json_edge)
-        return {"nodes": json_nodes, "edges": json_edges}
+        json_query = self._query if self._query is not None else ""
+        return {"nodes": json_nodes, "edges": json_edges, "query": json_query}
 
     def _on_facts_model(self, model: ClormModel) -> None:
         self._facts = model.facts(atoms=True)
@@ -212,3 +221,16 @@ class Graph:
                 continue
             tag_id, tag_value = self.parse_tag(tag)
             graph_node.tags[tag_id] = tag_value
+
+    def compute_query(self) -> None:
+        if self._facts is None:
+            return
+        queries: List[str] = []
+        query_query = self._facts.query(Query).select(Query)
+        for query in query_query.all():
+            match query.inclusion:
+                case QueryInclusion.INCLUDE:
+                    queries.append(query.value)
+                case QueryInclusion.EXCLUDE:
+                    queries.append(f"-{query.value}")
+        self._query = "\n".join(queries)
