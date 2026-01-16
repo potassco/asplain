@@ -71,6 +71,3 @@ class Edge(Predicate, name="edge"):
     origin: ConstantStr | Model
     positive: EdgeSign
     edge: Tuple[Rule | Atom, Rule | Atom]
-
-
-# edge(contrastive, positive, (rule(disjunction(0), normal(0)), atom(drive(clare))))

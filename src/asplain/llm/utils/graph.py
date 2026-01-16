@@ -90,15 +90,11 @@ class Graph:
             ProcessAbducibleRemoved(),
         }
 
-        print("PRG", self._graph)
-
         self.get_facts(self._graph)
         self.compute_queries()
         self.compute_nodes()
         self.compute_edges()
         self.compute_tags()
-
-        print("JSON", self.json())
 
     def json(
         self,
