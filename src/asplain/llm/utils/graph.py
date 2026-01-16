@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from warnings import warn
 
 from clorm import FactBase
-from clorm.clingo import ClormControl, ClormModel
+from clorm.clingo import ClormControl, ClormModel, Tuple_
 
 from .predicates import (
     Abducible,
@@ -85,7 +85,7 @@ class Graph:
         self._facts: Optional[FactBase] = None
         self._nodes: Dict[str, GraphNode] = {}
         self._edges: Dict[Tuple[str, str], GraphEdge] = {}
-        self._query: Optional[str] = None
+        self._queries: Dict[str, bool] = {}
         self._tag_processes: Set[TagProcess] = {
             ProcessAbducibleRemoved(),
         }
@@ -93,14 +93,16 @@ class Graph:
         print("PRG", self._graph)
 
         self.get_facts(self._graph)
-        self.compute_query()
+        self.compute_queries()
         self.compute_nodes()
         self.compute_edges()
         self.compute_tags()
 
         print("JSON", self.json())
 
-    def json(self) -> Dict[str, List[Dict[str, str | int | bool]] | str]:
+    def json(
+        self,
+    ) -> Dict[str, List[Dict[str, str | int | bool]]]:
         json_nodes = []
         for node in self._nodes.values():
             json_node = {
@@ -119,14 +121,17 @@ class Graph:
                 "origins": list(edge.origins),
             }
             json_edges.append(json_edge)
-        json_query = self._query if self._query is not None else ""
-        return {"nodes": json_nodes, "edges": json_edges, "query": json_query}
+        json_queries = [
+            {"query_atom": atom, "included": inclusion}
+            for (atom, inclusion) in self._queries.items()
+        ]
+        return {"nodes": json_nodes, "edges": json_edges, "query": json_queries}
 
     def _on_facts_model(self, model: ClormModel) -> None:
         self._facts = model.facts(atoms=True)
 
     def get_facts(self, program: str) -> None:
-        ctl = ClormControl(unifier=[Tag, Node, Edge])
+        ctl = ClormControl(unifier=[Tag, Node, Edge, Query])
         ctl.add("base", [], program)
         ctl.ground([("base", [])])
         ctl.solve(on_model=self._on_facts_model)
@@ -222,15 +227,14 @@ class Graph:
             tag_id, tag_value = self.parse_tag(tag)
             graph_node.tags[tag_id] = tag_value
 
-    def compute_query(self) -> None:
+    def compute_queries(self) -> None:
         if self._facts is None:
             return
-        queries: List[str] = []
-        query_query = self._facts.query(Query).select(Query)
+        query_query = self._facts.query(Query)
         for query in query_query.all():
+            query_atom = str(query.value)
             match query.inclusion:
                 case QueryInclusion.INCLUDE:
-                    queries.append(query.value)
+                    self._queries[query_atom] = True
                 case QueryInclusion.EXCLUDE:
-                    queries.append(f"-{query.value}")
-        self._query = "\n".join(queries)
+                    self._queries[query_atom] = False

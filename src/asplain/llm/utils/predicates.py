@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Tuple
 
-from clorm import ConstantStr, Predicate
+from clorm import ConstantStr, Predicate, Raw
 
 
 class QueryInclusion(ConstantStr, Enum):
@@ -10,7 +10,7 @@ class QueryInclusion(ConstantStr, Enum):
 
 
 class Query(Predicate, name="query"):
-    value: str  # TODO: Replace this with wildcard somehow
+    value: Raw  # TODO: Replace this with wildcard somehow
     inclusion: QueryInclusion
 
 
