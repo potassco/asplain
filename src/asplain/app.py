@@ -16,9 +16,6 @@ from asplain import (
     set_foil_ctl,
     set_model_subgraphs_ctl,
 )
-from asplain.llm.models import ModelTag, OpenAIModel
-from asplain.llm.models.google import GoogleModel
-from asplain.llm.templates import ExplainTemplate
 from asplain.utils.clingo import (
     divide_space_string,
     get_query_prg,
@@ -28,6 +25,16 @@ from asplain.utils.clingo import (
 )
 from asplain.utils.logging import COLORS, colored, configure_logging, save_out
 from asplain.utils.viz import viz_graph
+
+try:
+    from asplain.llm.models import ModelTag, OpenAIModel
+    from asplain.llm.models.google import GoogleModel
+    from asplain.llm.templates import ExplainTemplate
+
+    INSTALLED_LLMS = True
+except ImportError:
+    INSTALLED_LLMS = False
+
 
 log = logging.getLogger(__name__)
 
@@ -44,13 +51,15 @@ class AsplainApp(Application):
         self._query_exclude = []
         self._assumptions = []
         self._number_explanations = 1
-        self._llm_tag: Optional[ModelTag] = None
 
         self._dynamic_tags = []
         self._cost_encoding = []
         self._model_symbols = None
 
         self._open: Flag = Flag()
+
+        if INSTALLED_LLMS:
+            self._llm_tag: Optional[ModelTag] = None
 
     def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
         """
@@ -129,10 +138,11 @@ class AsplainApp(Application):
         return False
 
     def parse_llm_tag(self, value: str) -> bool:
-        if value in [str(m) for m in ModelTag.__members__]:
-            tag = ModelTag[value]
-            self._llm_tag = tag
-            return True
+        if INSTALLED_LLMS:
+            if value in [str(m) for m in ModelTag.__members__]:
+                tag = ModelTag[value]
+                self._llm_tag = tag
+                return True
         return False
 
     def register_options(self, options: ApplicationOptions) -> None:
@@ -199,18 +209,19 @@ class AsplainApp(Application):
             argument="<nexplanations>",
         )
 
-        options.add(
-            group,
-            "llm",
-            dedent(
-                f"""\
-                Generate a natural language explanation using an LLM.
-                            <llm-tag> ={{{"|".join([str(m) for m in ModelTag.__members__])}}}
-                """
-            ),
-            self.parse_llm_tag,
-            argument="<llm-tag>",
-        )
+        if INSTALLED_LLMS:
+            options.add(
+                group,
+                "llm",
+                dedent(
+                    f"""\
+                    Generate a natural language explanation using an LLM.
+                                <llm-tag> ={{{"|".join([str(m) for m in ModelTag.__members__])}}}
+                    """
+                ),
+                self.parse_llm_tag,
+                argument="<llm-tag>",
+            )
 
         options.add(
             group,
@@ -303,7 +314,9 @@ class AsplainApp(Application):
                     foil_found = False
                     for foil_model in foil_hnd:
                         if not foil_model.optimality_proven:
-                            log.info("Skipping non-optimal foil model %s", foil_model.number)
+                            log.info(
+                                "Skipping non-optimal foil model %s", foil_model.number
+                            )
                             continue
                         foil_found = True
                         foil_model_pg = symbols_to_prg(
@@ -324,7 +337,10 @@ class AsplainApp(Application):
                             pg=foil_model_pg,
                             query_prg=query_prg,
                         )
-                        save_out(f"contrastive_{model.number}_{foil_model.number}.lp", contrastive_pg)
+                        save_out(
+                            f"contrastive_{model.number}_{foil_model.number}.lp",
+                            contrastive_pg,
+                        )
                         viz_graph(
                             pg=contrastive_pg,
                             graphs=[
@@ -337,40 +353,43 @@ class AsplainApp(Application):
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
                             open=self._open.flag,
                         )
-                        if self._llm_tag is not None:
-                            # Prompt the LLM
-                            if self._llm_tag.value.openai is not None:
-                                log.info("Using OpenAI API")
-                                llm = OpenAIModel(model_tag=self._llm_tag)
-                            elif self._llm_tag.value.google is not None:
-                                log.info("Using Google API")
-                                llm = GoogleModel(model_tag=self._llm_tag)
-                            else:
-                                raise ValueError(
-                                    f"LLM tag {self._llm_tag} is not supported."
-                                )
-                            template = ExplainTemplate(
-                                contrastive_program_graph=contrastive_pg,
-                                query_program=query_prg,
-                            )
-                            print("LLM Explanation:")
-                            response = asyncio.run(llm.prompt_template(template))
-                            try:
-                                response = (
-                                    response.strip()
-                                    .removeprefix("```json")
-                                    .removesuffix("```")
-                                    .strip()
-                                )
-                                response_json = json.loads(response, strict=False)
-                                print(
-                                    colored(
-                                        "grey",
-                                        str(response_json.get("explanation").strip()),
+                        if INSTALLED_LLMS:
+                            if self._llm_tag is not None:
+                                # Prompt the LLM
+                                if self._llm_tag.value.openai is not None:
+                                    log.info("Using OpenAI API")
+                                    llm = OpenAIModel(model_tag=self._llm_tag)
+                                elif self._llm_tag.value.google is not None:
+                                    log.info("Using Google API")
+                                    llm = GoogleModel(model_tag=self._llm_tag)
+                                else:
+                                    raise ValueError(
+                                        f"LLM tag {self._llm_tag} is not supported."
                                     )
+                                template = ExplainTemplate(
+                                    contrastive_program_graph=contrastive_pg,
+                                    query_program=query_prg,
                                 )
-                            except json.JSONDecodeError:
-                                print(colored("grey", response))
+                                print("LLM Explanation:")
+                                response = asyncio.run(llm.prompt_template(template))
+                                try:
+                                    response = (
+                                        response.strip()
+                                        .removeprefix("```json")
+                                        .removesuffix("```")
+                                        .strip()
+                                    )
+                                    response_json = json.loads(response, strict=False)
+                                    print(
+                                        colored(
+                                            "grey",
+                                            str(
+                                                response_json.get("explanation").strip()
+                                            ),
+                                        )
+                                    )
+                                except json.JSONDecodeError:
+                                    print(colored("grey", response))
                     if not foil_found:
                         log.warning("No foil found.")
 
@@ -386,7 +405,9 @@ class AsplainApp(Application):
                     foil_found = False
                     for foil_model in foil_hnd:
                         if not foil_model.optimality_proven:
-                            log.info("Skipping non-optimal foil model %s", foil_model.number)
+                            log.info(
+                                "Skipping non-optimal foil model %s", foil_model.number
+                            )
                             continue
                         foil_found = True
                         foil_model_pg = symbols_to_prg(
