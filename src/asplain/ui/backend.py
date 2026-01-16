@@ -6,7 +6,12 @@ from clinguin.utils.annotations import extends, overwrites
 from clinguin.utils.transformer import UsesSignatureTransformer
 from clorm import Raw
 
-from asplain import construct_contrastive, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
+from asplain import (
+    construct_contrastive,
+    construct_program_graph,
+    set_foil_ctl,
+    set_model_subgraphs_ctl,
+)
 from asplain.utils.clingo import get_query_prg, symbols_to_prg
 from asplain.utils.viz import viz_graph
 
@@ -31,7 +36,13 @@ class ASPlainBackend(ClingoBackend):
         self._intermediate_format = "svg"
         self._attribute_image_key = "image_type"
         self._attribute_image_value = "clingraph"
-        self._shown_graphs = ["reference", "model(reference)", "foil", "model(foil)", "contrastive"]
+        self._shown_graphs = [
+            "reference",
+            "model(reference)",
+            "foil",
+            "model(foil)",
+            "contrastive",
+        ]
 
     def _init_command_line(self):
         super()._init_command_line()
@@ -143,7 +154,9 @@ class ASPlainBackend(ClingoBackend):
         if not self._contrastive_pg:
             self._logger.info("No contrastive program graph to visualize")
             return None
-        graphs = viz_graph(self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name="pg")
+        graphs = viz_graph(
+            self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name="pg"
+        )
         return graphs
 
     def _replace_uifb_with_b64_images_clingraph(self, graphs):
@@ -155,7 +168,9 @@ class ASPlainBackend(ClingoBackend):
         """
         attributes = list(self._ui_state.get_attributes(key=self._attribute_image_key))
         for attribute in attributes:
-            attribute_value = StandardTextProcessing.parse_string_with_quotes(str(attribute.value))
+            attribute_value = StandardTextProcessing.parse_string_with_quotes(
+                str(attribute.value)
+            )
             is_cg_image = attribute_value.startswith(self._attribute_image_value)
 
             if not is_cg_image:
@@ -217,10 +232,10 @@ class ASPlainBackend(ClingoBackend):
         self._reference_model_pg = None
 
         if not self._is_unsat():
-
-            model_subgraphs_ctl = set_model_subgraphs_ctl(pg=self._reference_pg, model_symbols=self._model)
+            model_subgraphs_ctl = set_model_subgraphs_ctl(
+                pg=self._reference_pg, model_symbols=self._model
+            )
             with model_subgraphs_ctl.solve(yield_=True) as hnd:
-
                 for model in hnd:
                     # extract the model to print
                     self._reference_model_pg = symbols_to_prg(model.symbols(shown=True))
@@ -231,7 +246,6 @@ class ASPlainBackend(ClingoBackend):
                 self._reference_model_pg = self._reference_pg
 
     def _start_explanation(self):
-
         self._update_reference_pg()
         pg = self._reference_pg or ""
         if self._reference_model_pg is not None:
@@ -299,10 +313,15 @@ class ASPlainBackend(ClingoBackend):
         try:
             foil_model = next(self._explanation_iterator)
             while not foil_model.optimality_proven:
-                self._logger.info("Skipping intermediate none optimal model with cost %s...", foil_model.cost)
+                self._logger.info(
+                    "Skipping intermediate none optimal model with cost %s...",
+                    foil_model.cost,
+                )
                 foil_model = next(self._explanation_iterator)
             print(foil_model.cost)
-            foil_pg_and_model = foil_model.symbols(shown=True)  # shown should include the foil model and pg
+            foil_pg_and_model = foil_model.symbols(
+                shown=True
+            )  # shown should include the foil model and pg
             self._contrastive_pg = construct_contrastive(
                 pg=symbols_to_prg(foil_pg_and_model),
                 query_prg=get_query_prg(self._query_include, self._query_exclude),
@@ -318,7 +337,14 @@ class ASPlainBackend(ClingoBackend):
     def download_explanation_graph(self, file_name: str):
         """Download the explanation graph as an image."""
         name = file_name.strip('"')
-        viz_graph(self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name=name, open=False, format="png")
+        viz_graph(
+            self._contrastive_pg,
+            graphs=self._get_shown_graphs(),
+            title="",
+            name=name,
+            open=False,
+            format="png",
+        )
         self._messages.append(
             (
                 "Download successful",
