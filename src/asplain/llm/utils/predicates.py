@@ -48,7 +48,7 @@ class Rule(Predicate, name="rule"):
 
 
 class Atom(Predicate, name="atom"):
-    atom: ConstantStr
+    atom: Raw
 
 
 class Tag(Predicate, name="tag"):
@@ -71,3 +71,6 @@ class Edge(Predicate, name="edge"):
     origin: ConstantStr | Model
     positive: EdgeSign
     edge: Tuple[Rule | Atom, Rule | Atom]
+
+
+# edge(contrastive, positive, (rule(disjunction(0), normal(0)), atom(drive(clare))))
