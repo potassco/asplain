@@ -1,7 +1,6 @@
 """Module for Asplain application logic."""
 
 import asyncio
-import json
 import logging
 import os
 import sys
@@ -23,13 +22,14 @@ from asplain.utils.clingo import (
     print_foil,
     symbols_to_prg,
 )
-from asplain.utils.logging import COLORS, colored, configure_logging, save_out
+from asplain.utils.logging import colored, configure_logging, save_out
 from asplain.utils.viz import viz_graph
 
 try:
     from asplain.llm.models import ModelTag, OpenAIModel
     from asplain.llm.models.google import GoogleModel
     from asplain.llm.templates import ExplainTemplate
+    from asplain.llm.utils import parse_llm_json_response
 
     INSTALLED_LLMS = True
 except ImportError:
@@ -371,24 +371,8 @@ class AsplainApp(Application):
                                 )
                                 print("LLM Explanation:")
                                 response = asyncio.run(llm.prompt_template(template))
-                                try:
-                                    response = (
-                                        response.strip()
-                                        .removeprefix("```json")
-                                        .removesuffix("```")
-                                        .strip()
-                                    )
-                                    response_json = json.loads(response, strict=False)
-                                    print(
-                                        colored(
-                                            "grey",
-                                            str(
-                                                response_json.get("explanation").strip()
-                                            ),
-                                        )
-                                    )
-                                except json.JSONDecodeError:
-                                    print(colored("grey", response))
+                                response_message = parse_llm_json_response(response)
+                                print(colored("grey", response_message))
                     if not foil_found:
                         log.warning("No foil found.")
 
