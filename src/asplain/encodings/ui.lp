@@ -198,8 +198,31 @@ attr(main(explanation_conf), order, 1).
                 when(footer_item(next_explanation), click, call, next_explanation).
 
 
+elem(main(explanation_llm), container, right).
+attr(main(explanation_llm), order, 2).
+attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-items-center")).
+
+    elem(section(explanation_llm), container, main(explanation_llm)).
+    attr(section(explanation_llm), order, 1).
+
+        elem(title(explanation_llm), label, section(explanation_llm)).
+        attr(title(explanation_llm), label, "Natural Language Explanation").
+
+        elem(content(explanation_llm), container, section(explanation_llm)).
+
+        elem(button(get_llm_explanation), button, content(explanation_llm)).
+        attr(button(get_llm_explanation), order, 1).
+        attr(button(get_llm_explanation), label, "Compute using LLM").
+        attr(button(get_llm_explanation), icon, "fa-forward-step").
+        attr(button(get_llm_explanation), class, "btn-primary").
+        when(button(get_llm_explanation), click, call, get_llm_explanation).
+
+        elem(text(explanation_llm), label, content(explanation_llm)).
+        attr(text(explanation_llm), order, 2).
+        attr(text(explanation_llm), label, "Hello this is a test!!").
+
 elem(main(explanation_info), container, right).
-attr(main(explanation_info), order, 2).
+attr(main(explanation_info), order, 3).
 attr(main(explanation_info), class, ("d-flex";"justify-content-center";"align-items-center")).
 
 
@@ -227,7 +250,7 @@ attr(main(explanation_info), class, ("d-flex";"justify-content-center";"align-it
 
 
 elem(main(explanation_graph), container, right).
-attr(main(explanation_graph), order, 3).
+attr(main(explanation_graph), order, 4).
 attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-items-center")).
 
     elem(graph_container, container, main(explanation_graph)).

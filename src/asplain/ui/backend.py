@@ -1,10 +1,13 @@
+import json
+
 from clingo import Control, Function, String
+from clingo.ast import Literal
 from clinguin.server.application.backends import ClingoBackend
 from clinguin.server.data.attribute import AttributeDao
 from clinguin.utils import StandardTextProcessing, image_to_b64
 from clinguin.utils.annotations import extends, overwrites
 from clinguin.utils.transformer import UsesSignatureTransformer
-from clorm import Raw
+from clorm import ConstantStr, Raw
 
 from asplain import (
     construct_contrastive,
@@ -12,6 +15,8 @@ from asplain import (
     set_foil_ctl,
     set_model_subgraphs_ctl,
 )
+from asplain.llm.models import ModelTag, OpenAIModel
+from asplain.llm.templates import ExplainTemplate
 from asplain.utils.clingo import get_query_prg, symbols_to_prg
 from asplain.utils.viz import viz_graph
 
@@ -123,6 +128,37 @@ class ASPlainBackend(ClingoBackend):
         if self._contrastive_pg is not None:
             return prg + "\n" + self._contrastive_pg
         return prg
+
+    def get_llm_explanation(self) -> str:
+        program = str(self._ds_explanation)
+        print("Creating Model")
+        llm = OpenAIModel(model_tag=ModelTag.GPT_4O_MINI)
+        print("Filling Template")
+        print("PRG", program)
+        template = ExplainTemplate(contrastive_program_graph=program)
+
+        print("Prompting LLM")
+
+        response = llm.prompt_template_sync(template)
+
+        print("Response", response)
+
+        explanation = str(json.loads(response.strip(), strict=False).get("explanation"))
+        new_attribute = AttributeDao(
+            id=Raw(Function("text(explanation_llm)")),
+            key=Raw(Function("label")),
+            value=String(str("HELLO WORLD!")),
+        )
+        if self._ui_state is None:
+            print("NO UI STATE!!!")
+        else:
+            print("ADDING ATTRIBUTE")
+            self._ui_state.add_attribute_direct(new_attribute)
+            print([str(a) for a in self._ui_state.get_attributes()])
+
+        self._update_ui_state()
+
+        return response
 
     def _init_ds_constructors(self):
         super()._init_ds_constructors()
