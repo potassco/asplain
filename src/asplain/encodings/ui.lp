@@ -1,16 +1,15 @@
 % # Window
 % -------
 elem(w, window, root).
-attr(w, class, ("d-flex"; "flex-row")).
-
+attr(w, child-layout, "relstatic").
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % #General attributes
-attr(main(S), class, ("d-flex"; "flex-row";"bg-opacity-25";"w-100";"p-2";"rounded";"m-2")):-elem(main(S),container,_).
+attr(main(S), class, ("d-flex"; "flex-col";"bg-opacity-25";"w-100";"p-2";"rounded";"m-2")):-elem(main(S),container,_).
 attr(main(S), class, ("bg-info")):-elem(main(S),container,_),not _clinguin_unsat.
 attr(main(S), class, ("bg-danger")):-elem(main(S),container,_), _clinguin_unsat.
-attr(section(S), class, ("d-flex"; "flex-column"; "align-items-center";"rounded";"p-2";"m-2";"bg-light";"shadow";"w-100")):-elem(section(S),container,_).
+attr(section(S), class, ("d-flex"; "flex-column"; "align-items-center";"rounded";"p-2";"m-2";"bg-light";"shadow";)):-elem(section(S),container,_).
 attr(title(T), class, ("h5";"pb-1")):-elem(title(T),label,_).
 attr(title(T), order, 1):-elem(title(T),label,_).
 attr(content(C), class, ("d-flex"; "flex-column";"w-100";"p-1";"border-top";"border-bottom")):-elem(content(C),container,_).
@@ -46,10 +45,20 @@ attr(elem_val(C), class, ("pe-3";"pt-1";"pb-1")):-elem(elem_val(C),label,_).
 %     attr((main_explaination_tab;left_tab), (active_class;disabled_class), ("h3")).
 %     attr((main_explaination_tab;left_tab), active_class, ("bg-info";"bg-opacity-25";"h3")).
 
-elem(right, container, w).
-attr(right, class, ("d-flex"; "flex-column";"me-2";"mt-2")).
+elem(cols, container, w).
+attr(cols, child_layout, grid).
+attr(cols, class, ("justify-content-center";"gap-3")).
+
+elem(left, container, cols).
+attr(left, order, 1).
+attr(left, class, ("mw-25")).
+attr(left, grid_column, 1).
+
+elem(right, container, cols).
 attr(right, order, 2).
-attr(left, width, "90%").
+attr(right, class, ("mw-75";)).
+attr(right, grid_column, 2).
+
 
 % elem(s, container, right).
 % attr(s, order, 2).
@@ -60,8 +69,8 @@ attr(left, width, "90%").
 %         attr(main_explaination, class, ("mt-4")).
 
 
-elem(main(explanation_conf), container, right).
-attr(main(explanation_conf), order, 1).
+elem(main(explanation_conf), container, left).
+attr(main(explanation_conf), order, 2).
 
     elem(section(queries), container, main(explanation_conf)).
     attr(section(queries), order, 1).
@@ -200,11 +209,11 @@ attr(main(explanation_conf), order, 1).
 
 elem(main(explanation_llm), container, right).
 attr(main(explanation_llm), order, 2).
-attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-items-center")).
+attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-items-center";"px-3")).
 
     elem(section(explanation_llm), container, main(explanation_llm)).
     attr(section(explanation_llm), order, 1).
-    attr(section(explanation_llm), class, ("p-4";"gap-4")).
+    attr(section(explanation_llm), class, ("p-4";"gap-4";"w-100")).
 
         elem(title(explanation_llm), label, section(explanation_llm)).
         attr(title(explanation_llm), label, "Natural Language Explanation").
@@ -224,43 +233,44 @@ attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-ite
         attr(text(explanation_llm), class, ("text-body-secondary";)).
         attr(text(explanation_llm), label, TXT) :- llm_explanation(TXT).
 
-elem(main(explanation_info), container, right).
-attr(main(explanation_info), order, 3).
-attr(main(explanation_info), class, ("d-flex";"justify-content-center";"align-items-center")).
-
-
-    elem(info_container, container, main(explanation_info)).
-    attr(info_container, order, 2).
-    attr(info_container, height, 30).
-    attr(info_container, class, ("mb-3")).
-
-        % elem(info_container(X), container, main_explaination):-vnode(X).
-        % attr(info_container(X), class, "border"):-vnode(X).
-
-            elem(rule(X), label, info_container):-vnode(X).
-            attr(rule(X), order, 1):-vnode(X).
-            attr(rule(X), class, ("font-monospace";"fw-light";"text-center")):-vnode(X).
-            attr(rule(X), label, L):-vnode(X), tag(_,X,rule_fo(L)).
-            attr(rule(X), label, ""):-vnode(X), not tag(_,X,rule_fo(_)).
-            attr(rule(X), display, none):-vnode(X).
-
-            elem(label(X), label, info_container):-vnode(X).
-            attr(label(X), order, 2):-vnode(X).
-            attr(label(X), class, ("fst-italic";"text-center")):-vnode(X).
-            attr(label(X), label,  @format(L,P)):-vnode(X), tag(_,X,label(L,P)).
-            attr(label(X), label, ""):-vnode(X), not tag(_,X,label(_,_)).
-            attr(label(X), display, none):-vnode(X).
-
-
 elem(main(explanation_graph), container, right).
 attr(main(explanation_graph), order, 4).
-attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-items-center")).
+attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-items-center";"px-3")).
+
+    elem(section(explanation_info), container, main(explanation_graph)).
+    attr(section(explanation_info), order, 3).
+    attr(section(explanation_info), class, ("d-flex";"justify-content-center";"align-items-center";"w-100")).
+
+
+        elem(info_container, container, section(explanation_info)).
+        attr(info_container, order, 2).
+        attr(info_container, height, 30).
+        attr(info_container, class, ("mb-3")).
+
+            % elem(info_container(X), container, main_explaination):-vnode(X).
+            % attr(info_container(X), class, "border"):-vnode(X).
+
+                elem(rule(X), label, info_container):-vnode(X).
+                attr(rule(X), order, 1):-vnode(X).
+                attr(rule(X), class, ("font-monospace";"fw-light";"text-center")):-vnode(X).
+                attr(rule(X), label, L):-vnode(X), tag(_,X,rule_fo(L)).
+                attr(rule(X), label, ""):-vnode(X), not tag(_,X,rule_fo(_)).
+                attr(rule(X), display, none):-vnode(X).
+
+                elem(label(X), label, info_container):-vnode(X).
+                attr(label(X), order, 2):-vnode(X).
+                attr(label(X), class, ("fst-italic";"text-center")):-vnode(X).
+                attr(label(X), label,  @format(L,P)):-vnode(X), tag(_,X,label(L,P)).
+                attr(label(X), label, ""):-vnode(X), not tag(_,X,label(_,_)).
+                attr(label(X), display, none):-vnode(X).
+
 
     elem(graph_container, container, main(explanation_graph)).
     attr(graph_container, order, 3).
-    attr(graph_container, class, ("d-flex";"justify-content-center";"align-items-center";"p-2")).
-    attr(graph_container, "overflow-y", auto).
-    attr(graph_container, "overflow-x", auto).
+    attr(graph_container, class, ("d-flex";"justify-content-center";"align-items-center";"p-2";)).
+    attr(graph_container, width, "100%").
+    attr(graph_container, "overflow-y", scroll).
+    attr(graph_container, "overflow-x", scroll).
 
         %%%%%%%%%%%%%%%%%%%%%%%%
         % Clingraph image
@@ -274,8 +284,8 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
         attr(c, order, 2).
         % attr(c, "transform-origin", "top left").
         % attr(c, display, "inline-block").
-        attr(c, height, 1000).
         attr(c, width, 1000).
+        attr(c, height, 750).
         % attr(c, transform, "scale(0.1)").
         % attr(c, "transform-origin", "0 0").
 
@@ -284,12 +294,6 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
             attr(n(X), clingraph_id, X) :- vnode(X).
             when(n(X), mouseenter, update, ((rule(X);label(X)),display,block)):- vnode(X).
             when(n(X), mouseleave, update, ((rule(X);label(X)),display,none)):- vnode(X).
-
-
-
-elem(left, container, w).
-attr(left, order, 1).
-attr(left, width, "20%").
 
 % elem(main(state), container, left).
 % attr(main(state), order, 1).
@@ -477,7 +481,7 @@ attr(left, width, "20%").
 
 
 elem(main(model), container, left).
-attr(main(model), order, 3).
+attr(main(model), order, 1).
 
     %  ## Model
     %  ---------------
