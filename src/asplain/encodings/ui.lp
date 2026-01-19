@@ -204,13 +204,15 @@ attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-ite
 
     elem(section(explanation_llm), container, main(explanation_llm)).
     attr(section(explanation_llm), order, 1).
+    attr(section(explanation_llm), class, ("p-4";"gap-4")).
 
         elem(title(explanation_llm), label, section(explanation_llm)).
         attr(title(explanation_llm), label, "Natural Language Explanation").
 
         elem(content(explanation_llm), container, section(explanation_llm)).
+        attr(content(explanation_llm), class, ("p-4";"border";"align-items-center";"bg-body";"rounded")).
 
-        elem(button(get_llm_explanation), button, content(explanation_llm)).
+        elem(button(get_llm_explanation), button, content(explanation_llm)) :- not llm_explanation(_).
         attr(button(get_llm_explanation), order, 1).
         attr(button(get_llm_explanation), label, "Compute using LLM").
         attr(button(get_llm_explanation), icon, "fa-forward-step").
@@ -219,7 +221,8 @@ attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-ite
 
         elem(text(explanation_llm), label, content(explanation_llm)).
         attr(text(explanation_llm), order, 2).
-        attr(text(explanation_llm), label, "Hello this is a test!!").
+        attr(text(explanation_llm), class, ("text-body-secondary";)).
+        attr(text(explanation_llm), label, TXT) :- llm_explanation(TXT).
 
 elem(main(explanation_info), container, right).
 attr(main(explanation_info), order, 3).

@@ -17,6 +17,7 @@ from asplain import (
 )
 from asplain.llm.models import ModelTag, OpenAIModel
 from asplain.llm.templates import ExplainTemplate
+from asplain.llm.utils import parse_llm_json_response
 from asplain.utils.clingo import get_query_prg, symbols_to_prg
 from asplain.utils.viz import viz_graph
 
@@ -35,6 +36,8 @@ class ASPlainBackend(ClingoBackend):
         self._reference_pg = None
         self._contrastive_pg = None
         self._foil_ctl = None
+
+        self._llm_explanation = None
 
         self._engine = "dot"
 
@@ -89,6 +92,11 @@ class ASPlainBackend(ClingoBackend):
         self._reference_pg = None
         self._contrastive_pg = None
 
+        self._outdate_llm_explanation()
+
+    def _outdate_llm_explanation(self):
+        self._llm_explanation = None
+
     def _outdate(self):
         """
         Outdates all the dynamic values when a change has been made.
@@ -129,6 +137,15 @@ class ASPlainBackend(ClingoBackend):
             return prg + "\n" + self._contrastive_pg
         return prg
 
+    @property
+    def _ds_llm_explanation(self):
+        explanation_prg = (
+            f'llm_explanation("{self._llm_explanation}").'
+            if self._llm_explanation is not None
+            else ""
+        )
+        return explanation_prg
+
     def get_llm_explanation(self) -> str:
         program = str(self._ds_explanation)
         print("Creating Model")
@@ -140,29 +157,14 @@ class ASPlainBackend(ClingoBackend):
         print("Prompting LLM")
 
         response = llm.prompt_template_sync(template)
-
+        explanation = parse_llm_json_response(response)
         print("Response", response)
-
-        explanation = str(json.loads(response.strip(), strict=False).get("explanation"))
-        new_attribute = AttributeDao(
-            id=Raw(Function("text(explanation_llm)")),
-            key=Raw(Function("label")),
-            value=String(str("HELLO WORLD!")),
-        )
-        if self._ui_state is None:
-            print("NO UI STATE!!!")
-        else:
-            print("ADDING ATTRIBUTE")
-            self._ui_state.add_attribute_direct(new_attribute)
-            print([str(a) for a in self._ui_state.get_attributes()])
-
-        self._update_ui_state()
-
-        return response
+        self._llm_explanation = explanation
 
     def _init_ds_constructors(self):
         super()._init_ds_constructors()
         self._add_domain_state_constructor("_ds_explanation")
+        self._add_domain_state_constructor("_ds_llm_explanation")
 
     # ---------------- Graph handling
 
@@ -343,6 +345,7 @@ class ASPlainBackend(ClingoBackend):
 
     def next_explanation(self):
         """Generate explanations interactively."""
+        self._outdate_llm_explanation()
         # Implementation of explanation generation
         if self._explanation_iterator is None:
             self._start_explanation()
