@@ -367,8 +367,7 @@ class AsplainApp(Application):
                                         f"LLM tag {self._llm_tag} is not supported."
                                     )
                                 template = ExplainTemplate(
-                                    contrastive_program_graph=contrastive_pg,
-                                    query_program=query_prg,
+                                    contrastive_program_graph=contrastive_pg
                                 )
                                 print("LLM Explanation:")
                                 response = asyncio.run(llm.prompt_template(template))
