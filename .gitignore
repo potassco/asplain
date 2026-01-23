@@ -3,6 +3,8 @@
 *~
 \#*\#
 .\#*
+.idea
+.zed
 
 # Mac/OSX
 .DS_Store
@@ -21,6 +23,12 @@ pip-delete-this-directory.txt
 
 # pyenv
 .python-version
+
+# venv
+.venv
+
+# dotenv
+.env
 
 # mypy
 .mypy_cache/

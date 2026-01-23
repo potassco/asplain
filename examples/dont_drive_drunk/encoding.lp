@@ -17,12 +17,14 @@ sentence(P, prison) :- punish(P).
 sentence(P, innocent) :- person(P), not punish(P).
 
 
-
 % ----- Instance
 person(gabriel).
 person(clare).
+% @removable
 drive(gabriel).
+% @removable
 alcohol(gabriel).
+% @removable
 drive(clare).
 
 

@@ -10,13 +10,14 @@ requires-python = ">=3.10"
 license = { file = "LICENSE" }
 dynamic = ["version"]
 readme = "README.md"
-dependencies = ["clingo>=5.6.0", "meta-tools-clingo>=0.3.3"]
+dependencies = ["clingo>=5.6.0", "meta-tools-clingo>=0.3.4"]
 
 [project.urls]
 Homepage = "asplain"
 
 [project.optional-dependencies]
 ui = ["clinguin>=2.7.5"]
+llm = ["openai>=2.8.1", "dotenv", "clorm", "google-genai"]
 format = ["black", "isort", "autoflake"]
 lint_pylint = ["pylint"]
 typecheck = ["types-setuptools", "mypy"]
