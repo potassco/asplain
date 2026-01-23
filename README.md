@@ -25,6 +25,33 @@ Run the following for basic usage information:
 asplain -h
 ```
 
+### LLM Intergration
+
+To setup the llm integration, run `asplain` with the `--llm` flag.
+
+```bash
+asplain --llm=<model-tag>
+```
+
+For using the OpenAI API, an API-Key has to be provided in the `OPENAI_API_KEY` environment variable.
+This can be done using a `.env`file or directly in the command line.
+
+#### Using the `.env` file
+
+Create a `.env` file in the root directory of the project and add the following line
+
+```.env
+OPENAI_API_KEY=<your-api-key>
+```
+
+#### Using the command line
+
+```bash
+OPENAI_API_KEY=<your-api-key> asplain --llm=<model-tag>
+```
+
+### Documentation
+
 To generate and open the documentation, run
 
 ```bash

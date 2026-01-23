@@ -9,16 +9,17 @@
 % @label("Bond is working") :: w
 
 
-% @label("Bond is poisoned if he drinks the drug and does not receive the antidote")
-p :- d, not a.
 % @label("Bond might be holiday or working")
 {h;w}.
-% @label("Bond cannot be both on holiday and working")
-:- h, w.
 % @label("Bond has to be either on holiday or working")
 :- not h, not w.
+% @label("Bond cannot be both on holiday and working")
+:- h, w.
+
 
 % @label("Bond receives the antidote if he is working")
 a :- w.
+% @label("Bond is poisoned if he drinks the drug and does not receive the antidote")
+p :- d, not a.
 
 d.

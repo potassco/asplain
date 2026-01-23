@@ -1,17 +1,40 @@
 """Module for Asplain application logic."""
 
+import asyncio
 import logging
 import os
 import sys
 from textwrap import dedent
 from typing import Any, Callable, Optional, Sequence
 
-from clingo import Application, ApplicationOptions, Control, Model, parse_term
+from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
 
-from asplain import construct_contrastive, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
-from asplain.utils.clingo import divide_space_string, get_query_prg, model_symbols, print_foil, symbols_to_prg
+from asplain import (
+    construct_contrastive,
+    construct_program_graph,
+    set_foil_ctl,
+    set_model_subgraphs_ctl,
+)
+from asplain.utils.clingo import (
+    divide_space_string,
+    get_query_prg,
+    model_symbols,
+    print_foil,
+    symbols_to_prg,
+)
 from asplain.utils.logging import colored, configure_logging, save_out
 from asplain.utils.viz import viz_graph
+
+try:
+    from asplain.llm.models import ModelTag, OpenAIModel
+    from asplain.llm.models.google import GoogleModel
+    from asplain.llm.templates import ExplainTemplate
+    from asplain.llm.utils import parse_llm_json_response
+
+    INSTALLED_LLMS = True
+except ImportError:
+    INSTALLED_LLMS = False
+
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +53,13 @@ class AsplainApp(Application):
         self._number_explanations = 1
 
         self._dynamic_tags = []
+        self._cost_encoding = []
         self._model_symbols = None
+
+        self._open: Flag = Flag()
+
+        if INSTALLED_LLMS:
+            self._llm_tag: Optional[ModelTag] = None
 
     def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
         """
@@ -49,7 +78,9 @@ class AsplainApp(Application):
                     log.error("Setting value to list")
                     current_value = [current_value]
                 current_value.append(value)
-                self.__setattr__(attr_name, current_value)  # Use direct assignment instead of __setattr__
+                self.__setattr__(
+                    attr_name, current_value
+                )  # Use direct assignment instead of __setattr__
             return True
 
         return setter
@@ -104,6 +135,14 @@ class AsplainApp(Application):
                 return True
 
         log.error("No answer set found for the given model file: %s", value)
+        return False
+
+    def parse_llm_tag(self, value: str) -> bool:
+        if INSTALLED_LLMS:
+            if value in [str(m) for m in ModelTag.__members__]:
+                tag = ModelTag[value]
+                self._llm_tag = tag
+                return True
         return False
 
     def register_options(self, options: ApplicationOptions) -> None:
@@ -170,6 +209,20 @@ class AsplainApp(Application):
             argument="<nexplanations>",
         )
 
+        if INSTALLED_LLMS:
+            options.add(
+                group,
+                "llm",
+                dedent(
+                    f"""\
+                    Generate a natural language explanation using an LLM.
+                                <llm-tag> ={{{"|".join([str(m) for m in ModelTag.__members__])}}}
+                    """
+                ),
+                self.parse_llm_tag,
+                argument="<llm-tag>",
+            )
+
         options.add(
             group,
             "dynamic-tags",
@@ -180,6 +233,28 @@ class AsplainApp(Application):
             self.parse_file("_dynamic_tags", multi=True),
             argument="<dynamic-tags>",
             multi=True,
+        )
+
+        options.add(
+            group,
+            "cost-encoding",
+            dedent(
+                """\
+                Encoding defining the cost function to calculate the best foils via optimization."""
+            ),
+            self.parse_file("_cost_encoding", multi=True),
+            argument="<cost-encoding>",
+            multi=True,
+        )
+
+        options.add_flag(
+            group,
+            "open",
+            dedent(
+                """\
+                If active the graphs for all contrastive explanations will be opened automatically."""
+            ),
+            self._open,
         )
 
     def print_model(self, model: Model, _) -> None:
@@ -193,7 +268,12 @@ class AsplainApp(Application):
         # pylint: disable=W0201
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
         query_prg = get_query_prg(self._query_include, self._query_exclude)
-        distance_prg = ""  # TODO Get from command line
+        cost_prg = ""
+        if self._cost_encoding:
+            for cost_file in self._cost_encoding:
+                log.info("Loading cost encoding file: %s", cost_file)
+                with open(cost_file, "r", encoding="utf-8") as cf:
+                    cost_prg += cf.read() + "\n"
 
         reference_pg = construct_program_graph(
             list(files),
@@ -208,7 +288,9 @@ class AsplainApp(Application):
             title="Reference Graph",
             name="reference_pg",
         )
-        model_subgraphs_ctl = set_model_subgraphs_ctl(pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols)
+        model_subgraphs_ctl = set_model_subgraphs_ctl(
+            pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols
+        )
         with model_subgraphs_ctl.solve(yield_=True) as hnd:
             model_found = False
             for model in hnd:
@@ -224,16 +306,26 @@ class AsplainApp(Application):
                 )
                 foil_ctl = set_foil_ctl(
                     pg=reference_model_pg,
-                    number_of_foils=self._number_explanations,
                     query_prg=query_prg,
-                    distance_prg=distance_prg,
+                    cost_prg=cost_prg,
+                    number_of_foils=self._number_explanations,
                 )
                 with foil_ctl.solve(yield_=True) as foil_hnd:
                     foil_found = False
                     for foil_model in foil_hnd:
+                        if not foil_model.optimality_proven:
+                            log.info(
+                                "Skipping non-optimal foil model %s", foil_model.number
+                            )
+                            continue
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
-                        save_out(f"foil_model_pg_{model.number}_{foil_model.number}.lp", foil_model_pg)
+                        foil_model_pg = symbols_to_prg(
+                            list(foil_model.symbols(shown=True))
+                        )
+                        save_out(
+                            f"foil_model_pg_{model.number}_{foil_model.number}.lp",
+                            foil_model_pg,
+                        )
                         viz_graph(
                             pg=foil_model_pg,
                             graphs=["foil", "model(foil)"],
@@ -245,13 +337,42 @@ class AsplainApp(Application):
                             pg=foil_model_pg,
                             query_prg=query_prg,
                         )
-                        save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
+                        save_out(
+                            f"contrastive_{model.number}_{foil_model.number}.lp",
+                            contrastive_pg,
+                        )
                         viz_graph(
                             pg=contrastive_pg,
-                            graphs=["foil", "model(foil)", "reference", "model(reference)"],
+                            graphs=[
+                                "foil",
+                                "model(foil)",
+                                "reference",
+                                "model(reference)",
+                            ],
                             title="Contrastive Graph",
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
+                            open=self._open.flag,
                         )
+                        if INSTALLED_LLMS:
+                            if self._llm_tag is not None:
+                                # Prompt the LLM
+                                if self._llm_tag.value.openai is not None:
+                                    log.info("Using OpenAI API")
+                                    llm = OpenAIModel(model_tag=self._llm_tag)
+                                elif self._llm_tag.value.google is not None:
+                                    log.info("Using Google API")
+                                    llm = GoogleModel(model_tag=self._llm_tag)
+                                else:
+                                    raise ValueError(
+                                        f"LLM tag {self._llm_tag} is not supported."
+                                    )
+                                template = ExplainTemplate(
+                                    contrastive_program_graph=contrastive_pg
+                                )
+                                print("LLM Explanation:")
+                                response = asyncio.run(llm.prompt_template(template))
+                                response_message = parse_llm_json_response(response)
+                                print(colored("grey", response_message))
                     if not foil_found:
                         log.warning("No foil found.")
 
@@ -261,19 +382,29 @@ class AsplainApp(Application):
                     pg=reference_pg,
                     number_of_foils=self._number_explanations,
                     query_prg=query_prg,
-                    distance_prg=distance_prg,
+                    cost_prg=cost_prg,
                 )
                 with foil_ctl.solve(yield_=True) as foil_hnd:
                     foil_found = False
                     for foil_model in foil_hnd:
+                        if not foil_model.optimality_proven:
+                            log.info(
+                                "Skipping non-optimal foil model %s", foil_model.number
+                            )
+                            continue
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
-                        save_out(f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg)
+                        foil_model_pg = symbols_to_prg(
+                            list(foil_model.symbols(shown=True))
+                        )
+                        save_out(
+                            f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg
+                        )
                         viz_graph(
                             pg=foil_model_pg,
                             graphs=["foil", "model(foil)"],
                             title="Foil Graph",
                             name=f"foil_model_pg_UNSAT_{foil_model.number}",
+                            open=self._open.flag,
                         )
                         print_foil(foil_model_pg)
                         contrastive_pg = construct_contrastive(
@@ -283,7 +414,12 @@ class AsplainApp(Application):
                         save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
                         viz_graph(
                             pg=contrastive_pg,
-                            graphs=["foil", "model(foil)", "reference", "model(reference)"],
+                            graphs=[
+                                "foil",
+                                "model(foil)",
+                                "reference",
+                                "model(reference)",
+                            ],
                             title="Contrastive Graph",
                             name=f"contrastive_pg_UNSAT_{foil_model.number}",
                         )

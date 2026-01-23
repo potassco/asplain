@@ -11,7 +11,13 @@ from meta_tools import classic_reify, extend_reification, transform
 from meta_tools.extensions import ShowExtension, TagExtension
 from meta_tools.utils.theory import extend_with_theory_symbols
 
-from asplain.utils.clingo import assert_no_errors, assumptions_as_ic, constants_to_args, load_encoding, symbols_to_prg
+from asplain.utils.clingo import (
+    assert_no_errors,
+    assumptions_as_ic,
+    constants_to_args,
+    load_encoding,
+    symbols_to_prg,
+)
 from asplain.utils.logging import save_out
 
 log = logging.getLogger(__name__)
@@ -30,16 +36,21 @@ def reify_program(
     Returns:
         The reified program as a string.
     """
-    extensions = [TagExtension(include_program=True), ShowExtension()]
+    extensions = [
+        TagExtension(include_program=True, include_loc=True, include_id=True),
+        ShowExtension(),
+    ]
     program_str = transform(file_paths, prg, extensions)
+    log.debug("Transformed program:\n%s", program_str)
     rsymbols = classic_reify(
         constants_to_args(constants) + ["--preserve-facts=symtab"],
         program_str,
-        programs=[("base", []), ("addable", [])],
     )
     extend_with_theory_symbols(rsymbols)
     reified_prg = "\n".join([f"{str(s)}." for s in rsymbols])
-    reified_prg = extend_reification(reified_out_prg=reified_prg, extensions=extensions, clean_output=True)
+    reified_prg = extend_reification(
+        reified_out_prg=reified_prg, extensions=extensions, clean_output=True
+    )
     save_out("reference_reified.lp", reified_prg)
     return reified_prg
 
@@ -68,7 +79,12 @@ def construct_program_graph(
 
     if assumptions is not None:
         prg = prg + assumptions_as_ic(assumptions)
-    log.info("Reifying program %s with constants %s and assumptions %s", file_paths, constants, assumptions)
+    log.info(
+        "Reifying program %s with constants %s and assumptions %s",
+        file_paths,
+        constants,
+        assumptions,
+    )
     reified_prg = reify_program(file_paths, prg, constants)
     ctl = Control()
     ctl.add("base", [], reified_prg)
@@ -89,7 +105,9 @@ def construct_program_graph(
     return symbols_to_prg(list(model_symbols))
 
 
-def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = None) -> Control:
+def set_model_subgraphs_ctl(
+    pg, ctl=None, model_symbols: Optional[List[str]] = None
+) -> Control:
     """
     Sets the control object for computing model subgraphs.
     Args:
@@ -102,7 +120,7 @@ def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = N
     ctl = ctl or Control(["0", "-c graph=reference"])
     ctl.add("base", [], pg)
     if model_symbols is not None:
-        model_prg = "\n".join([f"_model({str(s)})." for s in model_symbols])
+        model_prg = "\n".join([f"model({str(s)})." for s in model_symbols])
         ctl.add("base", [], model_prg)
         load_encoding(ctl, "force-model.lp")
 
@@ -114,21 +132,23 @@ def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = N
 def set_foil_ctl(
     pg: str,
     query_prg: Optional[str] = None,
-    distance_prg: Optional[str] = None,
+    cost_prg: Optional[str] = None,
     number_of_foils: int = 1,
 ) -> Control:
     """Constructs a foil to explain a query.
     Args:
         pg: The reference program graph string which might include facts for the reference model graph.
         query_prg: The query program string.
-        distance_prg: The distance program string.
+        cost_prg: The distance program string.
         number_of_foils: The number of foils to construct.
     """
-    log.info(query_prg)
-    ctl = Control([str(number_of_foils), "-c graph=foil"])
+    log.debug("Query program : %s", query_prg or "<none>")
+    log.debug("Cost program  : %s", cost_prg or "<none>")
+    log.debug("Program graph: %s", pg)
+    ctl = Control([str(number_of_foils), "-c graph=foil", "--opt-mode=optN"])
     ctl.add("base", [], pg)
     ctl.add("base", [], query_prg or "")
-    ctl.add("base", [], distance_prg or "")
+    ctl.add("base", [], cost_prg or "")
     load_encoding(ctl, "construct-foil.lp")
     load_encoding(ctl, "model-subgraph.lp")
     ctl.ground([("base", [])])
@@ -143,7 +163,7 @@ def construct_contrastive(
     Args:
         pg: The set of facts defining the reference program graph,
             foil program graph, foil model graph and optionally the reference model graph.
-        query_prg: The query program string defined via _query/2 facts.
+        query_prg: The query program string defined via query/2 facts.
     Returns:
         The contrastive explanation program graph as a string,
         which includes the facts for the input graphs in pg.

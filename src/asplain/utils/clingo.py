@@ -90,6 +90,7 @@ def load_encoding(ctl: Control, encoding_name: str) -> None:
     Load an encoding into the given clingo Control object.
     """
     with path("asplain.encodings", encoding_name) as base_encoding:
+        log.debug("Loading encoding: %s", base_encoding)
         ctl.load(str(base_encoding))
 
 
@@ -117,6 +118,7 @@ def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "referen
     Placeholder implementation.
     """
     model = []
+    shown = []
     for s in model_pg_symbols:
         is_model_node = (
             s.match("node", 2)
@@ -126,7 +128,12 @@ def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "referen
         )
         if is_model_node:
             model.append(s.arguments[1].arguments[0])
+            continue
+        is_show_tag = s.match("tag", 3) and s.arguments[2].match("shown", 0)
+        if is_show_tag:
+            shown.append(s.arguments[1].arguments[0])
 
+    model = [s for s in model if s in shown]
     return model
 
 
@@ -142,6 +149,6 @@ def print_foil(foil_pg: str) -> None:
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:
-    qi = "".join([f"_query({str(s)},include)." for s in query_include])
-    qe = "".join([f"_query({str(s)},exclude)." for s in query_exclude])
+    qi = "".join([f"query({str(s)},include)." for s in query_include])
+    qe = "".join([f"query({str(s)},exclude)." for s in query_exclude])
     return qi + qe

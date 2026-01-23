@@ -86,7 +86,20 @@ def configure_logging(stream: TextIO, level: int, use_color: bool) -> None:
         make_handler(logging.DEBUG, "BLUE"),
         make_handler(logging.ERROR, "RED"),
     ]
-    logging.basicConfig(handlers=handlers, level=level)
+
+    # 1️⃣ Root logger: quiet, no handlers
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.setLevel(logging.WARNING)
+
+    # 2️⃣ Project logger: owns handlers
+    project_logger = logging.getLogger("asplain")
+    project_logger.handlers.clear()
+    project_logger.setLevel(level)
+    project_logger.propagate = False
+
+    for h in handlers:
+        project_logger.addHandler(h)
 
 
 def get_configured_logging_level() -> int | None:
@@ -111,8 +124,8 @@ def save_out(file_name: str, content: str) -> None:
         file_path: The path to the file.
         content: The content to save.
     """
-    if _current_logging_level is DEBUG or _current_logging_level is INFO:  # 30 is WARNING, 40 is ERROR
-        return
+    # if _current_logging_level is DEBUG or _current_logging_level is INFO:  # 30 is WARNING, 40 is ERROR
+    #     return
     out_dir = os.path.join(os.getcwd(), "out")
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, file_name)

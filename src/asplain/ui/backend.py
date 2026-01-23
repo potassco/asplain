@@ -1,12 +1,23 @@
+import json
+
 from clingo import Control, Function, String
+from clingo.ast import Literal
 from clinguin.server.application.backends import ClingoBackend
 from clinguin.server.data.attribute import AttributeDao
 from clinguin.utils import StandardTextProcessing, image_to_b64
 from clinguin.utils.annotations import extends, overwrites
 from clinguin.utils.transformer import UsesSignatureTransformer
-from clorm import Raw
+from clorm import ConstantStr, Raw
 
-from asplain import construct_contrastive, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
+from asplain import (
+    construct_contrastive,
+    construct_program_graph,
+    set_foil_ctl,
+    set_model_subgraphs_ctl,
+)
+from asplain.llm.models import ModelTag, OpenAIModel
+from asplain.llm.templates import ExplainTemplate
+from asplain.llm.utils import parse_llm_json_response
 from asplain.utils.clingo import get_query_prg, symbols_to_prg
 from asplain.utils.viz import viz_graph
 
@@ -26,16 +37,25 @@ class ASPlainBackend(ClingoBackend):
         self._contrastive_pg = None
         self._foil_ctl = None
 
+        self._llm_explanation = None
+
         self._engine = "dot"
 
         self._intermediate_format = "svg"
         self._attribute_image_key = "image_type"
         self._attribute_image_value = "clingraph"
-        self._shown_graphs = ["reference", "model(reference)", "foil", "model(foil)", "contrastive"]
+        self._shown_graphs = [
+            "reference",
+            "model(reference)",
+            "foil",
+            "model(foil)",
+            "contrastive",
+        ]
 
     def _init_command_line(self):
         super()._init_command_line()
         self._dynamic_tags_files = self._args.dynamic_tags
+        self._cost_encoding = self._args.cost_encoding
 
     @classmethod
     def register_options(cls, parser):
@@ -46,6 +66,13 @@ class ASPlainBackend(ClingoBackend):
             nargs="*",
             default=[],
             help="List of dynamic tags files to load.",
+        )
+
+        parser.add_argument(
+            "--cost-encoding",
+            nargs="*",
+            default=[],
+            help="List of cost encoding files to load.",
         )
 
     def _is_unsat(self) -> bool:
@@ -65,6 +92,11 @@ class ASPlainBackend(ClingoBackend):
         self._reference_pg = None
         self._contrastive_pg = None
 
+        self._outdate_llm_explanation()
+
+    def _outdate_llm_explanation(self):
+        self._llm_explanation = None
+
     def _outdate(self):
         """
         Outdates all the dynamic values when a change has been made.
@@ -83,6 +115,11 @@ class ASPlainBackend(ClingoBackend):
                 shown_graphs.remove("foil")
             if "model(foil)" in shown_graphs:
                 shown_graphs.remove("model(foil)")
+            if "contrastive" in shown_graphs:
+                shown_graphs.remove("contrastive")
+            if len(shown_graphs) == 0:
+                shown_graphs.append("reference")
+                shown_graphs.append("model(reference)")
         return shown_graphs
 
     @property
@@ -100,9 +137,34 @@ class ASPlainBackend(ClingoBackend):
             return prg + "\n" + self._contrastive_pg
         return prg
 
+    @property
+    def _ds_llm_explanation(self):
+        explanation_prg = (
+            f'llm_explanation("{self._llm_explanation}").'
+            if self._llm_explanation is not None
+            else ""
+        )
+        return explanation_prg
+
+    def get_llm_explanation(self) -> str:
+        program = str(self._ds_explanation)
+        print("Creating Model")
+        llm = OpenAIModel(model_tag=ModelTag.GPT_4O_MINI)
+        print("Filling Template")
+        print("PRG", program)
+        template = ExplainTemplate(contrastive_program_graph=program)
+
+        print("Prompting LLM")
+
+        response = llm.prompt_template_sync(template)
+        explanation = parse_llm_json_response(response)
+        print("Response", response)
+        self._llm_explanation = explanation
+
     def _init_ds_constructors(self):
         super()._init_ds_constructors()
         self._add_domain_state_constructor("_ds_explanation")
+        self._add_domain_state_constructor("_ds_llm_explanation")
 
     # ---------------- Graph handling
 
@@ -130,7 +192,9 @@ class ASPlainBackend(ClingoBackend):
         if not self._contrastive_pg:
             self._logger.info("No contrastive program graph to visualize")
             return None
-        graphs = viz_graph(self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name="pg")
+        graphs = viz_graph(
+            self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name="pg"
+        )
         return graphs
 
     def _replace_uifb_with_b64_images_clingraph(self, graphs):
@@ -142,7 +206,9 @@ class ASPlainBackend(ClingoBackend):
         """
         attributes = list(self._ui_state.get_attributes(key=self._attribute_image_key))
         for attribute in attributes:
-            attribute_value = StandardTextProcessing.parse_string_with_quotes(str(attribute.value))
+            attribute_value = StandardTextProcessing.parse_string_with_quotes(
+                str(attribute.value)
+            )
             is_cg_image = attribute_value.startswith(self._attribute_image_value)
 
             if not is_cg_image:
@@ -204,10 +270,10 @@ class ASPlainBackend(ClingoBackend):
         self._reference_model_pg = None
 
         if not self._is_unsat():
-
-            model_subgraphs_ctl = set_model_subgraphs_ctl(pg=self._reference_pg, model_symbols=self._model)
+            model_subgraphs_ctl = set_model_subgraphs_ctl(
+                pg=self._reference_pg, model_symbols=self._model
+            )
             with model_subgraphs_ctl.solve(yield_=True) as hnd:
-
                 for model in hnd:
                     # extract the model to print
                     self._reference_model_pg = symbols_to_prg(model.symbols(shown=True))
@@ -218,15 +284,20 @@ class ASPlainBackend(ClingoBackend):
                 self._reference_model_pg = self._reference_pg
 
     def _start_explanation(self):
-
         self._update_reference_pg()
         pg = self._reference_pg or ""
         if self._reference_model_pg is not None:
             pg += self._reference_model_pg
+        cost_prg = ""
+        if self._cost_encoding:
+            for cost_file in self._cost_encoding:
+                with open(cost_file, "r", encoding="utf-8") as cf:
+                    cost_prg += cf.read() + "\n"
         self._foil_ctl = set_foil_ctl(
             pg=pg,
             query_prg=get_query_prg(self._query_include, self._query_exclude),
             number_of_foils=0,
+            cost_prg=cost_prg,
         )
         self._explanation_handler = self._foil_ctl.solve(yield_=True)
         self._explanation_iterator = iter(self._explanation_handler)
@@ -274,12 +345,22 @@ class ASPlainBackend(ClingoBackend):
 
     def next_explanation(self):
         """Generate explanations interactively."""
+        self._outdate_llm_explanation()
         # Implementation of explanation generation
         if self._explanation_iterator is None:
             self._start_explanation()
         try:
             foil_model = next(self._explanation_iterator)
-            foil_pg_and_model = foil_model.symbols(shown=True)  # shown should include the foil model and pg
+            while not foil_model.optimality_proven:
+                self._logger.info(
+                    "Skipping intermediate none optimal model with cost %s...",
+                    foil_model.cost,
+                )
+                foil_model = next(self._explanation_iterator)
+            print(foil_model.cost)
+            foil_pg_and_model = foil_model.symbols(
+                shown=True
+            )  # shown should include the foil model and pg
             self._contrastive_pg = construct_contrastive(
                 pg=symbols_to_prg(foil_pg_and_model),
                 query_prg=get_query_prg(self._query_include, self._query_exclude),
@@ -295,11 +376,18 @@ class ASPlainBackend(ClingoBackend):
     def download_explanation_graph(self, file_name: str):
         """Download the explanation graph as an image."""
         name = file_name.strip('"')
-        viz_graph(self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name=name, open=False)
+        viz_graph(
+            self._contrastive_pg,
+            graphs=self._get_shown_graphs(),
+            title="",
+            name=name,
+            open=False,
+            format="png",
+        )
         self._messages.append(
             (
                 "Download successful",
-                f"Information saved in file out/{name}.svg",
+                f"Information saved in file out/{name}.png",
                 "success",
             )
         )
