@@ -10,17 +10,25 @@
 
 
 % @label("Bond might be holiday or working")
-{h;w}.
 % @label("Bond has to be either on holiday or working")
-:- not h, not w.
+% :- not h, not w.
 % @label("Bond cannot be both on holiday and working")
-:- h, w.
+% :- h, w.
 
 
+{d}.
 % @label("Bond receives the antidote if he is working")
-a :- w.
+% a :- w.
 % @label("Bond is poisoned if he drinks the drug and does not receive the antidote")
 p :- d, not a.
 
 % @removable
-d.
+a.
+% p:-i.
+
+#program addable.
+p.
+
+
+% No fired constraints
+% No assumptions

@@ -47,7 +47,10 @@ tag(R, label("User assumed {} as {}",(A,F))):-tag(R, assume(F)), edge(G, _, (ato
 % Labels without vars
 tag(R, label(L,())):-tag(R, label(L)).
 
-tag(atom(E), shown):-show(A,L),symbol_literal(A,E).
+show(A,L):-show_atom(A,L).
+show(A,L):-show_term(A,L).
+tag(atom(E), shown):- show(A,L), symbol_literal(A,E). %Show all explicit
+tag(atom(E), shown):-symbol_literal(A,E), not show, not show_atom(_,_). %Show all unless hide or show signature
 
 
 #show tag(G, E, T):tag(G, E, T), edge(G,_,E).

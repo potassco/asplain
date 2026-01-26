@@ -286,7 +286,7 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
         % attr(c, display, "inline-block").
         attr(c, width, 1000).
         attr(c, height, 750).
-        % attr(c, transform, "scale(0.1)").
+        attr(c, transform, "scale(0.8)").
         % attr(c, "transform-origin", "0 0").
 
         attr(c, image_type, clingraph).

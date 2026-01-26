@@ -45,7 +45,7 @@ vattr(graph,default,bgcolor,"#00000000").
 vattr(graph,default,dpi,setdpi).
 
 % Rule labels
-vattr(node,rule(H,B),label,"<<font point-size=\"9\"> </font><br/> r{{value}} <br/> <u><font point-size=\"9\"><i>{{output}}</i></font></u>>"):-
+vattr(node,rule(H,B),label,"<<font point-size=\"8\"> </font><br/> r{{value}} <br/> <u><font point-size=\"9\"><i>{{output}}</i></font></u>>"):-
     vnode(rule(H,B)).
 vattr(node,rule(choice(H),B),(label,output),"choice"):-
     vnode(rule(choice(H),B)).
@@ -61,7 +61,7 @@ vattr(node,rule(H,B),(label,value),(H,B)):-
 %     vnode(rule(H,B)).
 
 % Atom labels
-vattr(node, atom(A), label, "< <font point-size=\"12\">{{atom}}</font> >"):- vnode(atom(A)).
+vattr(node, atom(A), label, "< <font point-size=\"10\">{{atom}}</font> >"):- vnode(atom(A)).
 vattr(node, atom(A), (label,atom), A):- vnode(atom(A)).
 
 % General style
