@@ -1,5 +1,3 @@
-import json
-
 from clingo import Control, Function, String
 from clingo.ast import Literal
 from clinguin.server.application.backends import ClingoBackend
@@ -139,11 +137,7 @@ class ASPlainBackend(ClingoBackend):
 
     @property
     def _ds_llm_explanation(self):
-        explanation_prg = (
-            f'llm_explanation("{self._llm_explanation}").'
-            if self._llm_explanation is not None
-            else ""
-        )
+        explanation_prg = f'llm_explanation("{self._llm_explanation}").' if self._llm_explanation is not None else ""
         return explanation_prg
 
     def get_llm_explanation(self) -> str:
@@ -192,9 +186,7 @@ class ASPlainBackend(ClingoBackend):
         if not self._contrastive_pg:
             self._logger.info("No contrastive program graph to visualize")
             return None
-        graphs = viz_graph(
-            self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name="pg"
-        )
+        graphs = viz_graph(self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name="pg")
         return graphs
 
     def _replace_uifb_with_b64_images_clingraph(self, graphs):
@@ -206,9 +198,7 @@ class ASPlainBackend(ClingoBackend):
         """
         attributes = list(self._ui_state.get_attributes(key=self._attribute_image_key))
         for attribute in attributes:
-            attribute_value = StandardTextProcessing.parse_string_with_quotes(
-                str(attribute.value)
-            )
+            attribute_value = StandardTextProcessing.parse_string_with_quotes(str(attribute.value))
             is_cg_image = attribute_value.startswith(self._attribute_image_value)
 
             if not is_cg_image:
@@ -270,9 +260,9 @@ class ASPlainBackend(ClingoBackend):
         self._reference_model_pg = None
 
         if not self._is_unsat():
-            model_subgraphs_ctl = set_model_subgraphs_ctl(
-                pg=self._reference_pg, model_symbols=self._model
-            )
+            print("----------Computing reference model graph")
+            print(self._model)
+            model_subgraphs_ctl = set_model_subgraphs_ctl(pg=self._reference_pg, model_symbols=self._model)
             with model_subgraphs_ctl.solve(yield_=True) as hnd:
                 for model in hnd:
                     # extract the model to print
@@ -280,7 +270,9 @@ class ASPlainBackend(ClingoBackend):
                     break
 
             if not self._reference_model_pg:
-                self._logger.error("Expected model")
+                self._logger.error(
+                    "Expected model corresponding to reference with model membership for satisfiable instance"
+                )
                 self._reference_model_pg = self._reference_pg
 
     def _start_explanation(self):
@@ -358,9 +350,7 @@ class ASPlainBackend(ClingoBackend):
                 )
                 foil_model = next(self._explanation_iterator)
             print(foil_model.cost)
-            foil_pg_and_model = foil_model.symbols(
-                shown=True
-            )  # shown should include the foil model and pg
+            foil_pg_and_model = foil_model.symbols(shown=True)  # shown should include the foil model and pg
             self._contrastive_pg = construct_contrastive(
                 pg=symbols_to_prg(foil_pg_and_model),
                 query_prg=get_query_prg(self._query_include, self._query_exclude),

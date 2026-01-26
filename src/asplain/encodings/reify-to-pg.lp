@@ -1,75 +1,89 @@
+#script (python)
+from clingo import Number
+ids = {}
+def rule_id(rule):
+    if str(rule) in ids:
+        n= ids[str(rule)]
+    else:
+        id = len(ids) + 1
+        ids[str(rule)] = id
+        n = id
+    return Number(n)
+#end.
 
 
 error("Sum not supported") :- rule(H,sum(B)).
 
-node(reference, rule(H,B)):-rule(H,B), not abducible(add, rule(H,B)).
-node(reference, atom(A)):-symbol_literal(A,L).
+% Create PG_Rs,
 
-edge(reference, positive, (atom(A), rule(H,normal(B)))):-
-    rule(H,normal(B)),
-    literal_tuple(B,E),
-    E>0, symbol_literal(A,E),
-    node(reference,atom(A)),
-    node(reference,rule(H,normal(B))).
+% Gather all rules and atoms
+rule_id(rule(H,B), @rule_id(rule(H,B))) :- rule(H,B).
+node(R):-rule(H,B), rule_id(rule(H,B),R).
+node(A):-symbol_literal(A,L).
+node_type(A,atom):-symbol_literal(A,L).
+node_type(R,rule(disjunction)):-rule_id(rule(disjunction(H),B), R).
+node_type(R,rule(choice)):-rule_id(rule(choice(H),B), R).
 
-edge(reference, negative, (atom(A), rule(H,normal(B)))):-
-    rule(H,normal(B)),
-    literal_tuple(B,E),
-    E<0, symbol_literal(A,-E),
-    node(reference,atom(A)),
-    node(reference,rule(H,normal(B))).
+% Gather all edges
+edge(E):-edge_type(E,_).
 
-edge(reference, positive, (rule(disjunction(H),B),atom(A))):-rule(disjunction(H),B),
+edge_type((A, R),1):-
+    rule_id(rule(H, normal(B)), R),
+    literal_tuple(B,E), E>0, symbol_literal(A,E).
+
+edge_type((A, R),0):-
+    rule_id(rule(H, normal(B)), R),
+    literal_tuple(B,E), E<0, symbol_literal(A,-E).
+
+edge_type((R, A),1):-
+    rule_id(rule(disjunction(H), B), R),
     atom_tuple(H,E), symbol_literal(A,E).
 
-edge(reference, positive, (rule(choice(H),B),atom(A))):-rule(choice(H),B),
+edge_type((R, A),1):-
+    rule_id(rule(choice(H), B), R),
     atom_tuple(H,E), symbol_literal(A,E).
 
+#show node/1.
+#show node_type/2.
+#show edge/1.
+#show edge_type/2.
 
-#show node/2.
-#show edge(G,T,(N1,N2)):edge(G,T,(N1,N2)), node(G,N1), node(G,N2).
+% Program membership for reference
+p_member(N, ref):-node(N), not abducible(add, N).
+% p_member((N1,N2), ref):-edge((N1,N2)), p_member(N1, ref), p_member(N2, ref).
+#show p_member/2.
 
+% Define what is reference
+% node(@rule_id(rule(H,B))):-rule(H,B), not abducible(add, rule(H,B)).
 
 % ------- Tags ------
 % Tags into reference graph
-tag(reference,rule(H,B),T):-tag(rule(H,B),T).
-tag(reference,atom(A),T):-tag(atom(E),T), symbol_literal(A,E).
+asplain_tag(R,T):-tag(rule(H,B),T), rule_id(rule(H,B),R).
+asplain_tag(A,T):-tag(atom(E),T), symbol_literal(A,E).
+
+#show tag(N,T): asplain_tag(N,T).
 
 
-tag(rule(disjunction(H),B), constraint):- rule(disjunction(H),B), not atom_tuple(H,_).
-tag(rule(disjunction(H),normal(B)), fact):- rule(disjunction(H),normal(B)),
-    #count{E:atom_tuple(H,E)}=1,
-    not literal_tuple(B,_).
-
-% Assumptions removable
-tag(R, label("User assumed {} as {}",(A,F))):-tag(R, assume(F)), edge(G, _, (atom(A),R)).
-
-% Labels without vars
-tag(R, label(L,())):-tag(R, label(L)).
-
-show(A,L):-show_atom(A,L).
-show(A,L):-show_term(A,L).
-tag(atom(E), shown):- show(A,L), symbol_literal(A,E). %Show all explicit
-tag(atom(E), shown):-symbol_literal(A,E), not show, not show_atom(_,_). %Show all unless hide or show signature
-
-
-#show tag(G, E, T):tag(G, E, T), edge(G,_,E).
-#show tag(G, N, T):tag(G, N, T), node(G,N).
+% #show tag(G, E, T):tag(G, E, T), edge(G,_,E).
+% #show tag(G, N, T):tag(G, N, T), node(G,N).
 
 % ----- Abducibles -----
 
 % Abducible to remove
-abducible(remove,R):-tag(reference, R, assume(_)).
-abducible(remove,R):-tag(reference, R, removable).
-abducible(remove, rule(disjunction(H),B)):-
-    tag(G, rule(disjunction(H),B),fact), %is a fact
-    removable_if_fact(A), %flagged as removable if A
-    atom_tuple(H,E), %the head atom is A
-    symbol_literal(A,E).
+abducible(remove, R):-asplain_tag(R, removable).
+% For now dynamic tags are not added here
+% abducible(remove, rule(disjunction(H),B)):-
+%     tag(G, rule(disjunction(H),B),fact), %is a fact
+%     removable_if_fact(A), %flagged as removable if A
+%     atom_tuple(H,E), %the head atom is A
+%     symbol_literal(A,E).
 
 % Abducible to add also includes the edges that would be added
-abducible(add, R):- tag(R, (program(addable);disabled)).
-abducible(add, edge(S, (R,A))):- abducible(add, R), edge(G, S, (R,A)).
-abducible(add, edge(S, (A,R))):- abducible(add, R), edge(G, S, (A,R)).
+abducible(add, R):- asplain_tag(R, (program(addable);disabled)).
+% I think edges we don't need to explicitly add, if we add a rule, it comes with all its edges
+% abducible(add, edge((R,A)), T):- abducible(add, R), edge((R,A)), edge_type((R,A),T).
+% abducible(add, edge((A,R)), T):- abducible(add, R), edge((A,R)), edge_type((A,R),T).
 
 #show abducible/2.
+
+#include "utils-tags.lp".

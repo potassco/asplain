@@ -1,22 +1,23 @@
 
-{removed(rule(H,B))}:-abducible(remove, rule(H,B)), node(reference, rule(H,B)).
-{added(rule(H,B))}:-abducible(add, rule(H,B)), not node(reference, rule(H,B)).
+{removed(R)}:-abducible(remove, R), p_member(R, ref).
+{added(R)}:-abducible(add, R), not p_member(R, ref).
 
 % Nodes that are in the reference and not removed, plus added nodes
-node(foil, R):- node(reference, R), not removed(R).
-node(foil, R):- added(R).
+p_member(N, foil):- p_member(N, ref), not removed(N).
+p_member(R, foil):- added(R).
+
 % Edges that are in the reference and not removed, plus edges from added nodes
-edge(foil, S, (X,Y)):-edge(reference, S, (X,Y)), not removed(X), not removed(Y).
-edge(foil, S, (R,A)):-added(R), abducible(add, edge(S,(R,A))).
-edge(foil, S, (A,R)):-added(R), abducible(add, edge(S,(A,R))).
+% edge(foil, S, (X,Y)):-edge((X,Y)), not removed(X), not removed(Y).
+% edge(foil, S, (R,A)):-added(R), abducible(add, edge(S,(R,A))).
+% edge(foil, S, (A,R)):-added(R), abducible(add, edge(S,(A,R))).
 
 % ------------------------------------------------
 % # Check query
 
 #defined query/2. % Comes from the input
 
-fail_query:- query(Atom,exclude),  hold(atom(Atom)).
-fail_query:- query(Atom,include), not hold(atom(Atom)).
+fail_query:- query(A,exclude),  hold(A).
+fail_query:- query(A,include), not hold(A).
 :- fail_query.
 
 % ------------------------------------------------

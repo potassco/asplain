@@ -4,17 +4,15 @@
 % Similar to the standard ASP semantics encoding, but works on the program graph
 % simplified without the sum bodies.
 
-#const graph=reference.
+#const graph=ref.
 
-hold(R) :- node(graph, R), R=rule(H,B),
-    hold(atom(A)) : edge(graph, positive, (atom(A),R));
-    not hold(atom(A)) : edge(graph, negative, (atom(A),R)).
+hold(R) :- node(R), node_type(R, rule(_)), p_member(R, graph),
+    hold(A) : edge((A,R)), edge_type((A,R), 1);
+    not hold(A) : edge((A,R)), edge_type((A,R), 0).
 
-hold(atom(A)) : edge(graph, positive, (rule(disjunction(H),B),atom(A))) :- hold(rule(disjunction(H),B)).
-{ hold(atom(A)) : edge(graph, positive, (rule(choice(H),B),atom(A))) } :- hold(rule(choice(H),B)).
+hold(A) : edge((R,A)) :- hold(R), node_type(R, rule(disjunction)).
+{ hold(A) : edge((R,A)) } :- hold(R), node_type(R, rule(choice)).
 
-
-node(model(graph), X):-hold(X).
-edge(model(graph), positive, (X,Y)):-hold(X), hold(Y), edge(graph, positive, (X,Y)).
+m_member(N, graph) :- hold(N).
 
 #include "show.lp".

@@ -138,25 +138,25 @@ attr(main(explanation_conf), order, 2).
 
 
 
-    elem(section(configuration), container, main(explanation_conf)).
-    attr(section(configuration), order, 3).
+    % elem(section(configuration), container, main(explanation_conf)).
+    % attr(section(configuration), order, 3).
 
-        elem(title(configuration), label, section(configuration)).
-        attr(title(configuration), label, "Configuration").
+    %     elem(title(configuration), label, section(configuration)).
+    %     attr(title(configuration), label, "Configuration").
 
-            elem(content(configuration), container, section(configuration)).
+    %         elem(content(configuration), container, section(configuration)).
 
-            egraph((reference;model(reference);foil;model(foil))).
-            emodel(model(reference);model(foil)).
-            refmodel(model(reference);reference).
-            elem(check(G), checkbox, content(configuration)):-egraph(G).
-            attr(check(model(G)), label, @concat(G, " model")):-egraph(model(G)), emodel(model(G)).
-            attr(check(G), label, @concat(G, " program graph ")):-egraph(G), not emodel(G).
-            attr(check(G), checked, true):-show(G), refmodel(G).
-            attr(check(G), checked, true):-show(G), not refmodel(G), not _no_foil.
-            attr(check(model(foil);foil), disabled, true):-_no_foil.
-            when(check(G), click, call, add_shown_graph(G)):-egraph(G), not show(G).
-            when(check(G), click, call, remove_shown_graph(G)):-egraph(G), show(G).
+    %         egraph((reference;model(reference);foil;model(foil))).
+    %         emodel(model(reference);model(foil)).
+    %         refmodel(model(reference);reference).
+    %         elem(check(G), checkbox, content(configuration)):-egraph(G).
+    %         attr(check(model(G)), label, @concat(G, " model")):-egraph(model(G)), emodel(model(G)).
+    %         attr(check(G), label, @concat(G, " program graph ")):-egraph(G), not emodel(G).
+    %         attr(check(G), checked, true):-show(G), refmodel(G).
+    %         attr(check(G), checked, true):-show(G), not refmodel(G), not _no_foil.
+    %         attr(check(model(foil);foil), disabled, true):-_no_foil.
+    %         when(check(G), click, call, add_shown_graph(G)):-egraph(G), not show(G).
+    %         when(check(G), click, call, remove_shown_graph(G)):-egraph(G), show(G).
 
 
     elem(section(exbrowse), container, main(explanation_conf)).
@@ -253,15 +253,15 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
                 elem(rule(X), label, info_container):-vnode(X).
                 attr(rule(X), order, 1):-vnode(X).
                 attr(rule(X), class, ("font-monospace";"fw-light";"text-center")):-vnode(X).
-                attr(rule(X), label, L):-vnode(X), tag(_,X,rule_fo(L)).
-                attr(rule(X), label, ""):-vnode(X), not tag(_,X,rule_fo(_)).
+                attr(rule(X), label, L):-vnode(X), tag(X,rule_fo(L)).
+                attr(rule(X), label, ""):-vnode(X), not tag(X,rule_fo(_)).
                 attr(rule(X), display, none):-vnode(X).
 
                 elem(label(X), label, info_container):-vnode(X).
                 attr(label(X), order, 2):-vnode(X).
                 attr(label(X), class, ("fst-italic";"text-center")):-vnode(X).
-                attr(label(X), label,  @format(L,P)):-vnode(X), tag(_,X,label(L,P)).
-                attr(label(X), label, ""):-vnode(X), not tag(_,X,label(_,_)).
+                attr(label(X), label,  @format(L,P)):-vnode(X), tag(X,label(L,P)).
+                attr(label(X), label, ""):-vnode(X), not tag(X,label(_,_)).
                 attr(label(X), display, none):-vnode(X).
 
 
@@ -276,9 +276,9 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
         % Clingraph image
         %%%%%%%%%%%%%%%%%%%%%%%%
 
-        vnode(X):-node(G, X), not tag(G, X, disabled), show(G).
-        vedge((X,Y)):-edge(G, _,(X, Y)), show(G).
-        vtag(X,T):-tag(G, X, T), show(G).
+        vnode(X):-node(X).
+        vedge((X,Y)):-edge((X, Y)).
+        vtag(X,T):-tag(X, T).
 
         elem(c, canvas, graph_container).
         attr(c, order, 2).

@@ -48,9 +48,7 @@ def reify_program(
     )
     extend_with_theory_symbols(rsymbols)
     reified_prg = "\n".join([f"{str(s)}." for s in rsymbols])
-    reified_prg = extend_reification(
-        reified_out_prg=reified_prg, extensions=extensions, clean_output=True
-    )
+    reified_prg = extend_reification(reified_out_prg=reified_prg, extensions=extensions, clean_output=True)
     save_out("reference_reified.lp", reified_prg)
     return reified_prg
 
@@ -89,7 +87,7 @@ def construct_program_graph(
     ctl = Control()
     ctl.add("base", [], reified_prg)
     if dynamic_tags_prg:
-        ctl.add("tags", [], dynamic_tags_prg)
+        ctl.add("base", [], dynamic_tags_prg)
     if dynamic_tags_files:
         for file in dynamic_tags_files:
             log.info("Loading dynamic tags file: %s", file)
@@ -105,9 +103,7 @@ def construct_program_graph(
     return symbols_to_prg(list(model_symbols))
 
 
-def set_model_subgraphs_ctl(
-    pg, ctl=None, model_symbols: Optional[List[str]] = None
-) -> Control:
+def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = None) -> Control:
     """
     Sets the control object for computing model subgraphs.
     Args:
@@ -117,10 +113,14 @@ def set_model_subgraphs_ctl(
     Returns:
         The Control object with the model subgraph encoding loaded and grounded
     """
-    ctl = ctl or Control(["0", "-c graph=reference"])
+    print("ctl", ctl)
+    print("pg", pg)
+    print("model_symbols", model_symbols)
+    ctl = ctl or Control(["0", "-c graph=ref"])
     ctl.add("base", [], pg)
     if model_symbols is not None:
         model_prg = "\n".join([f"model({str(s)})." for s in model_symbols])
+        print("model_prg", model_prg)
         ctl.add("base", [], model_prg)
         load_encoding(ctl, "force-model.lp")
 
