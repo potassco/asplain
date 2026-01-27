@@ -45,6 +45,7 @@ def reify_program(
     rsymbols = classic_reify(
         constants_to_args(constants) + ["--preserve-facts=symtab"],
         program_str,
+        programs=[("base", []), ("addable", [])],
     )
     extend_with_theory_symbols(rsymbols)
     reified_prg = "\n".join([f"{str(s)}." for s in rsymbols])
@@ -113,14 +114,10 @@ def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = N
     Returns:
         The Control object with the model subgraph encoding loaded and grounded
     """
-    print("ctl", ctl)
-    print("pg", pg)
-    print("model_symbols", model_symbols)
     ctl = ctl or Control(["0", "-c graph=ref"])
     ctl.add("base", [], pg)
     if model_symbols is not None:
         model_prg = "\n".join([f"model({str(s)})." for s in model_symbols])
-        print("model_prg", model_prg)
         ctl.add("base", [], model_prg)
         load_encoding(ctl, "force-model.lp")
 

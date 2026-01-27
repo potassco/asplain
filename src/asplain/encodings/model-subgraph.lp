@@ -16,3 +16,4 @@ hold(A) : edge((R,A)) :- hold(R), node_type(R, rule(disjunction)).
 m_member(N, graph) :- hold(N).
 
 #include "show.lp".
+#show solved(graph).

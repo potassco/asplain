@@ -23,7 +23,9 @@ fail_query:- query(A,include), not hold(A).
 % ------------------------------------------------
 % # Preferred foil
 
-
 %! cost(N, V, L). Cost of with name N value V and level L.
 cost(default, 1, 1). % A default cost for each model with level 1 so that there is always some optimization
 :~ cost(Name, Value, Level). [Value@Level, Name]
+
+
+%  -----------

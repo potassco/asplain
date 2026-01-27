@@ -71,12 +71,13 @@ attr(right, grid_column, 2).
 
 elem(main(explanation_conf), container, left).
 attr(main(explanation_conf), order, 2).
+attr(main(explanation_conf), class, ("mt-5")).
 
     elem(section(queries), container, main(explanation_conf)).
     attr(section(queries), order, 1).
 
         elem(title(queries), label, section(queries)).
-        attr(title(queries), label, "Queries").
+        attr(title(queries), label, "What did you expect?").
 
         elem(content(queries), container, section(queries)).
 
@@ -130,11 +131,11 @@ attr(main(explanation_conf), order, 2).
 
             elem(footer_elem(clear_queries), container, footer(queries)).
 
-            elem(footer_item(clear_queries), button, footer(queries)).
-            attr(footer_item(clear_queries), label, "Clear").
-            attr(footer_item(clear_queries), class, "btn-danger").
-            attr(footer_item(clear_queries), icon, "fa-trash").
-            when(footer_item(clear_queries), click, call, clear_queries).
+                elem(footer_item(clear_queries), button, footer_elem(clear_queries)).
+                attr(footer_item(clear_queries), label, "Clear").
+                attr(footer_item(clear_queries), class, ("btn-danger";"align-self-end")).
+                attr(footer_item(clear_queries), icon, "fa-trash").
+                when(footer_item(clear_queries), click, call, clear_queries).
 
 
 
@@ -168,6 +169,26 @@ attr(main(explanation_conf), order, 2).
         elem(content(exbrowse), container, section(exbrowse)).
 
 
+
+                elem(footer_elem(next_explanation), container, content(exbrowse)).
+
+                    elem(footer_item(get_llm_explanation), button, footer_elem(next_explanation)).
+                    attr(footer_item(get_llm_explanation), order, 1).
+                    attr(footer_item(get_llm_explanation), label, "Activate LLM"):-not llm_active.
+                    attr(footer_item(get_llm_explanation), label, "De-activate LLM"):- llm_active.
+                    attr(footer_item(get_llm_explanation), icon, "fa-comment-dots").
+                    attr(footer_item(get_llm_explanation), class, ("btn-primary";"opacity-25")):- not llm_active.
+                    attr(footer_item(get_llm_explanation), class, "btn-primary"):- llm_active.
+                    % attr(button(get_llm_explanation), class, ("btn-primary";"pe-4";"pt-2")).
+                    when(footer_item(get_llm_explanation), click, call, activate_llm(true)):-not llm_active.
+                    when(footer_item(get_llm_explanation), click, call, activate_llm(false)):-llm_active.
+
+                    elem(footer_item(next_explanation), button, footer_elem(next_explanation)).
+                    attr(footer_item(next_explanation), icon, "fa-forward-step").
+                    attr(footer_item(next_explanation), label, "Next Explanation").
+                    attr(footer_item(next_explanation), class, "btn-primary").
+                    when(footer_item(next_explanation), click, call, next_explanation).
+
         elem(footer(exbrowse), container, section(exbrowse)).
 
             elem(footer_elem(exdownload_graph), container, footer(exbrowse)).
@@ -198,40 +219,29 @@ attr(main(explanation_conf), order, 2).
                 attr(footer_item(exdownload(btn)),class,"btn-success").
                 when(footer_item(exdownload(btn)),click,call, download_explanation_facts(_context_value(download_name_ex,str,"explanation_facts"))).
 
-            elem(footer_elem(next_explanation), container, footer(exbrowse)).
-
-                elem(footer_item(next_explanation), button, footer_elem(next_explanation)).
-                attr(footer_item(next_explanation), label, "Next Explanation").
-                attr(footer_item(next_explanation), icon, "fa-forward-step").
-                attr(footer_item(next_explanation), class, "btn-primary").
-                when(footer_item(next_explanation), click, call, next_explanation).
 
 
-elem(main(explanation_llm), container, right).
-attr(main(explanation_llm), order, 2).
-attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-items-center";"px-3")).
+% elem(main(explanation_llm), container, right).
+% attr(main(explanation_llm), order, 2).
+% attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-items-center";"px-3")).
 
-    elem(section(explanation_llm), container, main(explanation_llm)).
-    attr(section(explanation_llm), order, 1).
-    attr(section(explanation_llm), class, ("p-4";"gap-4";"w-100")).
+%     elem(section(explanation_llm), container, main(explanation_llm)).
+%     attr(section(explanation_llm), order, 1).
+%     attr(section(explanation_llm), class, ("p-4";"gap-4";"w-100")).
 
-        elem(title(explanation_llm), label, section(explanation_llm)).
-        attr(title(explanation_llm), label, "Natural Language Explanation").
+%         elem(title(explanation_llm), label, section(explanation_llm)).
+%         attr(title(explanation_llm), label, "Natural Language Explanation").
 
-        elem(content(explanation_llm), container, section(explanation_llm)).
-        attr(content(explanation_llm), class, ("p-4";"border";"align-items-center";"bg-body";"rounded")).
+%         elem(content(explanation_llm), container, section(explanation_llm)).
+%         attr(content(explanation_llm), class, ("p-4";"border";"align-items-center";"bg-body";"rounded")).
 
-        elem(button(get_llm_explanation), button, content(explanation_llm)) :- not llm_explanation(_).
-        attr(button(get_llm_explanation), order, 1).
-        attr(button(get_llm_explanation), label, "Compute using LLM").
-        attr(button(get_llm_explanation), icon, "fa-forward-step").
-        attr(button(get_llm_explanation), class, "btn-primary").
-        when(button(get_llm_explanation), click, call, get_llm_explanation).
+%         elem(button(get_llm_explanation), button, content(explanation_llm)) :- not llm_active.
+%         attr(button(get_llm_explanation), order, 1).
+%         attr(button(get_llm_explanation), label, "Compute using LLM").
+%         attr(button(get_llm_explanation), icon, "fa-forward-step").
+%         attr(button(get_llm_explanation), class, "btn-primary").
+%         when(button(get_llm_explanation), click, call, get_llm_explanation).
 
-        elem(text(explanation_llm), label, content(explanation_llm)).
-        attr(text(explanation_llm), order, 2).
-        attr(text(explanation_llm), class, ("text-body-secondary";)).
-        attr(text(explanation_llm), label, TXT) :- llm_explanation(TXT).
 
 elem(main(explanation_graph), container, right).
 attr(main(explanation_graph), order, 4).
@@ -263,6 +273,12 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
                 attr(label(X), label,  @format(L,P)):-vnode(X), tag(X,label(L,P)).
                 attr(label(X), label, ""):-vnode(X), not tag(X,label(_,_)).
                 attr(label(X), display, none):-vnode(X).
+
+
+        elem(text(explanation_llm), label, section(explanation_info)).
+        attr(text(explanation_llm), order, 2).
+        attr(text(explanation_llm), class, ("pt-2";"pb-2";"fst-italic";"text-primary")).
+        attr(text(explanation_llm), label, TXT) :- llm_explanation(TXT).
 
 
     elem(graph_container, container, main(explanation_graph)).

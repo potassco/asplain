@@ -21,3 +21,4 @@
 
 % Query
 #show query/2.
+ %For highlighting differently if no foil is constructed

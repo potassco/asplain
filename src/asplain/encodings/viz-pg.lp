@@ -15,14 +15,19 @@ world(ref;foil).
 #const _color_purple = "#6554C0".
 #const _color_both = "#57B5BD50".
 % color_set(model(reference), @concat(_color_purple,"80")):-not show(model(foil)).
-color_set(ref, @concat(_color_purple,"25")).
+color_set(ref, @concat(_color_purple,"25")):- solved(foil).
+color_set(ref, @concat(_color_purple,"80")):- not solved(foil).
 color_set(foil, _color_green).
 color_set(union, "#36B37E;0.5:#6554C080").
 color_set(constraint, @concat(_color_red,"25")).
 color_set(light, gray84).
 
 #const setdpi = 80.
-vnode(X):-node(X).
+
+vnode(X):-node(X),solved(foil),     p_member(X, foil).
+vnode(X):-node(X),solved(foil), not p_member(X, foil),     p_member(X, ref).
+vnode(X):-node(X),not solved(foil), solved(ref), p_member(X, ref).
+vnode(X):-node(X),not solved(foil), not solved(ref).
 vedge((X,Y)):-edge((X, Y)), vnode(X), vnode(Y).
 vtag(X,T):-tag(X, T).
 
@@ -64,14 +69,14 @@ vattr(node,N,fillcolor,C):- vnode(N), not both_models(N), m_member(N,G), color_s
 vattr(node,N,fillcolor,C):- both_models(N), color_set(union,C).
 vattr(node,N,fillcolor,white):- vnode(N), no_model(N), not red_node(N).
 
-highlighted_world(foil).
 
-active_node(N):- vnode(N), highlighted_world(W), node(N), m_member(N, W).
+active_node(N):- vnode(N), node(N), not solved(foil).
+active_node(N):- vnode(N), node(N), m_member(N, foil), solved(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(ref, N), not show(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(foil, N).
 
-abduced(rm,R):-node(R), p_member(R, ref), not p_member(R, foil).
-abduced(add,R):-node(R), p_member(R, foil), not p_member(R, ref).
+abduced(rm,R):-node(R), p_member(R, ref), not p_member(R, foil), solved(foil).
+abduced(add,R):-node(R), p_member(R, foil), not p_member(R, ref), solved(foil).
 
 gray_node(N):-vnode(N),
             not active_node(N),

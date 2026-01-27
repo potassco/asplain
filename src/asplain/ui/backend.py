@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from clingo import Control, Function, String
 from clingo.ast import Literal
 from clinguin.server.application.backends import ClingoBackend
@@ -36,6 +38,7 @@ class ASPlainBackend(ClingoBackend):
         self._foil_ctl = None
 
         self._llm_explanation = None
+        self._active_llm = False
 
         self._engine = "dot"
 
@@ -94,6 +97,7 @@ class ASPlainBackend(ClingoBackend):
 
     def _outdate_llm_explanation(self):
         self._llm_explanation = None
+        self._clear_cache(["_ds_llm_explanation"])
 
     def _outdate(self):
         """
@@ -135,25 +139,24 @@ class ASPlainBackend(ClingoBackend):
             return prg + "\n" + self._contrastive_pg
         return prg
 
-    @property
+    @cached_property
     def _ds_llm_explanation(self):
-        explanation_prg = f'llm_explanation("{self._llm_explanation}").' if self._llm_explanation is not None else ""
-        return explanation_prg
+        if self._active_llm:
+            prg = "llm_active."
 
-    def get_llm_explanation(self) -> str:
-        program = str(self._ds_explanation)
-        print("Creating Model")
-        llm = OpenAIModel(model_tag=ModelTag.GPT_4O_MINI)
-        print("Filling Template")
-        print("PRG", program)
-        template = ExplainTemplate(contrastive_program_graph=program)
+            if self._explanation_iterator is not None:
+                self._logger.info("Generating LLM explanation...")
+                program = str(self._ds_explanation)
+                llm = OpenAIModel(model_tag=ModelTag.GPT_5)
+                template = ExplainTemplate(contrastive_program_graph=program)
 
-        print("Prompting LLM")
+                response = llm.prompt_template_sync(template)
+                explanation = parse_llm_json_response(response)
+                self._llm_explanation = explanation
+                prg += f'llm_explanation("{self._llm_explanation}"). llm_active.'
+            return prg
 
-        response = llm.prompt_template_sync(template)
-        explanation = parse_llm_json_response(response)
-        print("Response", response)
-        self._llm_explanation = explanation
+        return ""
 
     def _init_ds_constructors(self):
         super()._init_ds_constructors()
@@ -296,15 +299,19 @@ class ASPlainBackend(ClingoBackend):
 
     # --------------- Public
 
-    def add_shown_graph(self, value: str):
-        """Add a graph to be shown in the UI."""
-        if value not in self._shown_graphs:
-            self._shown_graphs.append(value)
+    def activate_llm(self, value=True) -> str:
+        self._active_llm = False if value == False or value == "false" else True
+        self._outdate_llm_explanation()
 
-    def remove_shown_graph(self, value: str):
-        """Remove a graph from being shown in the UI."""
-        if value in self._shown_graphs:
-            self._shown_graphs.remove(value)
+    # def add_shown_graph(self, value: str):
+    #     """Add a graph to be shown in the UI."""
+    #     if value not in self._shown_graphs:
+    #         self._shown_graphs.append(value)
+
+    # def remove_shown_graph(self, value: str):
+    #     """Remove a graph from being shown in the UI."""
+    #     if value in self._shown_graphs:
+    #         self._shown_graphs.remove(value)
 
     def add_query(self, query: str, type: str):
         """Add a query to be included in the explanation."""
