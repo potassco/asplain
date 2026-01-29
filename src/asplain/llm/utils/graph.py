@@ -146,12 +146,6 @@ class Graph:
                     tags[str(tag.tag)] = True
                 case TagLabel():
                     tags["label"] = tag.tag.label  # TODO: Add variables here!
-                case TagRuleLocation():
-                    tags["location"] = {
-                        "file": tag.tag.file,
-                        "line": tag.tag.line,
-                        "column": tag.tag.column,
-                    }
                 case TagRuleFirstOrder():
                     tags["first_order"] = tag.tag.first_order
         return tags
