@@ -75,13 +75,13 @@ class Graph:
         json_edges = []
         for edge in self._edges.values():
             json_edge = {
-                "positive": edge.positive,
+                "type": ["negative", "positive"][edge.positive],
                 "source": edge.source,
                 "target": edge.target,
             }
             json_edges.append(json_edge)
         json_queries = [
-            {"query_atom": atom, "included": inclusion}
+            {"query_atom": atom, "type": ["negative", "positive"][inclusion]}
             for (atom, inclusion) in self._queries.items()
         ]
         return {"nodes": json_nodes, "edges": json_edges, "query": json_queries}
