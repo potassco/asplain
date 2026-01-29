@@ -68,7 +68,7 @@ no_model(N):- vnode(N), not model(N, ref), not model(N, foil).
 both_models(N):- vnode(N), model(N, ref), model(N, foil).
 vattr(node,N,fillcolor,C):- vnode(N), not both_models(N), model(N,G), color_set(G,C).
 vattr(node,N,fillcolor,C):- both_models(N), color_set(union,C).
-vattr(node,N,fillcolor,white):- vnode(N), no_model(N), not red_node(N).
+vattr(node,N,fillcolor,white):- vnode(N), no_model(N), not fired(N).
 % vattr(node,N,fillcolor,white):- vnode(N).
 
 
@@ -98,5 +98,4 @@ active_edge((N1,N2)):- vedge((N1,N2)), active_node(N1), active_node(N2).
 vattr(edge,E,color,C):- vedge(E), not active_edge(E), color_set(light,C).
 
 
-% red_node(X):-node(contrastive, X), tag(_, X, constraint).
-% vattr(node,X, fillcolor, C):-red_node(X), color_set(constraint,C).
+vattr(node,X, fillcolor, C):-fired(X), color_set(constraint,C).

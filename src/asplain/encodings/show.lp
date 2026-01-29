@@ -22,3 +22,6 @@
 % Query
 #show query/2.
 #defined query/2. %So that there is no warning when using it to compute reference models
+
+#show fired/1.
+#defined fired/1.

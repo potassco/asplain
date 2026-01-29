@@ -29,7 +29,8 @@ cost(default, 1, 1). % A default cost for each model with level 1 so that there 
 
 %  -----------
 
-% fired(R):- node(R), node_type(R, rule(disjunction)),
-%     #false : edge((R,A)); % constraint
-%     #count{W: model(A, W)} >= 1: edge_type((A,R),positive);
-%     #count{W: model(A, W)} <= 1: edge_type((A,R),negative).
+some_model(1, A) :- node_type(A,atom), #count{W: model(A,W)}>=1.
+some_model(0, A) :- node_type(A,atom), #count{W: model(A,W)}<=1.
+
+fired(R):- node_type(R, rule(disjunction)), #false : edge((R,A));
+           some_model(T, A): edge_type((A,R),T).
