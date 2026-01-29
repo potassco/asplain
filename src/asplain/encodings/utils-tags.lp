@@ -6,7 +6,7 @@ tag(rule(disjunction(H),normal(B)), fact):- rule(disjunction(H),normal(B)),
     not literal_tuple(B,_).
 
 % Assumptions removable
-tag(R, label("Assumed {} as {}",(A,F))):-tag(R, assume(F)), edge((atom(A),R)).
+% tag(R, label("Assumed {} as {}",(A,F))):-tag(R, assume(F)), edge((atom(A),R),_).
 % Maybe this next rule should be optional
 % abducible(remove,R):-tag(R, assume(_)).
 

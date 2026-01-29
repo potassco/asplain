@@ -85,8 +85,8 @@ attr(main(explanation_conf), class, ("mt-5")).
 
                 elem(elem_title(query(A)), label, elem_container(query(A))):-query(A,V).
                 attr(elem_title(query(A)), label, A):-query(A,V).
-                attr(elem_title(query(A)), class, "text-success"):-query(A,include).
-                attr(elem_title(query(A)), class, "text-danger"):-query(A,exclude).
+                attr(elem_title(query(A)), class, "text-success"):-query(A,1).
+                attr(elem_title(query(A)), class, "text-danger"):-query(A,0).
                 attr(elem_title(query(A)), class, "font-monospace"):-query(A,V).
                 attr(elem_title(query(A)), tooltip, @format("query({},{})",A,V)):-query(A,V).
 
@@ -292,8 +292,7 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
         % Clingraph image
         %%%%%%%%%%%%%%%%%%%%%%%%
 
-        vnode(X):-node(X).
-        vedge((X,Y)):-edge((X, Y)).
+        vnode(X):-node(X,_).
         vtag(X,T):-tag(X, T).
 
         elem(c, canvas, graph_container).

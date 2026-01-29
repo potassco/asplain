@@ -6,12 +6,12 @@
 
 #const graph=ref.
 
-model(R,graph) :- node(R), node_type(R, rule(_)), program(R, graph),
-    model(A,graph) : edge((A,R)), edge_type((A,R), 1);
-    not model(A,graph) : edge((A,R)), edge_type((A,R), 0).
+model(R,graph) :- node(R, rule(_)), program(R, graph),
+    model(A,graph) : edge((A,R), 1);
+    not model(A,graph) : edge((A,R), 0).
 
-model(A,graph) : edge((R,A)) :- model(R,graph), node_type(R, rule(disjunction)).
-{ model(A,graph) : edge((R,A)) } :- model(R,graph), node_type(R, rule(choice)).
+model(A,graph) : edge((R,A), _) :- model(R,graph), node(R, rule(disjunction)).
+{ model(A,graph) : edge((R,A), _) } :- model(R,graph), node(R, rule(choice)).
 
 #include "show.lp".
 #show solved(graph).

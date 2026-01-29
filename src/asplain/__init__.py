@@ -168,7 +168,6 @@ def construct_contrastive(
     ctl = Control()
     ctl.add("base", [], pg)
     ctl.add("base", [], query_prg or "")
-    load_encoding(ctl, "construct-contrastive.lp")
     ctl.ground([("base", [])])
     with ctl.solve(yield_=True) as handle:
         model = handle.model()

@@ -1,10 +1,6 @@
-% Graph
-#show node/1.
-#show edge/1.
-
 % Node and edge types
-#show node_type/2.
-#show edge_type/2.
+#show node/2.
+#show edge/2.
 
 % Model and program membership
 #show program/2.

@@ -393,9 +393,9 @@ class ASPlainBackend(ClingoBackend):
         """Download the explanation facts."""
         pg = ""
         for g in self._get_shown_graphs():
-            pg += f"\n#show node({g},X):node({g},X).\n"
-            pg += f"\n#show edge({g},T,X):edge({g},T,X).\n"
-            pg += f"\n#show tag({g},T,X):tag({g},T,X).\n"
+            # TODO This should show all
+            pg += "\n#show node(X,T):node(X,T).\n"
+            pg += "\n#show edge(X,T):edge(X,T).\n"
             pg += "\n#show .\n"
         name = file_name.strip('"')
         ctl = Control()

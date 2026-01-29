@@ -147,6 +147,6 @@ def print_foil(foil_pg: str) -> None:
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:
-    qi = "".join([f"query({str(s)},include)." for s in query_include])
-    qe = "".join([f"query({str(s)},exclude)." for s in query_exclude])
+    qi = "".join([f"query({str(s)},1)." for s in query_include])
+    qe = "".join([f"query({str(s)},0)." for s in query_exclude])
     return qi + qe

@@ -24,11 +24,11 @@ color_set(light, gray84).
 
 #const setdpi = 80.
 
-vnode(X):-node(X),solved(foil),     program(X, foil).
-vnode(X):-node(X),solved(foil), not program(X, foil),     program(X, ref).
-vnode(X):-node(X),not solved(foil), solved(ref), program(X, ref).
-vnode(X):-node(X),not solved(foil), not solved(ref).
-vedge((X,Y)):-edge((X, Y)), vnode(X), vnode(Y).
+vnode(X):-node(X,_),solved(foil),     program(X, foil).
+vnode(X):-node(X,_),solved(foil), not program(X, foil),     program(X, ref).
+vnode(X):-node(X,_),not solved(foil), solved(ref), program(X, ref).
+vnode(X):-node(X,_),not solved(foil), not solved(ref).
+vedge((X,Y)):-edge((X, Y),_), vnode(X), vnode(Y).
 vtag(X,T):-tag(X, T).
 
 vattr(graph,default,label,"<<b>{{name}}</b><br/>{{description}}>"):-show_title.
@@ -38,22 +38,22 @@ vattr(graph,default,dpi,setdpi).
 
 % Rule labels
 vattr(node,R,label,"<<font point-size=\"8\"> </font><br/> r{{value}} <br/> <u><font point-size=\"9\"><i>{{output}}</i></font></u>>"):-
-    vnode(R), node_type(R,rule(_)).
+    vnode(R), node(R,rule(_)).
 vattr(node,R,(label,output),"choice"):-
-    vnode(R), node_type(R,rule(choice)).
+    vnode(R), node(R,rule(choice)).
 vattr(node,R,(label,output),"disjunction"):-
-    vnode(R), node_type(R,rule(disjunction)).
+    vnode(R), node(R,rule(disjunction)).
 vattr(node,R,(label,value),R):-
     vnode(R).
 
 % Atom labels
-vattr(node, A, label, "< <font point-size=\"10\">{{value}}</font> >"):- vnode(A), node_type(A, atom).
+vattr(node, A, label, "< <font point-size=\"10\">{{value}}</font> >"):- vnode(A), node(A, atom).
 
 % General style
 vattr(node,N,fontname,@clinguin_fontname()):-  vnode(N).
 
 % Rule style
-vattr(node,N,shape,box):-vnode(N), node_type(N,rule(_)).
+vattr(node,N,shape,box):-vnode(N), node(N,rule(_)).
 vattr(node,N,style,filled):- vnode(N).
 % vattr(node,N,style,filled):- vnode(N), not abducible(_, N).
 % vattr(node,N,style,"filled,dashed"):- vnode(N), abducible(_, N).
@@ -90,7 +90,7 @@ vattr(node,R,(fontcolor;color),red):- abduced(rm,R).
 vattr(node,R,(fontcolor;color),blue):- abduced(add,R).
 
 % -------------- Edges
-vattr(edge,E,style,dashed):- vedge(E), edge_type(E,0).
+vattr(edge,E,style,dashed):- vedge(E), edge(E,0).
 vattr(edge,E,arrowhead,vee):- vedge(E).
 vattr(edge,E,arrowsize,"0.5"):- vedge(E).
 
