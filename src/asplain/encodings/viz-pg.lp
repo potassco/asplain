@@ -72,13 +72,13 @@ vattr(node,N,fillcolor,white):- vnode(N), no_model(N), not fired(N).
 % vattr(node,N,fillcolor,white):- vnode(N).
 
 
-active_node(N):- vnode(N), node(N), not solved(foil).
-active_node(N):- vnode(N), node(N), model(N, foil), solved(foil).
+active_node(N):- vnode(N), node(N,_), not solved(foil).
+active_node(N):- vnode(N), node(N,_), model(N, foil), solved(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(ref, N), not show(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(foil, N).
 
-abduced(rm,R):-node(R), program(R, ref), not program(R, foil), solved(foil).
-abduced(add,R):-node(R), program(R, foil), not program(R, ref), solved(foil).
+abduced(rm,R):-node(R,_), program(R, ref), not program(R, foil), solved(foil).
+abduced(add,R):-node(R,_), program(R, foil), not program(R, ref), solved(foil).
 
 gray_node(N):-vnode(N),
             not active_node(N),
