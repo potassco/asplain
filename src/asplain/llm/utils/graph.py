@@ -13,7 +13,6 @@ from .predicates import (
     Tag,
     TagLabel,
     TagRuleFirstOrder,
-    TagRuleLocation,
     World,
 )
 from .processes import ProcessAbducibleRemoved, TagProcess
