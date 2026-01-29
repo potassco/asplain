@@ -7,8 +7,8 @@
 #show edge_type/2.
 
 % Model and program membership
-#show p_member/2.
-#show m_member/2.
+#show program/2.
+#show model/2.
 
 % Tags
 #show tag/2.
@@ -21,4 +21,4 @@
 
 % Query
 #show query/2.
- %For highlighting differently if no foil is constructed
+#defined query/2. %So that there is no warning when using it to compute reference models

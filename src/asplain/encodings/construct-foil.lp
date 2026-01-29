@@ -1,10 +1,10 @@
 
-{removed(R)}:-abducible(remove, R), p_member(R, ref).
-{added(R)}:-abducible(add, R), not p_member(R, ref).
+{removed(R)}:-abducible(remove, R), program(R, ref).
+{added(R)}:-abducible(add, R), not program(R, ref).
 
 % Nodes that are in the reference and not removed, plus added nodes
-p_member(N, foil):- p_member(N, ref), not removed(N).
-p_member(R, foil):- added(R).
+program(N, foil):- program(N, ref), not removed(N).
+program(R, foil):- added(R).
 
 % Edges that are in the reference and not removed, plus edges from added nodes
 % edge(foil, S, (X,Y)):-edge((X,Y)), not removed(X), not removed(Y).
@@ -16,8 +16,8 @@ p_member(R, foil):- added(R).
 
 #defined query/2. % Comes from the input
 
-fail_query:- query(A,exclude),  hold(A).
-fail_query:- query(A,include), not hold(A).
+fail_query:- query(A,exclude),  model(A, foil).
+fail_query:- query(A,include), not model(A, foil).
 :- fail_query.
 
 % ------------------------------------------------
@@ -27,5 +27,9 @@ fail_query:- query(A,include), not hold(A).
 cost(default, 1, 1). % A default cost for each model with level 1 so that there is always some optimization
 :~ cost(Name, Value, Level). [Value@Level, Name]
 
-
 %  -----------
+
+% fired(R):- node(R), node_type(R, rule(disjunction)),
+%     #false : edge((R,A)); % constraint
+%     #count{W: model(A, W)} >= 1: edge_type((A,R),positive);
+%     #count{W: model(A, W)} <= 1: edge_type((A,R),negative).

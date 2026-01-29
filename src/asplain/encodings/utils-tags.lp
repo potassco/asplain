@@ -6,9 +6,9 @@ tag(rule(disjunction(H),normal(B)), fact):- rule(disjunction(H),normal(B)),
     not literal_tuple(B,_).
 
 % Assumptions removable
-tag(R, label("Assumed {} as {}",(A,F))):-tag(R, assume(F)), edge(G, _, (atom(A),R)).
+tag(R, label("Assumed {} as {}",(A,F))):-tag(R, assume(F)), edge((atom(A),R)).
 % Maybe this next rule should be optional
-abducible(remove,R):-tag(reference, R, assume(_)).
+% abducible(remove,R):-tag(R, assume(_)).
 
 % Labels without vars
 tag(R, label(L,())):-tag(R, label(L)).
@@ -17,3 +17,7 @@ show(A,L):-show_atom(A,L).
 show(A,L):-show_term(A,L).
 tag(atom(E), shown):- show(A,L), symbol_literal(A,E). %Show all explicit
 tag(atom(E), shown):-symbol_literal(A,E), not show, not show_atom(_,_). %Show all unless hide or show signature
+
+#defined show_atom/2.
+#defined show_term/2.
+#defined show/0.

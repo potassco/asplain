@@ -24,9 +24,9 @@ color_set(light, gray84).
 
 #const setdpi = 80.
 
-vnode(X):-node(X),solved(foil),     p_member(X, foil).
-vnode(X):-node(X),solved(foil), not p_member(X, foil),     p_member(X, ref).
-vnode(X):-node(X),not solved(foil), solved(ref), p_member(X, ref).
+vnode(X):-node(X),solved(foil),     program(X, foil).
+vnode(X):-node(X),solved(foil), not program(X, foil),     program(X, ref).
+vnode(X):-node(X),not solved(foil), solved(ref), program(X, ref).
 vnode(X):-node(X),not solved(foil), not solved(ref).
 vedge((X,Y)):-edge((X, Y)), vnode(X), vnode(Y).
 vtag(X,T):-tag(X, T).
@@ -54,8 +54,9 @@ vattr(node,N,fontname,@clinguin_fontname()):-  vnode(N).
 
 % Rule style
 vattr(node,N,shape,box):-vnode(N), node_type(N,rule(_)).
-vattr(node,N,style,filled):- vnode(N), not abducible(_, N).
-vattr(node,N,style,"filled,dashed"):- vnode(N), abducible(_, N).
+vattr(node,N,style,filled):- vnode(N).
+% vattr(node,N,style,filled):- vnode(N), not abducible(_, N).
+% vattr(node,N,style,"filled,dashed"):- vnode(N), abducible(_, N).
 
 % Tooltips
 vattr(node,N,tooltip,"<{{rule}}    {{label}}>"):- vnode(N).
@@ -63,20 +64,21 @@ vattr(node,N,(tooltip,rule),@html_escape(S)):- vnode(N), vtag( N, rule_fo(S)).
 vattr(node,N,(tooltip,label),@html_escape(S)):- vnode(N), vtag( N, label(S)).
 
 % Colors
-no_model(N):- vnode(N), not m_member(N, ref), not m_member(N, foil).
-both_models(N):- vnode(N), m_member(N, ref), m_member(N, foil).
-vattr(node,N,fillcolor,C):- vnode(N), not both_models(N), m_member(N,G), color_set(G,C).
+no_model(N):- vnode(N), not model(N, ref), not model(N, foil).
+both_models(N):- vnode(N), model(N, ref), model(N, foil).
+vattr(node,N,fillcolor,C):- vnode(N), not both_models(N), model(N,G), color_set(G,C).
 vattr(node,N,fillcolor,C):- both_models(N), color_set(union,C).
 vattr(node,N,fillcolor,white):- vnode(N), no_model(N), not red_node(N).
+% vattr(node,N,fillcolor,white):- vnode(N).
 
 
 active_node(N):- vnode(N), node(N), not solved(foil).
-active_node(N):- vnode(N), node(N), m_member(N, foil), solved(foil).
+active_node(N):- vnode(N), node(N), model(N, foil), solved(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(ref, N), not show(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(foil, N).
 
-abduced(rm,R):-node(R), p_member(R, ref), not p_member(R, foil), solved(foil).
-abduced(add,R):-node(R), p_member(R, foil), not p_member(R, ref), solved(foil).
+abduced(rm,R):-node(R), program(R, ref), not program(R, foil), solved(foil).
+abduced(add,R):-node(R), program(R, foil), not program(R, ref), solved(foil).
 
 gray_node(N):-vnode(N),
             not active_node(N),

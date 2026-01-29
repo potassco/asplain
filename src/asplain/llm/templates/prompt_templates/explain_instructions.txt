@@ -19,18 +19,17 @@ Input:
 {
    "nodes":[
       {
-         "type":"disjunction",
-         "id":"rule(1)",
-         "origins":[
-            "reference",
-            "model(foil)",
-            "foil",
-            "model(reference)",
-            "contrastive"
-         ],
+         "type":"rule(disjunction)",
+         "type":"rule(choice)",
+         "type":"atom",
+         "id":"1",
+         "id":"a",
+         "models":[foil, ref]
+         "programs":[foil, ref]
          "removable":true,
          "rule_fo":"drive(clare).",
          "fact":true
+         //Missing label tags for some reason
       },
       {
          "type":"disjunction",

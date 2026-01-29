@@ -1,7 +1,7 @@
 #script (python)
 from clingo import Number
 ids = {}
-def rule_id(rule):
+def label(rule):
     if str(rule) in ids:
         n= ids[str(rule)]
     else:
@@ -17,30 +17,32 @@ error("Sum not supported") :- rule(H,sum(B)).
 % Create PG_Rs,
 
 % Gather all rules and atoms
-rule_id(rule(H,B), @rule_id(rule(H,B))) :- rule(H,B).
-node(R):-rule(H,B), rule_id(rule(H,B),R).
-node(A):-symbol_literal(A,L).
-node_type(A,atom):-symbol_literal(A,L).
-node_type(R,rule(disjunction)):-rule_id(rule(disjunction(H),B), R).
-node_type(R,rule(choice)):-rule_id(rule(choice(H),B), R).
+
+% label(rule(H,B), @label(rule(H,B))) :- rule(H,B). % <-------- Correct line
+label(rule(H,B), ID) :- tag(rule(H,B),rule_id(ID)). % <--------  HACK just for the paper
+node(R) :- rule(H,B), label(rule(H,B),R).
+node(A) :- symbol_literal(A,L).
+node_type(A,atom) :- symbol_literal(A,L).
+node_type(R,rule(disjunction)) :- label(rule(disjunction(H),B), R).
+node_type(R,rule(choice)) :- label(rule(choice(H),B), R).
 
 % Gather all edges
 edge(E):-edge_type(E,_).
 
 edge_type((A, R),1):-
-    rule_id(rule(H, normal(B)), R),
+    label(rule(H, normal(B)), R),
     literal_tuple(B,E), E>0, symbol_literal(A,E).
 
 edge_type((A, R),0):-
-    rule_id(rule(H, normal(B)), R),
+    label(rule(H, normal(B)), R),
     literal_tuple(B,E), E<0, symbol_literal(A,-E).
 
 edge_type((R, A),1):-
-    rule_id(rule(disjunction(H), B), R),
+    label(rule(disjunction(H), B), R),
     atom_tuple(H,E), symbol_literal(A,E).
 
 edge_type((R, A),1):-
-    rule_id(rule(choice(H), B), R),
+    label(rule(choice(H), B), R),
     atom_tuple(H,E), symbol_literal(A,E).
 
 #show node/1.
@@ -49,16 +51,16 @@ edge_type((R, A),1):-
 #show edge_type/2.
 
 % Program membership for reference
-p_member(N, ref):-node(N), not abducible(add, N).
-% p_member((N1,N2), ref):-edge((N1,N2)), p_member(N1, ref), p_member(N2, ref).
-#show p_member/2.
+program(N, ref):-node(N), not abducible(add, N).
+% program((N1,N2), ref):-edge((N1,N2)), program(N1, ref), program(N2, ref).
+#show program/2.
 
 % Define what is reference
-% node(@rule_id(rule(H,B))):-rule(H,B), not abducible(add, rule(H,B)).
+% node(@label(rule(H,B))):-rule(H,B), not abducible(add, rule(H,B)).
 
 % ------- Tags ------
 % Tags into reference graph
-asplain_tag(R,T):-tag(rule(H,B),T), rule_id(rule(H,B),R).
+asplain_tag(R,T):-tag(rule(H,B),T), label(rule(H,B),R).
 asplain_tag(A,T):-tag(atom(E),T), symbol_literal(A,E).
 
 #show tag(N,T): asplain_tag(N,T).
