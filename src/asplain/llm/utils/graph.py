@@ -1,41 +1,86 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple
+from warnings import warn
 
 from clorm import FactBase
-from clorm.clingo import ClormControl, ClormModel
+from clorm.clingo import ClormControl, ClormModel, Tuple_
 
 from .predicates import (
+    Abducible,
+    Atom,
+    Choice,
+    Disjunction,
     Edge,
-    Model,
+    EdgeSign,
+    Label,
     Node,
-    Program,
+    Normal,
     Query,
+    QueryInclusion,
+    Rule,
+    RuleFirstOrder,
     Tag,
-    TagLabel,
-    TagRuleFirstOrder,
-    World,
 )
 from .processes import ProcessAbducibleRemoved, TagProcess
+
+RULE_ID_PREDICATE = "rule"
+
+
+class Origin(Enum):
+    REFERENCE = "reference"
+    REFERENCE_MODEL = "model(reference)"
+    FOIL = "foil"
+    FOIL_MODEL = "model(foil))"
+
+
+class RuleType(Enum):
+    ATOM = "atom"
+    NORMAL = "normal"
+    DISJUNCTION = "disjunction"
+    CHOICE = "choice"
+
+
+class RuleIDSet:
+    def __init__(self) -> None:
+        self._data: Dict[str, int] = {}
+        self._id: int = 1
+
+    def add(self, item: str) -> int:
+        if item not in self._data:
+            self._data[item] = self._id
+            self._id += 1
+        return self._data[item]
+
+    def get(self, item: str) -> Optional[int]:
+        return self._data.get(item)
+
+    def get_by_id(self, index: int) -> Optional[str]:
+        if index > len(self._data) or index <= 0:
+            return None
+        (rule_id, _) = sorted(self._data.items(), key=lambda item: item[1])[index]
+        return rule_id
 
 
 @dataclass
 class GraphNode:
     id: str
-    type: str
-    models: Set[str]
-    programs: Set[str]
-    tags: Dict[str, str | bool | Dict[str, str | int]]
+    rule_type: RuleType
+    origins: Set[str]
+    tags: Dict[str, str | int | bool]
 
 
 @dataclass
 class GraphEdge:
     source: str
     target: str
-    positive: bool
+    origins: Set[str]
+    sign: EdgeSign
 
 
 class Graph:
     def __init__(self, contrastive_program_graph: str) -> None:
+        self._rule_ids = RuleIDSet()
         self._graph: str = contrastive_program_graph
         self._facts: Optional[FactBase] = None
         self._nodes: Dict[str, GraphNode] = {}
@@ -46,17 +91,10 @@ class Graph:
         }
 
         self.get_facts(self._graph)
+        self.compute_queries()
         self.compute_nodes()
         self.compute_edges()
-        self.compute_queries()
-
-        for node in self._nodes.values():
-            print("N", node)
-        for edge in self._edges.values():
-            print("E", edge)
-        for query in self._queries.items():
-            print("Q", query)
-        print("JSON", self.json())
+        self.compute_tags()
 
     def json(
         self,
@@ -64,23 +102,23 @@ class Graph:
         json_nodes = []
         for node in self._nodes.values():
             json_node = {
-                "type": node.type,
+                "type": node.rule_type.value,
                 "id": node.id,
-                "models": list(node.models),
-                "programs": list(node.programs),
+                "origins": list(node.origins),
                 **node.tags,
             }
             json_nodes.append(json_node)
         json_edges = []
         for edge in self._edges.values():
             json_edge = {
-                "type": ["negative", "positive"][edge.positive],
+                "type": edge.sign.value,
                 "source": edge.source,
                 "target": edge.target,
+                "origins": list(edge.origins),
             }
             json_edges.append(json_edge)
         json_queries = [
-            {"query_atom": atom, "type": ["negative", "positive"][inclusion]}
+            {"query_atom": atom, "included": inclusion}
             for (atom, inclusion) in self._queries.items()
         ]
         return {"nodes": json_nodes, "edges": json_edges, "query": json_queries}
@@ -89,83 +127,110 @@ class Graph:
         self._facts = model.facts(atoms=True)
 
     def get_facts(self, program: str) -> None:
-        ctl = ClormControl(unifier=[Node, Program, Model, Tag, Edge, Query])
+        ctl = ClormControl(unifier=[Tag, Node, Edge, Query])
         ctl.add("base", [], program)
         ctl.ground([("base", [])])
         ctl.solve(on_model=self._on_facts_model)
+
+    def parse_rule_type(self, node: Node) -> RuleType:
+        rule = node.id
+        if isinstance(rule, Atom):
+            return RuleType.ATOM
+        match rule.head:
+            case Normal():
+                return RuleType.NORMAL
+            case Disjunction():
+                return RuleType.DISJUNCTION
+            case Choice():
+                return RuleType.CHOICE
+
+    def parse_tag(self, tag: Tag) -> Tuple[str, str | bool]:
+        match tag.tag:
+            case str():
+                return str(tag.tag), True
+            case Label():
+                return "label", tag.tag.value
+            case Abducible():
+                return "abducible", tag.tag.type
+            case RuleFirstOrder():
+                return "rule_fo", tag.tag.first_order
+
+    def parse_rule_id(self, rule: Atom | Rule) -> str:
+        match rule:
+            case Atom():
+                return str(rule)
+            case Rule():
+                rule_id = self._rule_ids.add(str(rule))
+                return f"{RULE_ID_PREDICATE}({rule_id})"
 
     def compute_nodes(self) -> None:
         if self._facts is None:
             return
         query_nodes = self._facts.query(Node).select(Node)
         for node in query_nodes.all():
-            node_id = str(node.element)
-            node_type = str(node.type)
-            model_worlds = self.get_node_model_worlds(node)
-            program_worlds = self.get_node_program_worlds(node)
-            tags = self.get_node_tags(node)
-            graph_node = GraphNode(
-                id=node_id,
-                type=node_type,
-                models={w.value for w in model_worlds},
-                programs={w.value for w in program_worlds},
-                tags=tags,
-            )
-            self._nodes[node_id] = graph_node
-
-    def get_node_model_worlds(self, node: Node) -> Set[World]:
-        if self._facts is None:
-            return set()
-        query_models = (
-            self._facts.query(Model).where(Model.node == node.element).select(Model)
-        )
-        worlds = {model.world for model in query_models.all()}
-        return worlds
-
-    def get_node_program_worlds(self, node: Node) -> Set[World]:
-        if self._facts is None:
-            return set()
-        query_models = (
-            self._facts.query(Program)
-            .where(Program.node == node.element)
-            .select(Program)
-        )
-        worlds = {model.world for model in query_models.all()}
-        return worlds
-
-    def get_node_tags(self, node: Node) -> Dict[str, str | bool | Dict[str, str | int]]:
-        if self._facts is None:
-            return {}
-        query_tags = self._facts.query(Tag).where(Tag.node == node.element).select(Tag)
-        tags = {}
-        for tag in query_tags.all():
-            print("TAG", tag, type(tag.tag))
-            match tag.tag:
-                case str():
-                    tags[str(tag.tag)] = True
-                case TagLabel():
-                    tags["label"] = tag.tag.label  # TODO: Add variables here!
-                case TagRuleFirstOrder():
-                    tags["first_order"] = tag.tag.first_order
-        return tags
+            node_string = str(node.id)
+            if node_string not in self._nodes:
+                # Create & register GraphNode
+                rule_type = self.parse_rule_type(node)
+                rule_id = self.parse_rule_id(node.id)
+                graph_node = GraphNode(
+                    id=rule_id,
+                    rule_type=rule_type,
+                    origins={str(node.origin)},
+                    tags={},
+                )
+                self._nodes[node_string] = graph_node
+            else:
+                # Add origin to GraphNode
+                graph_node = self._nodes.get(node_string)
+                if graph_node is None:
+                    continue
+                graph_node.origins.add(str(node.origin))
 
     def compute_edges(self) -> None:
         if self._facts is None:
             return
         query_edges = self._facts.query(Edge).select(Edge)
         for edge in query_edges.all():
-            edge_id = (str(edge.nodes.source), str(edge.nodes.target))
-            graph_edge = GraphEdge(
-                source=str(edge.nodes.source),
-                target=str(edge.nodes.target),
-                positive=bool(edge.positive),
-            )
-            self._edges[edge_id] = graph_edge
+            (edge_source, edge_target) = edge.edge
+            edge_tuple = (str(edge_source), str(edge_target))
+            if edge_tuple not in self._edges:
+                rule_id_source = self.parse_rule_id(edge_source)
+                rule_id_target = self.parse_rule_id(edge_target)
+                graph_edge = GraphEdge(
+                    source=rule_id_source,
+                    target=rule_id_target,
+                    origins={str(edge.origin)},
+                    sign=edge.positive,
+                )
+                self._edges[edge_tuple] = graph_edge
+            else:
+                graph_edge = self._edges.get(edge_tuple)
+                if graph_edge is None:
+                    continue
+                graph_edge.origins.add(str(edge.origin))
+
+    def compute_tags(self) -> None:
+        if self._facts is None:
+            return
+        query_tags = self._facts.query(Tag).select(Tag)
+        for tag in query_tags.all():
+            node_string = str(tag.node)
+            graph_node = self._nodes.get(node_string)
+            if graph_node is None:
+                warn(f"No matching node found for tag: {str(tag)}")
+                continue
+            tag_id, tag_value = self.parse_tag(tag)
+            graph_node.tags[tag_id] = tag_value
 
     def compute_queries(self) -> None:
         if self._facts is None:
             return
-        query_query = self._facts.query(Query).select(Query)
+        query_query = self._facts.query(Query)
         for query in query_query.all():
-            query_node = str(query.node)
-            self._queries[query_node] = bool(query.included)
+            query_atom = str(query.value)
+            match query.inclusion:
+                case QueryInclusion.INCLUDE:
+                    self._queries[query_atom] = True
+                case QueryInclusion.EXCLUDE:
+                    self._queries[query_atom] = False

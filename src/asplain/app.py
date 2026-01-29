@@ -78,9 +78,7 @@ class AsplainApp(Application):
                     log.error("Setting value to list")
                     current_value = [current_value]
                 current_value.append(value)
-                self.__setattr__(
-                    attr_name, current_value
-                )  # Use direct assignment instead of __setattr__
+                self.__setattr__(attr_name, current_value)  # Use direct assignment instead of __setattr__
             return True
 
         return setter
@@ -288,9 +286,7 @@ class AsplainApp(Application):
             title="Reference Graph",
             name="reference_pg",
         )
-        model_subgraphs_ctl = set_model_subgraphs_ctl(
-            pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols
-        )
+        model_subgraphs_ctl = set_model_subgraphs_ctl(pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols)
         with model_subgraphs_ctl.solve(yield_=True) as hnd:
             model_found = False
             for model in hnd:
@@ -314,14 +310,10 @@ class AsplainApp(Application):
                     foil_found = False
                     for foil_model in foil_hnd:
                         if not foil_model.optimality_proven:
-                            log.info(
-                                "Skipping non-optimal foil model %s", foil_model.number
-                            )
+                            log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(
-                            list(foil_model.symbols(shown=True))
-                        )
+                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
                         save_out(
                             f"foil_model_pg_{model.number}_{foil_model.number}.lp",
                             foil_model_pg,
@@ -353,10 +345,6 @@ class AsplainApp(Application):
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
                             open=self._open.flag,
                         )
-                        template = ExplainTemplate(
-                            contrastive_program_graph=contrastive_pg
-                        )  # TODO: Remove
-                        quit()
                         if INSTALLED_LLMS:
                             if self._llm_tag is not None:
                                 # Prompt the LLM
@@ -367,12 +355,8 @@ class AsplainApp(Application):
                                     log.info("Using Google API")
                                     llm = GoogleModel(model_tag=self._llm_tag)
                                 else:
-                                    raise ValueError(
-                                        f"LLM tag {self._llm_tag} is not supported."
-                                    )
-                                template = ExplainTemplate(
-                                    contrastive_program_graph=contrastive_pg
-                                )
+                                    raise ValueError(f"LLM tag {self._llm_tag} is not supported.")
+                                template = ExplainTemplate(contrastive_program_graph=contrastive_pg)
                                 print("LLM Explanation:")
                                 response = asyncio.run(llm.prompt_template(template))
                                 response_message = parse_llm_json_response(response)
@@ -392,17 +376,11 @@ class AsplainApp(Application):
                     foil_found = False
                     for foil_model in foil_hnd:
                         if not foil_model.optimality_proven:
-                            log.info(
-                                "Skipping non-optimal foil model %s", foil_model.number
-                            )
+                            log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(
-                            list(foil_model.symbols(shown=True))
-                        )
-                        save_out(
-                            f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg
-                        )
+                        foil_model_pg = symbols_to_prg(list(foil_model.symbols(shown=True)))
+                        save_out(f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg)
                         viz_graph(
                             pg=foil_model_pg,
                             graphs=["foil", "model(foil)"],
