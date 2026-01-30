@@ -353,10 +353,6 @@ class AsplainApp(Application):
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
                             open=self._open.flag,
                         )
-                        template = ExplainTemplate(
-                            contrastive_program_graph=contrastive_pg
-                        )  # TODO: Remove
-                        quit()
                         if INSTALLED_LLMS:
                             if self._llm_tag is not None:
                                 # Prompt the LLM
