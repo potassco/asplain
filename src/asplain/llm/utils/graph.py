@@ -50,13 +50,13 @@ class Graph:
         self.compute_edges()
         self.compute_queries()
 
-        for node in self._nodes.values():
-            print("N", node)
-        for edge in self._edges.values():
-            print("E", edge)
-        for query in self._queries.items():
-            print("Q", query)
-        print("JSON", self.json())
+        # for node in self._nodes.values():
+        #     print("N", node)
+        # for edge in self._edges.values():
+        #     print("E", edge)
+        # for query in self._queries.items():
+        #     print("Q", query)
+        # print("JSON", self.json())
 
     def json(
         self,
@@ -139,7 +139,6 @@ class Graph:
         query_tags = self._facts.query(Tag).where(Tag.node == node.element).select(Tag)
         tags = {}
         for tag in query_tags.all():
-            print("TAG", tag, type(tag.tag))
             match tag.tag:
                 case str():
                     tags[str(tag.tag)] = True
