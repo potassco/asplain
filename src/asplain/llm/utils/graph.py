@@ -4,17 +4,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from clorm import FactBase
 from clorm.clingo import ClormControl, ClormModel
 
-from .predicates import (
-    Edge,
-    Model,
-    Node,
-    Program,
-    Query,
-    Tag,
-    TagLabel,
-    TagRuleFirstOrder,
-    World,
-)
+from .predicates import Edge, Fired, Model, Node, Program, Query, Tag, TagLabel, TagRuleFirstOrder, World
 from .processes import ProcessAbducibleRemoved, TagProcess
 
 
@@ -25,6 +15,7 @@ class GraphNode:
     models: Set[str]
     programs: Set[str]
     tags: Dict[str, str | bool | Dict[str, str | int]]
+    fired: bool
 
 
 @dataclass
@@ -70,6 +61,8 @@ class Graph:
                 "programs": list(node.programs),
                 **node.tags,
             }
+            if node.fired:
+                json_node["fired"] = True
             json_nodes.append(json_node)
         json_edges = []
         for edge in self._edges.values():
@@ -89,7 +82,7 @@ class Graph:
         self._facts = model.facts(atoms=True)
 
     def get_facts(self, program: str) -> None:
-        ctl = ClormControl(unifier=[Node, Program, Model, Tag, Edge, Query])
+        ctl = ClormControl(unifier=[Node, Program, Model, Tag, Edge, Query, Fired])
         ctl.add("base", [], program)
         ctl.ground([("base", [])])
         ctl.solve(on_model=self._on_facts_model)
@@ -104,32 +97,36 @@ class Graph:
             model_worlds = self.get_node_model_worlds(node)
             program_worlds = self.get_node_program_worlds(node)
             tags = self.get_node_tags(node)
+            fired = self.get_node_fired(node)
             graph_node = GraphNode(
                 id=node_id,
                 type=node_type,
                 models={w.value for w in model_worlds},
                 programs={w.value for w in program_worlds},
                 tags=tags,
+                fired=fired,
             )
             self._nodes[node_id] = graph_node
+
+    def get_node_fired(self, node: Node) -> bool:
+        if self._facts is None:
+            return False
+        query_fired = self._facts.query(Fired).where(Fired.node == node.element)
+        for _ in query_fired.all():
+            return True
+        return False
 
     def get_node_model_worlds(self, node: Node) -> Set[World]:
         if self._facts is None:
             return set()
-        query_models = (
-            self._facts.query(Model).where(Model.node == node.element).select(Model)
-        )
+        query_models = self._facts.query(Model).where(Model.node == node.element).select(Model)
         worlds = {model.world for model in query_models.all()}
         return worlds
 
     def get_node_program_worlds(self, node: Node) -> Set[World]:
         if self._facts is None:
             return set()
-        query_models = (
-            self._facts.query(Program)
-            .where(Program.node == node.element)
-            .select(Program)
-        )
+        query_models = self._facts.query(Program).where(Program.node == node.element).select(Program)
         worlds = {model.world for model in query_models.all()}
         return worlds
 
@@ -139,6 +136,8 @@ class Graph:
         query_tags = self._facts.query(Tag).where(Tag.node == node.element).select(Tag)
         tags = {}
         for tag in query_tags.all():
+            if str(tag.tag) == "shown":
+                continue
             match tag.tag:
                 case str():
                     tags[str(tag.tag)] = True
