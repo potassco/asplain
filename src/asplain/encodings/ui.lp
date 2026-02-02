@@ -299,8 +299,8 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
         attr(c, order, 2).
         % attr(c, "transform-origin", "top left").
         % attr(c, display, "inline-block").
-        attr(c, width, 1000).
-        attr(c, height, 750).
+        attr(c, width, 600).
+        attr(c, height, 550).
         attr(c, transform, "scale(0.8)").
         % attr(c, "transform-origin", "0 0").
 
@@ -511,7 +511,7 @@ attr(main(model), order, 1).
     attr(content(model), class, ("d-flex";"flex-row")).
 
             elem(title(model), label, section(model)).
-            attr(title(model), label, "Model").
+            attr(title(model), label, "Reference model").
 
             _any_or_browse(A):-_clinguin_browsing, _clinguin_model(A).
             _any_or_browse(A):-not _clinguin_browsing, _any(A).
@@ -628,8 +628,8 @@ attr(main(model), order, 1).
 % # Menu bar
 % -----------
     elem(menu_bar, menu_bar, w).
-    attr(menu_bar, title, "Clinguin").
-    attr(menu_bar, icon, "fa-desktop").
+    attr(menu_bar, title, "ASPlain").
+    attr(menu_bar, icon, "fa-comments").
 
         elem(menu_bar_restart, button, menu_bar).
         attr(menu_bar_restart, label, "Restart").

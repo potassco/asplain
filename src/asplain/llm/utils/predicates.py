@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Tuple
 
 from clorm import ConstantStr, Predicate, Raw
 from clorm.orm.types import HeadList
@@ -68,3 +67,7 @@ class Edge(Predicate, name="edge"):
 class Query(Predicate, name="query"):
     node: Raw
     included: int
+
+
+class Fired(Predicate, name="fired"):
+    node: Raw

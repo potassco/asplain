@@ -117,6 +117,7 @@ def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = N
     ctl = ctl or Control(["0", "-c graph=ref"])
     ctl.add("base", [], pg)
     if model_symbols is not None:
+        log.debug("Setting model symbols: %s", model_symbols)
         model_prg = "\n".join([f"model({str(s)})." for s in model_symbols])
         ctl.add("base", [], model_prg)
         load_encoding(ctl, "force-model.lp")

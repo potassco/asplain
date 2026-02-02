@@ -110,31 +110,31 @@ class ASPlainBackend(ClingoBackend):
         super()._outdate()
         self._outdate_explanation()
 
-    def _get_shown_graphs(self):
-        shown_graphs = list(self._shown_graphs)
-        if self._explanation_iterator is None:
-            if "foil" in shown_graphs:
-                shown_graphs.remove("foil")
-            if "model(foil)" in shown_graphs:
-                shown_graphs.remove("model(foil)")
-            if "contrastive" in shown_graphs:
-                shown_graphs.remove("contrastive")
-            if len(shown_graphs) == 0:
-                shown_graphs.append("reference")
-                shown_graphs.append("model(reference)")
-        return shown_graphs
+    # def _get_shown_graphs(self):
+    #     shown_graphs = list(self._shown_graphs)
+    #     if self._explanation_iterator is None:
+    #         if "foil" in shown_graphs:
+    #             shown_graphs.remove("foil")
+    #         if "model(foil)" in shown_graphs:
+    #             shown_graphs.remove("model(foil)")
+    #         if "contrastive" in shown_graphs:
+    #             shown_graphs.remove("contrastive")
+    #         if len(shown_graphs) == 0:
+    #             shown_graphs.append("reference")
+    #             shown_graphs.append("model(reference)")
+    #     return shown_graphs
 
     @property
     def _ds_explanation(self):
         # Creates custom program
-        shown_graphs = self._get_shown_graphs()
+        # shown_graphs = self._get_shown_graphs()
         prg = get_query_prg(self._query_include, self._query_exclude)
         if self._explanation_iterator is None:
             self._update_reference_pg()
             self._contrastive_pg = self._reference_model_pg
             prg += "_no_foil."
 
-        prg += " ".join([f"show({g})." for g in shown_graphs])
+        # prg += " ".join([f"show({g})." for g in shown_graphs])
         if self._contrastive_pg is not None:
             return prg + "\n" + self._contrastive_pg
         return prg
@@ -189,7 +189,7 @@ class ASPlainBackend(ClingoBackend):
         if not self._contrastive_pg:
             self._logger.info("No contrastive program graph to visualize")
             return None
-        graphs = viz_graph(self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name="pg")
+        graphs = viz_graph(self._contrastive_pg, title="", name="pg")
         return graphs
 
     def _replace_uifb_with_b64_images_clingraph(self, graphs):
@@ -375,7 +375,6 @@ class ASPlainBackend(ClingoBackend):
         name = file_name.strip('"')
         viz_graph(
             self._contrastive_pg,
-            graphs=self._get_shown_graphs(),
             title="",
             name=name,
             open=False,

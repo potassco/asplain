@@ -7,13 +7,13 @@
 % @label("Bond might drink martini")
 {d}.
 
-% @label("Can't be poisoned if antidote was taken")
-:- p, a.
+% @label("Can't be poisoned he was careful")
+:- p, c.
 
-% @label("Bond is poisoned due to toxin")
+% @label("Bond is poisoned due to contact with toxin")
 p :- t.
-% @label("Bond is poisoned if drinks and not careful")
-p :- d, not c.
+% @label("Bond is poisoned if drinks and didnt take the antidote")
+p :- d, not a.
 
 % @removable
 a.

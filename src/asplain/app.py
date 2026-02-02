@@ -10,7 +10,6 @@ from typing import Any, Callable, Optional, Sequence
 from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
 
 from asplain import (
-    construct_contrastive,
     construct_program_graph,
     set_foil_ctl,
     set_model_subgraphs_ctl,
@@ -78,9 +77,7 @@ class AsplainApp(Application):
                     log.error("Setting value to list")
                     current_value = [current_value]
                 current_value.append(value)
-                self.__setattr__(
-                    attr_name, current_value
-                )  # Use direct assignment instead of __setattr__
+                self.__setattr__(attr_name, current_value)  # Use direct assignment instead of __setattr__
             return True
 
         return setter
@@ -284,13 +281,10 @@ class AsplainApp(Application):
         save_out("reference_pg.lp", reference_pg)
         viz_graph(
             pg=reference_pg,
-            graphs=["reference"],
             title="Reference Graph",
             name="reference_pg",
         )
-        model_subgraphs_ctl = set_model_subgraphs_ctl(
-            pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols
-        )
+        model_subgraphs_ctl = set_model_subgraphs_ctl(pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols)
         with model_subgraphs_ctl.solve(yield_=True) as hnd:
             model_found = False
             for model in hnd:
@@ -300,7 +294,6 @@ class AsplainApp(Application):
                 save_out(f"reference_model_{model.number}.lp", reference_model_pg)
                 viz_graph(
                     pg=reference_model_pg,
-                    graphs=["reference", "model(reference)"],
                     title="Reference Model Graph",
                     name=f"reference_model_pg_{model.number}",
                 )
@@ -314,49 +307,22 @@ class AsplainApp(Application):
                     foil_found = False
                     for foil_model in foil_hnd:
                         if not foil_model.optimality_proven:
-                            log.info(
-                                "Skipping non-optimal foil model %s", foil_model.number
-                            )
+                            log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(
-                            list(foil_model.symbols(shown=True))
-                        )
+                        explanation_graph = symbols_to_prg(list(foil_model.symbols(shown=True)))
                         save_out(
-                            f"foil_model_pg_{model.number}_{foil_model.number}.lp",
-                            foil_model_pg,
+                            f"contrastive_pg_{model.number}_{foil_model.number}.lp",
+                            explanation_graph,
                         )
+                        print_foil(explanation_graph)
+
                         viz_graph(
-                            pg=foil_model_pg,
-                            graphs=["foil", "model(foil)"],
-                            title="Foil Graph",
-                            name=f"foil_model_pg_{model.number}_{foil_model.number}",
-                        )
-                        print_foil(foil_model_pg)
-                        contrastive_pg = construct_contrastive(
-                            pg=foil_model_pg,
-                            query_prg=query_prg,
-                        )
-                        save_out(
-                            f"contrastive_{model.number}_{foil_model.number}.lp",
-                            contrastive_pg,
-                        )
-                        viz_graph(
-                            pg=contrastive_pg,
-                            graphs=[
-                                "foil",
-                                "model(foil)",
-                                "reference",
-                                "model(reference)",
-                            ],
+                            pg=explanation_graph,
                             title="Contrastive Graph",
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
                             open=self._open.flag,
                         )
-                        template = ExplainTemplate(
-                            contrastive_program_graph=contrastive_pg
-                        )  # TODO: Remove
-                        quit()
                         if INSTALLED_LLMS:
                             if self._llm_tag is not None:
                                 # Prompt the LLM
@@ -367,12 +333,8 @@ class AsplainApp(Application):
                                     log.info("Using Google API")
                                     llm = GoogleModel(model_tag=self._llm_tag)
                                 else:
-                                    raise ValueError(
-                                        f"LLM tag {self._llm_tag} is not supported."
-                                    )
-                                template = ExplainTemplate(
-                                    contrastive_program_graph=contrastive_pg
-                                )
+                                    raise ValueError(f"LLM tag {self._llm_tag} is not supported.")
+                                template = ExplainTemplate(contrastive_program_graph=explanation_graph)
                                 print("LLM Explanation:")
                                 response = asyncio.run(llm.prompt_template(template))
                                 response_message = parse_llm_json_response(response)
@@ -392,40 +354,18 @@ class AsplainApp(Application):
                     foil_found = False
                     for foil_model in foil_hnd:
                         if not foil_model.optimality_proven:
-                            log.info(
-                                "Skipping non-optimal foil model %s", foil_model.number
-                            )
+                            log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
                         foil_found = True
-                        foil_model_pg = symbols_to_prg(
-                            list(foil_model.symbols(shown=True))
-                        )
-                        save_out(
-                            f"foil_model_pg_UNSAT_{foil_model.number}.lp", foil_model_pg
-                        )
+                        explanation_graph = symbols_to_prg(list(foil_model.symbols(shown=True)))
+                        save_out(f"contrastive_pg_UNSAT_{foil_model.number}.lp", explanation_graph)
                         viz_graph(
-                            pg=foil_model_pg,
+                            pg=explanation_graph,
                             graphs=["foil", "model(foil)"],
-                            title="Foil Graph",
-                            name=f"foil_model_pg_UNSAT_{foil_model.number}",
-                            open=self._open.flag,
-                        )
-                        print_foil(foil_model_pg)
-                        contrastive_pg = construct_contrastive(
-                            pg=foil_model_pg,
-                            query_prg=query_prg,
-                        )
-                        save_out(f"contrastive_{foil_model.number}.lp", contrastive_pg)
-                        viz_graph(
-                            pg=contrastive_pg,
-                            graphs=[
-                                "foil",
-                                "model(foil)",
-                                "reference",
-                                "model(reference)",
-                            ],
                             title="Contrastive Graph",
                             name=f"contrastive_pg_UNSAT_{foil_model.number}",
+                            open=self._open.flag,
                         )
+                        print_foil(explanation_graph)
                     if not foil_found:
                         log.warning("No foil found.")

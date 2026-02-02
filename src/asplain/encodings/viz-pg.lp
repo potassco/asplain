@@ -20,7 +20,7 @@ color_set(ref, @concat(_color_purple,"80")):- not solved(foil).
 color_set(foil, _color_green).
 color_set(union, "#36B37E;0.5:#6554C080").
 color_set(constraint, @concat(_color_red,"25")).
-color_set(light, gray84).
+color_set(light, gray78).
 
 #const setdpi = 80.
 
