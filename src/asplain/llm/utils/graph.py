@@ -142,7 +142,9 @@ class Graph:
                 case str():
                     tags[str(tag.tag)] = True
                 case TagLabel():
-                    tags["label"] = tag.tag.label  # TODO: Add variables here!
+                    tags["label"] = tag.tag.label.format(
+                        *[str(a) for a in tag.tag.variables.symbol.arguments]
+                    )  # TODO: Add variables here!
                 case TagRuleFirstOrder():
                     tags["first_order"] = tag.tag.first_order
         return tags
