@@ -45,7 +45,7 @@ def reify_program(
     rsymbols = classic_reify(
         constants_to_args(constants) + ["--preserve-facts=symtab"],
         program_str,
-        programs=[("base", []), ("addable", [])],
+        programs=[("base", [])],
     )
     extend_with_theory_symbols(rsymbols)
     reified_prg = "\n".join([f"{str(s)}." for s in rsymbols])

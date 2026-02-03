@@ -361,7 +361,6 @@ class AsplainApp(Application):
                         save_out(f"contrastive_pg_UNSAT_{foil_model.number}.lp", explanation_graph)
                         viz_graph(
                             pg=explanation_graph,
-                            graphs=["foil", "model(foil)"],
                             title="Contrastive Graph",
                             name=f"contrastive_pg_UNSAT_{foil_model.number}",
                             open=self._open.flag,

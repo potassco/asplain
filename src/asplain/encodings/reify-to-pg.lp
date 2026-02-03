@@ -69,7 +69,7 @@ abducible(remove, R):-asplain_tag(R, removable).
 %     symbol_literal(A,E).
 
 % Abducible to add also includes the edges that would be added
-abducible(add, R):- asplain_tag(R, (program(addable);disabled)).
+abducible(add, R):-asplain_tag(R, addable).
 
 #show abducible/2.
 

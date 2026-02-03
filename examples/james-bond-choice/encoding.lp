@@ -21,5 +21,5 @@ a.
 % @removable
 c.
 
-#program addable.
+% @addable
 t.
