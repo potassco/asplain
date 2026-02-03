@@ -4,8 +4,9 @@ James Bond might drink $d$ a martini, he cannot be poisoned $p$ if he is
 careful $c$. There are two possible causes of poisoning:
 
 - by contact with a toxin $t$,
-- or by drinking without taking an antidote $a$. Bond is careful and he takes
-  the antidote.
+- or by drinking without taking an antidote $a$.
+
+Bond is careful and he takes the antidote.
 
 ## Command line
 
