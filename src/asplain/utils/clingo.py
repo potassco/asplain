@@ -7,6 +7,7 @@ from typing import List, Sequence, Tuple
 
 from clingo import Control, Symbol, SymbolType
 
+from asplain.llm.utils.graph import Graph
 from asplain.utils.logging import colored
 
 log = logging.getLogger(__name__)
@@ -140,10 +141,23 @@ def print_foil(foil_pg: str) -> None:
     ctl.ground([("base", [])])
     with ctl.solve(yield_=True) as handle:
         model = handle.model()
-        foil_atoms = model_symbols(model.symbols(shown=True), "foil")
-        # TODO for Hannes: Here use the clorm contrastive graph to to print the rules that were removed / added
-        # You could print the tag for the first order or the position on the file or both
+        graph = Graph("".join([str(s) + "." for s in model.symbols(shown=True)]))
+        added_rules = []
+        removed_rules = []
+        foil_atoms = []
+        for node in graph._nodes.values():
+            if node.type == "atom" and "foil" in node.models:
+                foil_atoms.append(node.id)
+            if node.programs == set(["ref"]):
+                added_rules.append(node.tags["first_order"])
+            if node.programs == set(["foil"]):
+                removed_rules.append(node.tags["first_order"])
+
         print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
+        if len(removed_rules) > 0:
+            print(colored("red", "            Removed: " + "\t".join([str(s) for s in removed_rules])))
+        if len(added_rules) > 0:
+            print(colored("green", "            Added: " + "\t".join([str(s) for s in added_rules])))
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:
