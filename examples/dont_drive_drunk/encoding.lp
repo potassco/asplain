@@ -28,7 +28,8 @@ alcohol(gabriel).
 drive(clare).
 
 
-#program addable.
+
 
 % @label("{} is resisting the authorities",(P,))
+% @addable
 resist(P):-person(P).

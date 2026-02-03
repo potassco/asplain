@@ -1,2 +1,0 @@
-% @assume(true)
-:- not h.

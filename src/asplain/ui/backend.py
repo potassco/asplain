@@ -1,4 +1,4 @@
-import json
+from functools import cached_property
 
 from clingo import Control, Function, String
 from clingo.ast import Literal
@@ -38,6 +38,7 @@ class ASPlainBackend(ClingoBackend):
         self._foil_ctl = None
 
         self._llm_explanation = None
+        self._active_llm = False
 
         self._engine = "dot"
 
@@ -96,6 +97,7 @@ class ASPlainBackend(ClingoBackend):
 
     def _outdate_llm_explanation(self):
         self._llm_explanation = None
+        self._clear_cache(["_ds_llm_explanation"])
 
     def _outdate(self):
         """
@@ -108,58 +110,53 @@ class ASPlainBackend(ClingoBackend):
         super()._outdate()
         self._outdate_explanation()
 
-    def _get_shown_graphs(self):
-        shown_graphs = list(self._shown_graphs)
-        if self._explanation_iterator is None:
-            if "foil" in shown_graphs:
-                shown_graphs.remove("foil")
-            if "model(foil)" in shown_graphs:
-                shown_graphs.remove("model(foil)")
-            if "contrastive" in shown_graphs:
-                shown_graphs.remove("contrastive")
-            if len(shown_graphs) == 0:
-                shown_graphs.append("reference")
-                shown_graphs.append("model(reference)")
-        return shown_graphs
+    # def _get_shown_graphs(self):
+    #     shown_graphs = list(self._shown_graphs)
+    #     if self._explanation_iterator is None:
+    #         if "foil" in shown_graphs:
+    #             shown_graphs.remove("foil")
+    #         if "model(foil)" in shown_graphs:
+    #             shown_graphs.remove("model(foil)")
+    #         if "contrastive" in shown_graphs:
+    #             shown_graphs.remove("contrastive")
+    #         if len(shown_graphs) == 0:
+    #             shown_graphs.append("reference")
+    #             shown_graphs.append("model(reference)")
+    #     return shown_graphs
 
     @property
     def _ds_explanation(self):
         # Creates custom program
-        shown_graphs = self._get_shown_graphs()
+        # shown_graphs = self._get_shown_graphs()
         prg = get_query_prg(self._query_include, self._query_exclude)
         if self._explanation_iterator is None:
             self._update_reference_pg()
             self._contrastive_pg = self._reference_model_pg
             prg += "_no_foil."
 
-        prg += " ".join([f"show({g})." for g in shown_graphs])
+        # prg += " ".join([f"show({g})." for g in shown_graphs])
         if self._contrastive_pg is not None:
             return prg + "\n" + self._contrastive_pg
         return prg
 
-    @property
+    @cached_property
     def _ds_llm_explanation(self):
-        explanation_prg = (
-            f'llm_explanation("{self._llm_explanation}").'
-            if self._llm_explanation is not None
-            else ""
-        )
-        return explanation_prg
+        if self._active_llm:
+            prg = "llm_active."
 
-    def get_llm_explanation(self) -> str:
-        program = str(self._ds_explanation)
-        print("Creating Model")
-        llm = OpenAIModel(model_tag=ModelTag.GPT_4O_MINI)
-        print("Filling Template")
-        print("PRG", program)
-        template = ExplainTemplate(contrastive_program_graph=program)
+            if self._explanation_iterator is not None:
+                self._logger.info("Generating LLM explanation...")
+                program = str(self._ds_explanation)
+                llm = OpenAIModel(model_tag=ModelTag.GPT_5)
+                template = ExplainTemplate(contrastive_program_graph=program)
 
-        print("Prompting LLM")
+                response = llm.prompt_template_sync(template)
+                explanation = parse_llm_json_response(response)
+                self._llm_explanation = explanation
+                prg += f'llm_explanation("{self._llm_explanation}"). llm_active.'
+            return prg
 
-        response = llm.prompt_template_sync(template)
-        explanation = parse_llm_json_response(response)
-        print("Response", response)
-        self._llm_explanation = explanation
+        return ""
 
     def _init_ds_constructors(self):
         super()._init_ds_constructors()
@@ -192,9 +189,7 @@ class ASPlainBackend(ClingoBackend):
         if not self._contrastive_pg:
             self._logger.info("No contrastive program graph to visualize")
             return None
-        graphs = viz_graph(
-            self._contrastive_pg, graphs=self._get_shown_graphs(), title="", name="pg"
-        )
+        graphs = viz_graph(self._contrastive_pg, title="", name="pg")
         return graphs
 
     def _replace_uifb_with_b64_images_clingraph(self, graphs):
@@ -206,9 +201,7 @@ class ASPlainBackend(ClingoBackend):
         """
         attributes = list(self._ui_state.get_attributes(key=self._attribute_image_key))
         for attribute in attributes:
-            attribute_value = StandardTextProcessing.parse_string_with_quotes(
-                str(attribute.value)
-            )
+            attribute_value = StandardTextProcessing.parse_string_with_quotes(str(attribute.value))
             is_cg_image = attribute_value.startswith(self._attribute_image_value)
 
             if not is_cg_image:
@@ -270,9 +263,9 @@ class ASPlainBackend(ClingoBackend):
         self._reference_model_pg = None
 
         if not self._is_unsat():
-            model_subgraphs_ctl = set_model_subgraphs_ctl(
-                pg=self._reference_pg, model_symbols=self._model
-            )
+            print("----------Computing reference model graph")
+            print(self._model)
+            model_subgraphs_ctl = set_model_subgraphs_ctl(pg=self._reference_pg, model_symbols=self._model)
             with model_subgraphs_ctl.solve(yield_=True) as hnd:
                 for model in hnd:
                     # extract the model to print
@@ -280,7 +273,9 @@ class ASPlainBackend(ClingoBackend):
                     break
 
             if not self._reference_model_pg:
-                self._logger.error("Expected model")
+                self._logger.error(
+                    "Expected model corresponding to reference with model membership for satisfiable instance"
+                )
                 self._reference_model_pg = self._reference_pg
 
     def _start_explanation(self):
@@ -304,15 +299,19 @@ class ASPlainBackend(ClingoBackend):
 
     # --------------- Public
 
-    def add_shown_graph(self, value: str):
-        """Add a graph to be shown in the UI."""
-        if value not in self._shown_graphs:
-            self._shown_graphs.append(value)
+    def activate_llm(self, value=True) -> str:
+        self._active_llm = False if value == False or value == "false" else True
+        self._outdate_llm_explanation()
 
-    def remove_shown_graph(self, value: str):
-        """Remove a graph from being shown in the UI."""
-        if value in self._shown_graphs:
-            self._shown_graphs.remove(value)
+    # def add_shown_graph(self, value: str):
+    #     """Add a graph to be shown in the UI."""
+    #     if value not in self._shown_graphs:
+    #         self._shown_graphs.append(value)
+
+    # def remove_shown_graph(self, value: str):
+    #     """Remove a graph from being shown in the UI."""
+    #     if value in self._shown_graphs:
+    #         self._shown_graphs.remove(value)
 
     def add_query(self, query: str, type: str):
         """Add a query to be included in the explanation."""
@@ -358,9 +357,7 @@ class ASPlainBackend(ClingoBackend):
                 )
                 foil_model = next(self._explanation_iterator)
             print(foil_model.cost)
-            foil_pg_and_model = foil_model.symbols(
-                shown=True
-            )  # shown should include the foil model and pg
+            foil_pg_and_model = foil_model.symbols(shown=True)  # shown should include the foil model and pg
             self._contrastive_pg = construct_contrastive(
                 pg=symbols_to_prg(foil_pg_and_model),
                 query_prg=get_query_prg(self._query_include, self._query_exclude),
@@ -378,7 +375,6 @@ class ASPlainBackend(ClingoBackend):
         name = file_name.strip('"')
         viz_graph(
             self._contrastive_pg,
-            graphs=self._get_shown_graphs(),
             title="",
             name=name,
             open=False,
@@ -396,9 +392,9 @@ class ASPlainBackend(ClingoBackend):
         """Download the explanation facts."""
         pg = ""
         for g in self._get_shown_graphs():
-            pg += f"\n#show node({g},X):node({g},X).\n"
-            pg += f"\n#show edge({g},T,X):edge({g},T,X).\n"
-            pg += f"\n#show tag({g},T,X):tag({g},T,X).\n"
+            # TODO This should show all
+            pg += "\n#show node(X,T):node(X,T).\n"
+            pg += "\n#show edge(X,T):edge(X,T).\n"
             pg += "\n#show .\n"
         name = file_name.strip('"')
         ctl = Control()

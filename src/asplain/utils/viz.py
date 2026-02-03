@@ -1,7 +1,6 @@
 """Visualization utilities for Asplain."""
 
 import logging
-from typing import List
 
 from clingo import Control, parse_term
 from clingo.script import enable_python
@@ -16,7 +15,6 @@ log = logging.getLogger(__name__)
 
 def viz_graph(
     pg: str,
-    graphs: List[str],
     title: str,
     open: bool = False,
     name: str = "graph",
@@ -26,7 +24,6 @@ def viz_graph(
     Visualize the explanation graph using cligraph
     Args:
         pg: The program graph as a string of facts. This might define multiple graphs.
-        graphs: List of graph names to visualize: {reference, model(reference), foil, model(foil), constrastive}
         title: Title of the graph.
         open: Whether to open the generated graph image.
         name: Name format for the output file.
@@ -40,8 +37,6 @@ def viz_graph(
     load_encoding(ctl, "viz-pg.lp")
     enable_python()
     ctl.ground([("base", [])], context=ctx)
-    for graph in graphs:
-        ctl.assign_external(parse_term(f"show({graph})"), True)
     ctl.solve(on_model=fb.add_model)
     graphs = compute_graphs(fb, graphviz_type="directed")
     files = render(graphs, view=open, directory="out", name_format=f"{name}", format=format)

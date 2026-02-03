@@ -71,12 +71,13 @@ attr(right, grid_column, 2).
 
 elem(main(explanation_conf), container, left).
 attr(main(explanation_conf), order, 2).
+attr(main(explanation_conf), class, ("mt-5")).
 
     elem(section(queries), container, main(explanation_conf)).
     attr(section(queries), order, 1).
 
         elem(title(queries), label, section(queries)).
-        attr(title(queries), label, "Queries").
+        attr(title(queries), label, "What did you expect?").
 
         elem(content(queries), container, section(queries)).
 
@@ -84,8 +85,8 @@ attr(main(explanation_conf), order, 2).
 
                 elem(elem_title(query(A)), label, elem_container(query(A))):-query(A,V).
                 attr(elem_title(query(A)), label, A):-query(A,V).
-                attr(elem_title(query(A)), class, "text-success"):-query(A,include).
-                attr(elem_title(query(A)), class, "text-danger"):-query(A,exclude).
+                attr(elem_title(query(A)), class, "text-success"):-query(A,1).
+                attr(elem_title(query(A)), class, "text-danger"):-query(A,0).
                 attr(elem_title(query(A)), class, "font-monospace"):-query(A,V).
                 attr(elem_title(query(A)), tooltip, @format("query({},{})",A,V)):-query(A,V).
 
@@ -130,33 +131,33 @@ attr(main(explanation_conf), order, 2).
 
             elem(footer_elem(clear_queries), container, footer(queries)).
 
-            elem(footer_item(clear_queries), button, footer(queries)).
-            attr(footer_item(clear_queries), label, "Clear").
-            attr(footer_item(clear_queries), class, "btn-danger").
-            attr(footer_item(clear_queries), icon, "fa-trash").
-            when(footer_item(clear_queries), click, call, clear_queries).
+                elem(footer_item(clear_queries), button, footer_elem(clear_queries)).
+                attr(footer_item(clear_queries), label, "Clear").
+                attr(footer_item(clear_queries), class, ("btn-danger";"align-self-end")).
+                attr(footer_item(clear_queries), icon, "fa-trash").
+                when(footer_item(clear_queries), click, call, clear_queries).
 
 
 
-    elem(section(configuration), container, main(explanation_conf)).
-    attr(section(configuration), order, 3).
+    % elem(section(configuration), container, main(explanation_conf)).
+    % attr(section(configuration), order, 3).
 
-        elem(title(configuration), label, section(configuration)).
-        attr(title(configuration), label, "Configuration").
+    %     elem(title(configuration), label, section(configuration)).
+    %     attr(title(configuration), label, "Configuration").
 
-            elem(content(configuration), container, section(configuration)).
+    %         elem(content(configuration), container, section(configuration)).
 
-            egraph((reference;model(reference);foil;model(foil))).
-            emodel(model(reference);model(foil)).
-            refmodel(model(reference);reference).
-            elem(check(G), checkbox, content(configuration)):-egraph(G).
-            attr(check(model(G)), label, @concat(G, " model")):-egraph(model(G)), emodel(model(G)).
-            attr(check(G), label, @concat(G, " program graph ")):-egraph(G), not emodel(G).
-            attr(check(G), checked, true):-show(G), refmodel(G).
-            attr(check(G), checked, true):-show(G), not refmodel(G), not _no_foil.
-            attr(check(model(foil);foil), disabled, true):-_no_foil.
-            when(check(G), click, call, add_shown_graph(G)):-egraph(G), not show(G).
-            when(check(G), click, call, remove_shown_graph(G)):-egraph(G), show(G).
+    %         egraph((reference;model(reference);foil;model(foil))).
+    %         emodel(model(reference);model(foil)).
+    %         refmodel(model(reference);reference).
+    %         elem(check(G), checkbox, content(configuration)):-egraph(G).
+    %         attr(check(model(G)), label, @concat(G, " model")):-egraph(model(G)), emodel(model(G)).
+    %         attr(check(G), label, @concat(G, " program graph ")):-egraph(G), not emodel(G).
+    %         attr(check(G), checked, true):-show(G), refmodel(G).
+    %         attr(check(G), checked, true):-show(G), not refmodel(G), not _no_foil.
+    %         attr(check(model(foil);foil), disabled, true):-_no_foil.
+    %         when(check(G), click, call, add_shown_graph(G)):-egraph(G), not show(G).
+    %         when(check(G), click, call, remove_shown_graph(G)):-egraph(G), show(G).
 
 
     elem(section(exbrowse), container, main(explanation_conf)).
@@ -167,6 +168,26 @@ attr(main(explanation_conf), order, 2).
 
         elem(content(exbrowse), container, section(exbrowse)).
 
+
+
+                elem(footer_elem(next_explanation), container, content(exbrowse)).
+
+                    elem(footer_item(get_llm_explanation), button, footer_elem(next_explanation)).
+                    attr(footer_item(get_llm_explanation), order, 1).
+                    attr(footer_item(get_llm_explanation), label, "Activate LLM"):-not llm_active.
+                    attr(footer_item(get_llm_explanation), label, "De-activate LLM"):- llm_active.
+                    attr(footer_item(get_llm_explanation), icon, "fa-comment-dots").
+                    attr(footer_item(get_llm_explanation), class, ("btn-primary";"opacity-25")):- not llm_active.
+                    attr(footer_item(get_llm_explanation), class, "btn-primary"):- llm_active.
+                    % attr(button(get_llm_explanation), class, ("btn-primary";"pe-4";"pt-2")).
+                    when(footer_item(get_llm_explanation), click, call, activate_llm(true)):-not llm_active.
+                    when(footer_item(get_llm_explanation), click, call, activate_llm(false)):-llm_active.
+
+                    elem(footer_item(next_explanation), button, footer_elem(next_explanation)).
+                    attr(footer_item(next_explanation), icon, "fa-forward-step").
+                    attr(footer_item(next_explanation), label, "Next Explanation").
+                    attr(footer_item(next_explanation), class, "btn-primary").
+                    when(footer_item(next_explanation), click, call, next_explanation).
 
         elem(footer(exbrowse), container, section(exbrowse)).
 
@@ -198,40 +219,29 @@ attr(main(explanation_conf), order, 2).
                 attr(footer_item(exdownload(btn)),class,"btn-success").
                 when(footer_item(exdownload(btn)),click,call, download_explanation_facts(_context_value(download_name_ex,str,"explanation_facts"))).
 
-            elem(footer_elem(next_explanation), container, footer(exbrowse)).
-
-                elem(footer_item(next_explanation), button, footer_elem(next_explanation)).
-                attr(footer_item(next_explanation), label, "Next Explanation").
-                attr(footer_item(next_explanation), icon, "fa-forward-step").
-                attr(footer_item(next_explanation), class, "btn-primary").
-                when(footer_item(next_explanation), click, call, next_explanation).
 
 
-elem(main(explanation_llm), container, right).
-attr(main(explanation_llm), order, 2).
-attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-items-center";"px-3")).
+% elem(main(explanation_llm), container, right).
+% attr(main(explanation_llm), order, 2).
+% attr(main(explanation_llm), class, ("v-flex";"justify-content-center";"align-items-center";"px-3")).
 
-    elem(section(explanation_llm), container, main(explanation_llm)).
-    attr(section(explanation_llm), order, 1).
-    attr(section(explanation_llm), class, ("p-4";"gap-4";"w-100")).
+%     elem(section(explanation_llm), container, main(explanation_llm)).
+%     attr(section(explanation_llm), order, 1).
+%     attr(section(explanation_llm), class, ("p-4";"gap-4";"w-100")).
 
-        elem(title(explanation_llm), label, section(explanation_llm)).
-        attr(title(explanation_llm), label, "Natural Language Explanation").
+%         elem(title(explanation_llm), label, section(explanation_llm)).
+%         attr(title(explanation_llm), label, "Natural Language Explanation").
 
-        elem(content(explanation_llm), container, section(explanation_llm)).
-        attr(content(explanation_llm), class, ("p-4";"border";"align-items-center";"bg-body";"rounded")).
+%         elem(content(explanation_llm), container, section(explanation_llm)).
+%         attr(content(explanation_llm), class, ("p-4";"border";"align-items-center";"bg-body";"rounded")).
 
-        elem(button(get_llm_explanation), button, content(explanation_llm)) :- not llm_explanation(_).
-        attr(button(get_llm_explanation), order, 1).
-        attr(button(get_llm_explanation), label, "Compute using LLM").
-        attr(button(get_llm_explanation), icon, "fa-forward-step").
-        attr(button(get_llm_explanation), class, "btn-primary").
-        when(button(get_llm_explanation), click, call, get_llm_explanation).
+%         elem(button(get_llm_explanation), button, content(explanation_llm)) :- not llm_active.
+%         attr(button(get_llm_explanation), order, 1).
+%         attr(button(get_llm_explanation), label, "Compute using LLM").
+%         attr(button(get_llm_explanation), icon, "fa-forward-step").
+%         attr(button(get_llm_explanation), class, "btn-primary").
+%         when(button(get_llm_explanation), click, call, get_llm_explanation).
 
-        elem(text(explanation_llm), label, content(explanation_llm)).
-        attr(text(explanation_llm), order, 2).
-        attr(text(explanation_llm), class, ("text-body-secondary";)).
-        attr(text(explanation_llm), label, TXT) :- llm_explanation(TXT).
 
 elem(main(explanation_graph), container, right).
 attr(main(explanation_graph), order, 4).
@@ -253,16 +263,22 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
                 elem(rule(X), label, info_container):-vnode(X).
                 attr(rule(X), order, 1):-vnode(X).
                 attr(rule(X), class, ("font-monospace";"fw-light";"text-center")):-vnode(X).
-                attr(rule(X), label, L):-vnode(X), tag(_,X,rule_fo(L)).
-                attr(rule(X), label, ""):-vnode(X), not tag(_,X,rule_fo(_)).
+                attr(rule(X), label, L):-vnode(X), tag(X,rule_fo(L)).
+                attr(rule(X), label, ""):-vnode(X), not tag(X,rule_fo(_)).
                 attr(rule(X), display, none):-vnode(X).
 
                 elem(label(X), label, info_container):-vnode(X).
                 attr(label(X), order, 2):-vnode(X).
                 attr(label(X), class, ("fst-italic";"text-center")):-vnode(X).
-                attr(label(X), label,  @format(L,P)):-vnode(X), tag(_,X,label(L,P)).
-                attr(label(X), label, ""):-vnode(X), not tag(_,X,label(_,_)).
+                attr(label(X), label,  @format(L,P)):-vnode(X), tag(X,label(L,P)).
+                attr(label(X), label, ""):-vnode(X), not tag(X,label(_,_)).
                 attr(label(X), display, none):-vnode(X).
+
+
+        elem(text(explanation_llm), label, section(explanation_info)).
+        attr(text(explanation_llm), order, 2).
+        attr(text(explanation_llm), class, ("pt-2";"pb-2";"fst-italic";"text-primary")).
+        attr(text(explanation_llm), label, TXT) :- llm_explanation(TXT).
 
 
     elem(graph_container, container, main(explanation_graph)).
@@ -276,17 +292,16 @@ attr(main(explanation_graph), class, ("d-flex";"justify-content-center";"align-i
         % Clingraph image
         %%%%%%%%%%%%%%%%%%%%%%%%
 
-        vnode(X):-node(G, X), not tag(G, X, disabled), show(G).
-        vedge((X,Y)):-edge(G, _,(X, Y)), show(G).
-        vtag(X,T):-tag(G, X, T), show(G).
+        vnode(X):-node(X,_).
+        vtag(X,T):-tag(X, T).
 
         elem(c, canvas, graph_container).
         attr(c, order, 2).
         % attr(c, "transform-origin", "top left").
         % attr(c, display, "inline-block").
-        attr(c, width, 1000).
-        attr(c, height, 750).
-        % attr(c, transform, "scale(0.1)").
+        attr(c, width, 600).
+        attr(c, height, 550).
+        attr(c, transform, "scale(0.8)").
         % attr(c, "transform-origin", "0 0").
 
         attr(c, image_type, clingraph).
@@ -496,7 +511,7 @@ attr(main(model), order, 1).
     attr(content(model), class, ("d-flex";"flex-row")).
 
             elem(title(model), label, section(model)).
-            attr(title(model), label, "Model").
+            attr(title(model), label, "Reference model").
 
             _any_or_browse(A):-_clinguin_browsing, _clinguin_model(A).
             _any_or_browse(A):-not _clinguin_browsing, _any(A).
@@ -613,8 +628,8 @@ attr(main(model), order, 1).
 % # Menu bar
 % -----------
     elem(menu_bar, menu_bar, w).
-    attr(menu_bar, title, "Clinguin").
-    attr(menu_bar, icon, "fa-desktop").
+    attr(menu_bar, title, "ASPlain").
+    attr(menu_bar, icon, "fa-comments").
 
         elem(menu_bar_restart, button, menu_bar).
         attr(menu_bar_restart, label, "Restart").

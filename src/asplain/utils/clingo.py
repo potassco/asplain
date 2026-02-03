@@ -5,7 +5,7 @@ import logging
 from importlib.resources import path
 from typing import List, Sequence, Tuple
 
-from clingo import Control, Symbol
+from clingo import Control, Symbol, SymbolType
 
 from asplain.utils.logging import colored
 
@@ -112,7 +112,7 @@ def assert_no_errors(symbols: List[Symbol], function_name: str = "error") -> Non
         raise RuntimeError(m)
 
 
-def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "reference") -> List[Symbol]:
+def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "ref") -> List[Symbol]:
     """
     Extract model symbols from the program graph string.
     Placeholder implementation.
@@ -121,17 +121,14 @@ def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "referen
     shown = []
     for s in model_pg_symbols:
         is_model_node = (
-            s.match("node", 2)
-            and s.arguments[0].match("model", 1)
-            and s.arguments[0].arguments[0].match(graph_name, 0)
-            and s.arguments[1].match("atom", 1)
+            s.match("model", 2) and s.arguments[1].match(graph_name, 0) and s.arguments[0].type == SymbolType.Function
         )
         if is_model_node:
-            model.append(s.arguments[1].arguments[0])
+            model.append(s.arguments[0])
             continue
-        is_show_tag = s.match("tag", 3) and s.arguments[2].match("shown", 0)
+        is_show_tag = s.match("tag", 2) and s.arguments[1].match("shown", 0)
         if is_show_tag:
-            shown.append(s.arguments[1].arguments[0])
+            shown.append(s.arguments[0])
 
     model = [s for s in model if s in shown]
     return model
@@ -144,11 +141,12 @@ def print_foil(foil_pg: str) -> None:
     with ctl.solve(yield_=True) as handle:
         model = handle.model()
         foil_atoms = model_symbols(model.symbols(shown=True), "foil")
-
+        # TODO for Hannes: Here use the clorm contrastive graph to to print the rules that were removed / added
+        # You could print the tag for the first order or the position on the file or both
         print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:
-    qi = "".join([f"query({str(s)},include)." for s in query_include])
-    qe = "".join([f"query({str(s)},exclude)." for s in query_exclude])
+    qi = "".join([f"query({str(s)},1)." for s in query_include])
+    qe = "".join([f"query({str(s)},0)." for s in query_exclude])
     return qi + qe
