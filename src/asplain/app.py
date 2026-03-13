@@ -14,6 +14,7 @@ from asplain import (
     set_foil_ctl,
     set_model_subgraphs_ctl,
 )
+from asplain.pruning.pruners import PruningMethod, prune_explanation_graph
 from asplain.utils.clingo import (
     divide_space_string,
     get_query_prg,
@@ -310,7 +311,14 @@ class AsplainApp(Application):
                             log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
                         foil_found = True
-                        explanation_graph = symbols_to_prg(list(foil_model.symbols(shown=True)))
+
+                        # DO PRUNING HERE
+                        explanation_symbols = prune_explanation_graph(
+                            list(foil_model.symbols(shown=True)),
+                            method=PruningMethod.ORPHANS,
+                        )
+                        explanation_graph = symbols_to_prg(explanation_symbols)
+
                         save_out(
                             f"contrastive_pg_{model.number}_{foil_model.number}.lp",
                             explanation_graph,
@@ -358,7 +366,10 @@ class AsplainApp(Application):
                             continue
                         foil_found = True
                         explanation_graph = symbols_to_prg(list(foil_model.symbols(shown=True)))
-                        save_out(f"contrastive_pg_UNSAT_{foil_model.number}.lp", explanation_graph)
+                        save_out(
+                            f"contrastive_pg_UNSAT_{foil_model.number}.lp",
+                            explanation_graph,
+                        )
                         viz_graph(
                             pg=explanation_graph,
                             title="Contrastive Graph",
