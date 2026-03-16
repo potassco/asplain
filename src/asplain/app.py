@@ -58,6 +58,7 @@ class AsplainApp(Application):
 
         self._open: Flag = Flag()
 
+        self._pruning_method: PruningMethod = PruningMethod.NONE
         if INSTALLED_LLMS:
             self._llm_tag: Optional[ModelTag] = None
 
@@ -143,6 +144,13 @@ class AsplainApp(Application):
                 return True
         return False
 
+    def parse_pruning(self, value: str) -> bool:
+        if value in [str(m) for m in PruningMethod.__members__]:
+            method = PruningMethod[value]
+            self._pruning_method = method
+            return True
+        return False
+
     def register_options(self, options: ApplicationOptions) -> None:
         group = colored("blue", "Asplain Options")
 
@@ -220,6 +228,19 @@ class AsplainApp(Application):
                 self.parse_llm_tag,
                 argument="<llm-tag>",
             )
+
+        options.add(
+            group,
+            "prune,p",
+            dedent(
+                f"""\
+                Apply pruning to the explanation graph to simplify it.
+                            <method> ={{{"|".join([str(m) for m in PruningMethod.__members__])}}}
+                """
+            ),
+            self.parse_pruning,
+            argument="<method>",
+        )
 
         options.add(
             group,
@@ -317,8 +338,7 @@ class AsplainApp(Application):
                         # DO PRUNING HERE
                         explanation_symbols = prune_explanation_graph(
                             list(foil_model.symbols(shown=True)),
-                            method=PruningMethod.PATHS,
-                            path_depth=1,
+                            method=self._pruning_method,
                         )
                         explanation_graph = symbols_to_prg(explanation_symbols)
 

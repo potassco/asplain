@@ -30,7 +30,7 @@ def prune_explanation_graph(
     method: PruningMethod,
     path_depth: int = 0,
 ) -> List[clingo.Symbol]:
-    log.info(f"PRUNING ({method})")
+    log.info(f"Pruning Graph using Method: {method}")
     match method:
         case PruningMethod.NONE:
             return list(symbols)
