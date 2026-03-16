@@ -10,6 +10,7 @@ DIR_ENCODINGS = Path(__file__).parent.parent / "encodings/pruning"
 ENCODING_PATHS = "paths.lp"
 ENCODING_ORPHANS = "orphans.lp"
 ENCODING_INCLUSION_FILTER = "inclusion_filter.lp"
+SIGNATURE_PATH_DEPTH = "path_depth"
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +25,11 @@ class PruningMethod(Enum):
     PATHS = "Path"
 
 
-def prune_explanation_graph(symbols: Iterable[clingo.Symbol], method: PruningMethod) -> List[clingo.Symbol]:
+def prune_explanation_graph(
+    symbols: Iterable[clingo.Symbol],
+    method: PruningMethod,
+    path_depth: int = 0,
+) -> List[clingo.Symbol]:
     log.info(f"PRUNING ({method})")
     match method:
         case PruningMethod.NONE:
@@ -32,14 +37,19 @@ def prune_explanation_graph(symbols: Iterable[clingo.Symbol], method: PruningMet
         case PruningMethod.ORPHANS:
             return prune_orphans(symbols=symbols)
         case PruningMethod.PATHS:
-            return prune_path(symbols=symbols)
+            return prune_path(symbols=symbols, depth=path_depth)
 
 
 def prune_orphans(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
     return solve_program(symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER])
 
 
-def prune_path(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
+def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.Symbol]:
+    symbols = list(symbols)
+    # Add depth symbol
+    depth_symbol = clingo.parse_term(f"{SIGNATURE_PATH_DEPTH}({depth})")
+    symbols.append(depth_symbol)
+    # Solve and return model
     return solve_program(symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER])
 
 

@@ -318,6 +318,7 @@ class AsplainApp(Application):
                         explanation_symbols = prune_explanation_graph(
                             list(foil_model.symbols(shown=True)),
                             method=PruningMethod.PATHS,
+                            path_depth=1,
                         )
                         explanation_graph = symbols_to_prg(explanation_symbols)
 
