@@ -9,27 +9,27 @@
 #const dim=2.
 
 number(1..2**2).
-% @label("Each initial value has to be in the solution")
+% @label("Initals assign cell ({},{}) the value {}",(X,Y,N,))
 sudoku(X,Y,N) :- initial(X,Y,N).
-% @label("Each cell is assigned a value")
+% @label("Choose a value for cell ({},{})",(X,Y,))
 {sudoku(X,Y,N): number(N)} :- number(X), number(Y).
 % Cardinality
-% @label("Each cell can only have one value")
+% @label("Cell ({},{}) cannot have two different values",(X,Y,))
 :- number(X), number(Y), sudoku(X,Y,N), sudoku(X,Y,N2), N>N2.
-% @label("Each filled cell is marked as defined")
+% @label("Cell ({},{}) has value {} so it's defined",(X,Y,V,))
 defined(X,Y):- sudoku(X,Y,V).
-% @label("Every cell has to be defined")
+% @label("Cell ({},{}) has to be defined",(X,Y,))
 :- number(X), number(Y), not defined(X,Y).
 % Sudoku Rules
-% @label("Each number is only allowed once per row")
+% @label("Number {} cannot be both in row {} and row {}",(N,X1,X2,))
 :- sudoku(X1,Y,N), sudoku(X2,Y,N), X1>X2.
-% @label("Each number is only allowed once per column")
+% @label("Number {} cannot be both in row {} and row {}",(N,Y1,Y2,))
 :- sudoku(X,Y1,N), sudoku(X,Y2,N), Y1>Y2.
 
-% @label("Each cell is assigned to a subgrid")
-subgrid(X,Y,(((X-1)/dim)*dim+((Y-1)/dim))) :- number(X), number(Y).
-% @label("Each number is only allowed once per subgrid")
-:- sudoku(X,Y,V), sudoku(X',Y',V), subgrid(X,Y,S), subgrid(X',Y',S), (X,Y)!=(X',Y').
+% @label("Cell ({},{}) is in subgrid {}",(X,Y,S,))
+subgrid(X,Y,S) :- number(X), number(Y), S=(((X-1)/dim)*dim+((Y-1)/dim)).
+% @label("Subgrid {} cannot have value {} in both cell ({},{}) and ({},{})",(S,V,X,Y,X2,Y2,))
+:- sudoku(X,Y,V), sudoku(X2,Y2,V), subgrid(X,Y,S), subgrid(X2,Y2,S), (X,Y)!=(X2,Y2).
 
 #show sudoku/3.
 #show initial/3.
