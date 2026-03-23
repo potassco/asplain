@@ -7,12 +7,24 @@ reachable_query(N,T) :- query(N, _), node(N,T).
 % Always include abductions with distance 0
 reachable_abduced(N,T) :- abduced(_, N), node(N,T).
 
-reachable_query(N,T) :- edge((N,M),_), node(N,T), reachable_query(M,_).
+reachable_query(M,T) :- edge((N,M),_), node(M,T), reachable_query(N,_).
 reachable_abduced(M,T) :- edge((N,M),_), node(M,T), reachable_abduced(N,_).
 
-% FIND PATH
+% FIND INTERSECTIONS
 
-node_path(N,T) :- reachable_query(N,T), reachable_abduced(N,T).
+intersection(N,T) :- reachable_query(N,T), reachable_abduced(N,T).
+reachable_query_back(N,T) :- intersection(N,T).
+reachable_abduced_back(N,T) :- intersection(N,T).
+
+% BACK DIRECTION
+
+reachable_query_back(N,T) :- edge((N,M),_), node(N,T), reachable_query_back(M,_).
+reachable_abduced_back(N,T) :- edge((N,M),_), node(N,T), reachable_abduced_back(M,_).
+
+% PATH INCLUSIONS
+
+node_path(N,T) :- reachable_query(N,T), reachable_query_back(N,T).
+node_path(N,T) :- reachable_abduced(N,T), reachable_abduced_back(N,T).
 
 % DEPTH
 
