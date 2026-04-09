@@ -61,3 +61,11 @@ with the corresponding image. Hover on the nodes to see their labels.
 ```console
 asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp --cost-encoding src/asplain/encodings/costs/model-difference.lp --open
 ```
+
+### User interface
+
+To open the user interface, use the `clinguin` command as follows:
+
+````console
+clinguin client-server --domain-files examples/james-bond/encoding.lp --ui-files src/asplain/encodings/ui.lp --custom-classes src/asplain/ui --backend ASPlainBackend  --cost-encoding src/asplain/encodings/costs/program-difference.lp```
+````
