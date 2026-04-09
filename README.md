@@ -11,6 +11,10 @@ To install the project, run
 pip install .
 ```
 
+For rendering the images with cligraph, Graphviz needs to be installed
+following `graphviz <https://www.graphviz.org/download/>`\_ (version 2.50 or
+greater).
+
 ## Usage
 
 Run the following for basic usage information:
