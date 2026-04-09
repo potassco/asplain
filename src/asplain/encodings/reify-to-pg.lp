@@ -19,7 +19,7 @@ error("Sum not supported") :- rule(H,sum(B)).
 % Gather all rules and atoms
 
 label(rule(H,B), @label(rule(H,B))) :- rule(H,B). % <-------- Correct line
-%label(rule(H,B), ID) :- tag(rule(H,B),rule_id(ID)). % <--------  HACK just for the paper
+% label(rule(H,B), ID) :- tag(rule(H,B),rule_id(ID)). % <--------  HACK just for the paper
 node(A,atom) :- symbol_literal(A,L).
 node(R,rule(disjunction)) :- label(rule(disjunction(H),B), R).
 node(R,rule(choice)) :- label(rule(choice(H),B), R).

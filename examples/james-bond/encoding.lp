@@ -21,5 +21,10 @@ a.
 % @removable
 c.
 
+% Addable rules can optionally be added in a program called asplain
+% This way, they will not be considered in the clingo or clinguin calls,
+% but only when running asplain
+
+#program asplain.
 % @addable
 t.

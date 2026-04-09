@@ -333,7 +333,7 @@ class AsplainApp(Application):
                             continue
                         foil_found = True
 
-                        print([str(a) for a in foil_model.symbols(shown=True)])
+                        # print([str(a) for a in foil_model.symbols(shown=True)])
 
                         # DO PRUNING HERE
                         explanation_symbols = prune_explanation_graph(

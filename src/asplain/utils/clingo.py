@@ -149,9 +149,9 @@ def print_foil(foil_pg: str) -> None:
             if node.type == "atom" and "foil" in node.models:
                 foil_atoms.append(node.id)
             if node.programs == set(["ref"]):
-                added_rules.append(node.tags["first_order"])
-            if node.programs == set(["foil"]):
                 removed_rules.append(node.tags["first_order"])
+            if node.programs == set(["foil"]):
+                added_rules.append(node.tags["first_order"])
 
         print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
         if len(removed_rules) > 0:
