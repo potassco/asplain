@@ -1,3 +1,6 @@
+#const dim=2.
+
+
 % @removable
 initial(1,1,1).
 % @removable

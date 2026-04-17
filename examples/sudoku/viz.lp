@@ -1,0 +1,17 @@
+pos(X,Y):-sudoku(X,Y,_).
+%%%%%%%%%%%%%%%%%%%%%%%% Visualization
+graph(sudoku).
+
+% Nodes
+node(pos(X,Y), sudoku):- pos(X,Y).
+attr(node, pos(X,Y), label, V):- sudoku(X,Y,V).
+attr(node, pos(X,Y), shape, square):- sudoku(X,Y,V).
+attr(node, pos(X,Y), style, filled):- sudoku(X,Y,V).
+attr(node, pos(X,Y), fontsize, 30):- sudoku(X,Y,V).
+attr(node, pos(X,Y), fontname, "CMU Serif"):- sudoku(X,Y,V).
+attr(node, pos(X,Y), width, "1"):- sudoku(X,Y,V).
+attr(node, pos(X,Y), pos, @pos(X,Y)):- pos(X,Y).
+attr(node, pos(X,Y), fillcolor, @color(blue,50)):- pos(X,Y), (((X-1)/D)+((Y-1)/D))\2==0, dim(D).
+attr(node, pos(X,Y), fillcolor, white):- pos(X,Y), (((X-1)/D)+((Y-1)/D))\2==1, dim(D).
+attr(node, pos(X,Y), fontcolor, gray60):- sudoku(X,Y,V), not initial(X,Y,_).
+attr(node, pos(X,Y), penwidth, "0.5"):- sudoku(X,Y,V).

@@ -1,0 +1,168 @@
+------ asplain encoding.lp --stats -q --query 'sudoku(2,2,2)' --prune CHANGES --prune ORPHANS instance9x9.lp ------
+Asplain
+  Program Graph
+    time     : 9.32
+    edge     : 39373
+    rule     : 13352
+    atom     : 930
+  Reference Graph
+    time     : 1.41
+  Contrastive Graph
+    time     : 1.15
+    pruning_time: 1.2
+    edge     : 498
+    rule     : 262
+    atom     : 166
+  Cost encoding: 0
+  Pruning methods: 2
+  Explanations: 1
+  Number of changes
+    added    : 0
+    removed  : 26
+------ asplain encoding.lp --stats -q --query 'sudoku(2,2,2)' --prune CHANGES --prune ORPHANS --cost-encoding ../../src/asplain/encodings/costs/model-difference.lp instance9x9.lp ------
+Asplain
+  Program Graph
+    time     : 9.45
+    edge     : 39373
+    rule     : 13352
+    atom     : 930
+  Reference Graph
+    time     : 1.33
+  Contrastive Graph
+    time     : 12.4
+    pruning_time: 1.22
+    edge     : 36
+    rule     : 19
+    atom     : 12
+  Cost encoding: 1
+  Pruning methods: 2
+  Explanations: 1
+  Number of changes
+    added    : 0
+    removed  : 2
+------ asplain encoding.lp --stats -q --query 'sudoku(2,2,2)' instance9x9.lp ------
+Asplain
+  Program Graph
+    time     : 9.97
+    edge     : 39373
+    rule     : 13352
+    atom     : 930
+  Reference Graph
+    time     : 1.37
+  Contrastive Graph
+    time     : 1.18
+    pruning_time: 0.06
+    edge     : 39373
+    rule     : 13352
+    atom     : 930
+  Cost encoding: 0
+  Pruning methods: 0
+  Explanations: 1
+  Number of changes
+    added    : 0
+    removed  : 26
+------ asplain encoding.lp --stats -q --query 'sudoku(2,2,2)' --cost-encoding ../../src/asplain/encodings/costs/model-difference.lp instance9x9.lp ------
+Asplain
+  Program Graph
+    time     : 9.29
+    edge     : 39373
+    rule     : 13352
+    atom     : 930
+  Reference Graph
+    time     : 1.29
+  Contrastive Graph
+    time     : 12.44
+    pruning_time: 0.07
+    edge     : 39373
+    rule     : 13352
+    atom     : 930
+  Cost encoding: 1
+  Pruning methods: 0
+  Explanations: 1
+  Number of changes
+    added    : 0
+    removed  : 2
+------ asplain encoding.lp --stats -q --query 'sudoku(2,2,2)' --prune CHANGES --prune ORPHANS instance4x4.lp ------
+Asplain
+  Program Graph
+    time     : 0.43
+    edge     : 1573
+    rule     : 557
+    atom     : 105
+  Reference Graph
+    time     : 0.06
+  Contrastive Graph
+    time     : 0.05
+    pruning_time: 0.06
+    edge     : 30
+    rule     : 16
+    atom     : 10
+  Cost encoding: 0
+  Pruning methods: 2
+  Explanations: 1
+  Number of changes
+    added    : 0
+    removed  : 2
+------ asplain encoding.lp --stats -q --query 'sudoku(2,2,2)' --prune CHANGES --prune ORPHANS --cost-encoding ../../src/asplain/encodings/costs/model-difference.lp instance4x4.lp ------
+Asplain
+  Program Graph
+    time     : 0.43
+    edge     : 1573
+    rule     : 557
+    atom     : 105
+  Reference Graph
+    time     : 0.06
+  Contrastive Graph
+    time     : 0.05
+    pruning_time: 0.06
+    edge     : 15
+    rule     : 8
+    atom     : 5
+  Cost encoding: 1
+  Pruning methods: 2
+  Explanations: 1
+  Number of changes
+    added    : 0
+    removed  : 1
+------ asplain encoding.lp --stats -q --query 'sudoku(2,2,2)' instance4x4.lp ------
+Asplain
+  Program Graph
+    time     : 0.43
+    edge     : 1573
+    rule     : 557
+    atom     : 105
+  Reference Graph
+    time     : 0.05
+  Contrastive Graph
+    time     : 0.05
+    pruning_time: 0
+    edge     : 1573
+    rule     : 557
+    atom     : 105
+  Cost encoding: 0
+  Pruning methods: 0
+  Explanations: 1
+  Number of changes
+    added    : 0
+    removed  : 2
+------ asplain encoding.lp --stats -q --query 'sudoku(2,2,2)' --cost-encoding ../../src/asplain/encodings/costs/model-difference.lp instance4x4.lp ------
+Asplain
+  Program Graph
+    time     : 0.42
+    edge     : 1573
+    rule     : 557
+    atom     : 105
+  Reference Graph
+    time     : 0.05
+  Contrastive Graph
+    time     : 0.05
+    pruning_time: 0
+    edge     : 1573
+    rule     : 557
+    atom     : 105
+  Cost encoding: 1
+  Pruning methods: 0
+  Explanations: 1
+  Number of changes
+    added    : 0
+    removed  : 1

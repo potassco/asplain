@@ -61,7 +61,8 @@ vattr(node,N,style,filled):- vnode(N).
 % Tooltips
 vattr(node,N,tooltip,"<{{rule}}    {{label}}>"):- vnode(N).
 vattr(node,N,(tooltip,rule),@html_escape(S)):- vnode(N), vtag( N, rule_fo(S)).
-vattr(node,N,(tooltip,label),@html_escape(S)):- vnode(N), vtag( N, label(S)).
+vattr(node,N,(tooltip,label),S):- vnode(N), vtag( N, label(S)).
+vattr(node,N,(tooltip,label),@format(F,A)):- vnode(N), vtag( N, label(F,A)).
 
 % Colors
 no_model(N):- vnode(N), not model(N, ref), not model(N, foil).
