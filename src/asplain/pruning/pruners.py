@@ -1,10 +1,9 @@
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import List
+from typing import Iterable, List
 
 import clingo
-from typing_extensions import Iterable
 
 DIR_ENCODINGS = Path(__file__).parent.parent / "encodings/pruning"
 ENCODING_PATHS = "paths.lp"
@@ -49,7 +48,9 @@ def prune_changes(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
 
 
 def prune_orphans(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
-    return solve_program(symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER])
+    return solve_program(
+        symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER]
+    )
 
 
 def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.Symbol]:
@@ -58,10 +59,14 @@ def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.
     depth_symbol = clingo.parse_term(f"{SIGNATURE_PATH_DEPTH}({depth})")
     symbols.append(depth_symbol)
     # Solve and return model
-    return solve_program(symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER])
+    return solve_program(
+        symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER]
+    )
 
 
-def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> List[clingo.Symbol]:
+def solve_program(
+    symbols: Iterable[clingo.Symbol], files: Iterable[str]
+) -> List[clingo.Symbol]:
     control = clingo.Control()
     # Add explanation graph
     control.add(" ".join([f"{str(s)}." for s in symbols]))
