@@ -6,7 +6,7 @@ from typing import Iterable, List
 import clingo
 
 DIR_ENCODINGS = Path(__file__).parent.parent / "encodings/pruning"
-ENCODING_PATHS = "paths.lp"
+ENCODING_PATHS = "paths_new.lp"
 ENCODING_ORPHANS = "orphans.lp"
 ENCODING_CHANGES = "changes.lp"
 ENCODING_INCLUSION_FILTER = "inclusion_filter.lp"
