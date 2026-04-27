@@ -9,6 +9,7 @@ from typing_extensions import Iterable
 DIR_ENCODINGS = Path(__file__).parent.parent / "encodings/pruning"
 ENCODING_PATHS = "paths.lp"
 ENCODING_ORPHANS = "orphans.lp"
+ENCODING_CHANGES = "changes.lp"
 ENCODING_INCLUSION_FILTER = "inclusion_filter.lp"
 SIGNATURE_PATH_DEPTH = "path_depth"
 
@@ -23,6 +24,7 @@ class PruningMethod(Enum):
     NONE = "None"
     ORPHANS = "Orphans"
     PATHS = "Path"
+    CHANGES = "Changes"
 
 
 def prune_explanation_graph(
@@ -38,6 +40,12 @@ def prune_explanation_graph(
             return prune_orphans(symbols=symbols)
         case PruningMethod.PATHS:
             return prune_path(symbols=symbols, depth=path_depth)
+        case PruningMethod.CHANGES:
+            return prune_changes(symbols=symbols)
+
+
+def prune_changes(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
+    return solve_program(symbols=symbols, files=[ENCODING_CHANGES, ENCODING_INCLUSION_FILTER])
 
 
 def prune_orphans(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:

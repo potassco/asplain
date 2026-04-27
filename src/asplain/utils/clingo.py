@@ -135,13 +135,15 @@ def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "ref") -
     return model
 
 
-def print_foil(foil_pg: str) -> None:
+def foil_inspection(foil_pg: str) -> None:
     ctl = Control()
     ctl.add("base", [], foil_pg)
     ctl.ground([("base", [])])
     with ctl.solve(yield_=True) as handle:
         model = handle.model()
+        log.debug("Inspecting foil model")
         graph = Graph("".join([str(s) + "." for s in model.symbols(shown=True)]))
+        log.debug("Constructed graph")
         added_rules = []
         removed_rules = []
         foil_atoms = []
@@ -152,12 +154,17 @@ def print_foil(foil_pg: str) -> None:
                 removed_rules.append(node.tags["first_order"])
             if node.programs == set(["foil"]):
                 added_rules.append(node.tags["first_order"])
+    print("Foil atoms inspected")
+    return foil_atoms, added_rules, removed_rules
 
-        print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
-        if len(removed_rules) > 0:
-            print(colored("red", "            Removed: " + "\t".join([str(s) for s in removed_rules])))
-        if len(added_rules) > 0:
-            print(colored("green", "            Added: " + "\t".join([str(s) for s in added_rules])))
+
+def print_foil(foil_atoms, added_rules, removed_rules) -> None:
+
+    print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
+    if len(removed_rules) > 0:
+        print(colored("red", "            Removed: " + "\t".join([str(s) for s in removed_rules])))
+    if len(added_rules) > 0:
+        print(colored("green", "            Added: " + "\t".join([str(s) for s in added_rules])))
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:

@@ -45,3 +45,4 @@ _autosummary
 site
 
 out/*
+*out/
