@@ -18,10 +18,10 @@ class TagProcess(ABC):
         return hash(self.tag)
 
 
-class ProcessAbducibleRemoved(TagProcess):
+class ProcessChangeRemoved(TagProcess):
     @property
     def tag(self) -> str:
-        return "abducible(removed)"
+        return "optional(removed)"
 
     def process(self) -> None:
-        print("REMOVING tag abducible(removed)")
+        print("REMOVING tag optional(removed)")

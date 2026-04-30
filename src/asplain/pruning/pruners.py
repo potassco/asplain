@@ -65,7 +65,7 @@ def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.
 
 
 def prune_path_undirected(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
-    """Pruning method finding a connecting path between abducibles and query in the graph disregarding edge directions"""
+    """Pruning method finding a connecting path between optional rules and query in the graph disregarding edge directions"""
     symbols = list(symbols)
     return solve_program(symbols=symbols, files=[ENCODING_PATHS_UNDIRECTED, ENCODING_INCLUSION_FILTER])
 

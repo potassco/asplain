@@ -5,7 +5,7 @@ from clorm import FactBase
 from clorm.clingo import ClormControl, ClormModel
 
 from .predicates import Edge, Fired, Model, Node, Program, Query, Tag, TagLabel, TagRuleFirstOrder, World
-from .processes import ProcessAbducibleRemoved, TagProcess
+from .processes import ProcessChangeRemoved, TagProcess
 
 
 @dataclass
@@ -33,7 +33,7 @@ class Graph:
         self._edges: Dict[Tuple[str, str], GraphEdge] = {}
         self._queries: Dict[str, bool] = {}
         self._tag_processes: Set[TagProcess] = {
-            ProcessAbducibleRemoved(),
+            ProcessChangeRemoved(),
         }
 
         self.get_facts(self._graph)

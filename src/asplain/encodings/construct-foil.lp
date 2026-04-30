@@ -1,6 +1,6 @@
 
-{removed(R)}:-abducible(remove, R), program(R, ref).
-{added(R)}:-abducible(add, R), not program(R, ref).
+{removed(R)}:-optional(remove, R), program(R, ref).
+{added(R)}:-optional(add, R), not program(R, ref).
 
 % Nodes that are in the reference and not removed, plus added nodes
 program(N, foil):- program(N, ref), not removed(N).

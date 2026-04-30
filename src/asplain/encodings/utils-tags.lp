@@ -8,7 +8,7 @@ tag(rule(disjunction(H),normal(B)), fact):- rule(disjunction(H),normal(B)),
 % Assumptions removable
 % tag(R, label("Assumed {} as {}",(A,F))):-tag(R, assume(F)), edge((atom(A),R),_).
 % Maybe this next rule should be optional
-% abducible(remove,R):-tag(R, assume(_)).
+% optional(remove,R):-tag(R, assume(_)).
 
 % Labels without vars
 tag(R, label(L,())):-tag(R, label(L)).

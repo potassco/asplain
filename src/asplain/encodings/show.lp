@@ -12,8 +12,8 @@
 % Query
 #show query/2.
 
-% Abducibles (Addable/Removable)
-#show abducible/2.
+% Optional rules (Addable/Removable)
+#show optional/2.
 
 % Query
 #show query/2.
