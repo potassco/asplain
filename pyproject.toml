@@ -10,7 +10,7 @@ requires-python = ">=3.10"
 license = { file = "LICENSE" }
 dynamic = ["version"]
 readme = "README.md"
-dependencies = ["clingo>=5.6.0", "meta-tools-clingo>=0.3.4"]
+dependencies = ["clingo>=5.6.0", "meta-tools-clingo>=0.3.4", "clingraph>=1.2.2"]
 
 [project.urls]
 Homepage = "asplain"

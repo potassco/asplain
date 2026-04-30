@@ -13,6 +13,24 @@ from asplain.utils.clingo import load_encoding
 log = logging.getLogger(__name__)
 
 
+def viz_graph_mock(
+    pg: str,
+    title: str,
+    open: bool = False,
+    name: str = "graph",
+    format: str = "svg",
+) -> dict[str, str]:
+    """
+    Visualize the explanation graph using cligraph
+    Args:
+        pg: The program graph as a string of facts. This might define multiple graphs.
+        title: Title of the graph.
+        open: Whether to open the generated graph image.
+        name: Name format for the output file.
+    """
+    return {}
+
+
 def viz_graph(
     pg: str,
     title: str,

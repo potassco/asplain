@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 from textwrap import dedent
+from time import time
 from typing import Any, Callable, Optional, Sequence
 
 from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
@@ -14,8 +15,10 @@ from asplain import (
     set_foil_ctl,
     set_model_subgraphs_ctl,
 )
+from asplain.pruning.pruners import PruningMethod, prune_explanation_graph
 from asplain.utils.clingo import (
     divide_space_string,
+    foil_inspection,
     get_query_prg,
     model_symbols,
     print_foil,
@@ -23,6 +26,8 @@ from asplain.utils.clingo import (
 )
 from asplain.utils.logging import colored, configure_logging, save_out
 from asplain.utils.viz import viz_graph
+
+# from asplain.utils.viz import viz_graph_mock as viz_graph
 
 try:
     from asplain.llm.models import ModelTag, OpenAIModel
@@ -57,8 +62,15 @@ class AsplainApp(Application):
 
         self._open: Flag = Flag()
 
+        self._pruning_methods: list[PruningMethod] = []
         if INSTALLED_LLMS:
             self._llm_tag: Optional[ModelTag] = None
+
+        self.statistics = {
+            "Program Graph": {},
+            "Reference Graph": {},
+            "Contrastive Graph": {},
+        }
 
     def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
         """
@@ -142,6 +154,13 @@ class AsplainApp(Application):
                 return True
         return False
 
+    def parse_pruning(self, value: str) -> bool:
+        if value in [str(m) for m in PruningMethod.__members__]:
+            method = PruningMethod[value]
+            self._pruning_methods.append(method)
+            return True
+        return False
+
     def register_options(self, options: ApplicationOptions) -> None:
         group = colored("blue", "Asplain Options")
 
@@ -222,6 +241,22 @@ class AsplainApp(Application):
 
         options.add(
             group,
+            "prune,p",
+            dedent(
+                f"""\
+                Apply pruning to the explanation graph to simplify it.
+                Multiple pruning methods can be applied by providing this argument multiple self.statistics.
+                They will be applied in the order they are given.
+                            <method> ={{{"|".join([str(m) for m in PruningMethod.__members__])}}}
+                """
+            ),
+            self.parse_pruning,
+            argument="<method>",
+            multi=True,
+        )
+
+        options.add(
+            group,
             "dynamic-tags",
             dedent(
                 """\
@@ -254,6 +289,33 @@ class AsplainApp(Application):
             self._open,
         )
 
+    def size_for_statistics(self, name: str, pg: str) -> dict[str, int]:
+        """
+        Compute size statistics for a program graph.
+        """
+        ctl = Control(["--warn=none"])
+        ctl.add("base", [], pg)
+        ctl.load(str(os.path.dirname(__file__)) + "/utils/node-count.lp")
+        ctl.ground([("base", [])])
+        with ctl.solve(yield_=True) as hnd:
+            for m in hnd:
+                for s in m.symbols(shown=True):
+                    if s.name == "number" and len(s.arguments) == 2:
+                        category = str(s.arguments[0])
+                        count = s.arguments[1].number
+                        self.statistics[name][category] = count
+
+    def on_statistics(self, step, accu) -> None:
+        self.statistics["Cost encoding"] = len(self._cost_encoding)
+        self.statistics["Pruning methods"] = len(self._pruning_methods)
+        self.statistics["Explanations"] = self._number_explanations
+        self.statistics["Number of changes"] = (
+            {"added": len(self._foil_inspection[1]), "removed": len(self._foil_inspection[2])}
+            if self._foil_inspection
+            else None
+        )
+        accu["Asplain"] = self.statistics
+
     def print_model(self, model: Model, _) -> None:
         symbols = model.symbols(shown=True)
         print(" ".join([str(s) for s in model_symbols(symbols)]))
@@ -263,6 +325,7 @@ class AsplainApp(Application):
         Main entry point.
         """
         # pylint: disable=W0201
+
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
         query_prg = get_query_prg(self._query_include, self._query_exclude)
         cost_prg = ""
@@ -272,31 +335,37 @@ class AsplainApp(Application):
                 with open(cost_file, "r", encoding="utf-8") as cf:
                     cost_prg += cf.read() + "\n"
 
+        start_time = time()
         reference_pg = construct_program_graph(
             list(files),
             constants=self._constants,
             assumptions=self._assumptions,
             dynamic_tags_files=self._dynamic_tags,
         )
+        self.statistics["Program Graph"]["time"] = round(time() - start_time, 2)
         save_out("reference_pg.lp", reference_pg)
         viz_graph(
             pg=reference_pg,
-            title="Reference Graph",
+            title="Program Graph",
             name="reference_pg",
         )
+        self.size_for_statistics("Program Graph", reference_pg)
+        start_time = time()
         model_subgraphs_ctl = set_model_subgraphs_ctl(pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols)
-        with model_subgraphs_ctl.solve(yield_=True) as hnd:
+        with model_subgraphs_ctl.solve(yield_=True, on_statistics=self.on_statistics) as hnd:
             model_found = False
             for model in hnd:
                 model_found = True
                 symbols = model.symbols(shown=True)
                 reference_model_pg = symbols_to_prg(symbols)
+                self.statistics["Reference Graph"]["time"] = round(time() - start_time, 2)
                 save_out(f"reference_model_{model.number}.lp", reference_model_pg)
                 viz_graph(
                     pg=reference_model_pg,
-                    title="Reference Model Graph",
+                    title="Reference Graph",
                     name=f"reference_model_pg_{model.number}",
                 )
+                start_time = time()
                 foil_ctl = set_foil_ctl(
                     pg=reference_model_pg,
                     query_prg=query_prg,
@@ -310,12 +379,28 @@ class AsplainApp(Application):
                             log.info("Skipping non-optimal foil model %s", foil_model.number)
                             continue
                         foil_found = True
-                        explanation_graph = symbols_to_prg(list(foil_model.symbols(shown=True)))
+                        self.statistics["Contrastive Graph"]["time"] = round(time() - start_time, 2)
+
+                        start_time = time()
+                        explanation_symbols = list(foil_model.symbols(shown=True))
+                        for method in self._pruning_methods:
+                            log.info("Applying pruning method %s to foil model", method)
+                            explanation_symbols = prune_explanation_graph(
+                                explanation_symbols,
+                                method=method,
+                            )
+                        self.statistics["Contrastive Graph"]["pruning_time"] = round(time() - start_time, 2)
+                        self.size_for_statistics("Contrastive Graph", symbols_to_prg(explanation_symbols))
+
+                        explanation_graph = symbols_to_prg(explanation_symbols)
+                        log.debug("Saving contrastive explanation...")
                         save_out(
                             f"contrastive_pg_{model.number}_{foil_model.number}.lp",
                             explanation_graph,
                         )
-                        print_foil(explanation_graph)
+                        log.debug("Inspecting foil...")
+                        self._foil_inspection = foil_inspection(explanation_graph)
+                        print_foil(*self._foil_inspection)
 
                         viz_graph(
                             pg=explanation_graph,
@@ -358,13 +443,26 @@ class AsplainApp(Application):
                             continue
                         foil_found = True
                         explanation_graph = symbols_to_prg(list(foil_model.symbols(shown=True)))
-                        save_out(f"contrastive_pg_UNSAT_{foil_model.number}.lp", explanation_graph)
+                        save_out(
+                            f"contrastive_pg_UNSAT_{foil_model.number}.lp",
+                            explanation_graph,
+                        )
                         viz_graph(
                             pg=explanation_graph,
                             title="Contrastive Graph",
                             name=f"contrastive_pg_UNSAT_{foil_model.number}",
                             open=self._open.flag,
                         )
-                        print_foil(explanation_graph)
+                        explanation_symbols = list(foil_model.symbols(shown=True))
+                        for method in self._pruning_methods:
+                            log.info("Applying pruning method %s to foil model", method)
+                            explanation_symbols = prune_explanation_graph(
+                                explanation_symbols,
+                                method=method,
+                            )
+                        explanation_graph = symbols_to_prg(explanation_symbols)
+
+                        self._foil_inspection = foil_inspection(explanation_graph)
+                        print_foil(*self._foil_inspection)
                     if not foil_found:
                         log.warning("No foil found.")

@@ -29,7 +29,7 @@ drive(clare).
 
 
 
-
+#program asplain.
 % @label("{} is resisting the authorities",(P,))
 % @addable
 resist(P):-person(P).

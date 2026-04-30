@@ -1,9 +1,9 @@
 """Wrapper for the Google Gemini model"""
 
 import os
-import dotenv
 from typing import Optional
 
+import dotenv
 from google import genai
 
 from ..templates import Template

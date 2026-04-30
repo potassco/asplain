@@ -263,8 +263,8 @@ class ASPlainBackend(ClingoBackend):
         self._reference_model_pg = None
 
         if not self._is_unsat():
-            print("----------Computing reference model graph")
-            print(self._model)
+            # print("----------Computing reference model graph")
+            # print(self._model)
             model_subgraphs_ctl = set_model_subgraphs_ctl(pg=self._reference_pg, model_symbols=self._model)
             with model_subgraphs_ctl.solve(yield_=True) as hnd:
                 for model in hnd:
@@ -356,7 +356,7 @@ class ASPlainBackend(ClingoBackend):
                     foil_model.cost,
                 )
                 foil_model = next(self._explanation_iterator)
-            print(foil_model.cost)
+            # print(foil_model.cost)
             foil_pg_and_model = foil_model.symbols(shown=True)  # shown should include the foil model and pg
             self._contrastive_pg = construct_contrastive(
                 pg=symbols_to_prg(foil_pg_and_model),

@@ -42,12 +42,8 @@ class Graph:
         self.compute_queries()
 
         # for node in self._nodes.values():
-        #     print("N", node)
         # for edge in self._edges.values():
-        #     print("E", edge)
         # for query in self._queries.items():
-        #     print("Q", query)
-        # print("JSON", self.json())
 
     def json(
         self,
@@ -91,63 +87,64 @@ class Graph:
         if self._facts is None:
             return
         query_nodes = self._facts.query(Node).select(Node)
+        nodes = {}
         for node in query_nodes.all():
-            node_id = str(node.element)
-            node_type = str(node.type)
-            model_worlds = self.get_node_model_worlds(node)
-            program_worlds = self.get_node_program_worlds(node)
-            tags = self.get_node_tags(node)
-            fired = self.get_node_fired(node)
+            nodes[str(node.element)] = {
+                "type": str(node.type),
+                "models": set(),
+                "programs": set(),
+                "tags": {},
+                "fired": False,
+            }
+
+        self.set_node_model_worlds(nodes)
+        self.set_node_program_worlds(nodes)
+        self.set_node_tags(nodes)
+        self.set_node_fired(nodes)
+        for node_id, node in nodes.items():
             graph_node = GraphNode(
                 id=node_id,
-                type=node_type,
-                models={w.value for w in model_worlds},
-                programs={w.value for w in program_worlds},
-                tags=tags,
-                fired=fired,
+                type=node["type"],
+                models=node["models"],
+                programs=node["programs"],
+                tags=node["tags"],
+                fired=node["fired"],
             )
             self._nodes[node_id] = graph_node
 
-    def get_node_fired(self, node: Node) -> bool:
+    def set_node_fired(self, nodes) -> None:
         if self._facts is None:
-            return False
-        query_fired = self._facts.query(Fired).where(Fired.node == node.element)
-        for _ in query_fired.all():
-            return True
-        return False
+            return
+        for qf in self._facts.query(Fired).all():
+            nodes[str(qf.node)]["fired"] = True
 
-    def get_node_model_worlds(self, node: Node) -> Set[World]:
+    def set_node_model_worlds(self, nodes) -> None:
         if self._facts is None:
-            return set()
-        query_models = self._facts.query(Model).where(Model.node == node.element).select(Model)
-        worlds = {model.world for model in query_models.all()}
-        return worlds
+            return
+        for m in self._facts.query(Model).all():
+            nodes[str(m.node)]["models"].add(m.world)
 
-    def get_node_program_worlds(self, node: Node) -> Set[World]:
+    def set_node_program_worlds(self, nodes) -> None:
         if self._facts is None:
-            return set()
-        query_models = self._facts.query(Program).where(Program.node == node.element).select(Program)
-        worlds = {model.world for model in query_models.all()}
-        return worlds
+            return
+        for p in self._facts.query(Program).all():
+            nodes[str(p.node)]["programs"].add(p.world)
 
-    def get_node_tags(self, node: Node) -> Dict[str, str | bool | Dict[str, str | int]]:
+    def set_node_tags(self, nodes) -> None:
         if self._facts is None:
             return {}
-        query_tags = self._facts.query(Tag).where(Tag.node == node.element).select(Tag)
-        tags = {}
-        for tag in query_tags.all():
+        for tag in self._facts.query(Tag).all():
             if str(tag.tag) == "shown":
                 continue
             match tag.tag:
                 case str():
-                    tags[str(tag.tag)] = True
+                    nodes[str(tag.node)]["tags"][str(tag.tag)] = True
                 case TagLabel():
-                    tags["label"] = tag.tag.label.format(
+                    nodes[str(tag.node)]["tags"]["label"] = tag.tag.label.format(
                         *[str(a) for a in tag.tag.variables.symbol.arguments]
                     )  # TODO: Add variables here!
                 case TagRuleFirstOrder():
-                    tags["first_order"] = tag.tag.first_order
-        return tags
+                    nodes[str(tag.node)]["tags"]["first_order"] = tag.tag.first_order
 
     def compute_edges(self) -> None:
         if self._facts is None:
