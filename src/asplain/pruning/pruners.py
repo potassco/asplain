@@ -1,13 +1,13 @@
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import List
+from typing import Iterable, List
 
 import clingo
-from typing_extensions import Iterable
 
 DIR_ENCODINGS = Path(__file__).parent.parent / "encodings/pruning"
 ENCODING_PATHS = "paths.lp"
+ENCODING_PATHS_UNDIRECTED = "paths_undirected.lp"
 ENCODING_ORPHANS = "orphans.lp"
 ENCODING_CHANGES = "changes.lp"
 ENCODING_INCLUSION_FILTER = "inclusion_filter.lp"
@@ -24,6 +24,7 @@ class PruningMethod(Enum):
     NONE = "None"
     ORPHANS = "Orphans"
     PATHS = "Path"
+    PATHS_UNDIRECTED = "Path Undirected"
     CHANGES = "Changes"
 
 
@@ -40,6 +41,8 @@ def prune_explanation_graph(
             return prune_orphans(symbols=symbols)
         case PruningMethod.PATHS:
             return prune_path(symbols=symbols, depth=path_depth)
+        case PruningMethod.PATHS_UNDIRECTED:
+            return prune_path_undirected(symbols=symbols)
         case PruningMethod.CHANGES:
             return prune_changes(symbols=symbols)
 
@@ -59,6 +62,12 @@ def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.
     symbols.append(depth_symbol)
     # Solve and return model
     return solve_program(symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER])
+
+
+def prune_path_undirected(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
+    """Pruning method finding a connecting path between abducibles and query in the graph disregarding edge directions"""
+    symbols = list(symbols)
+    return solve_program(symbols=symbols, files=[ENCODING_PATHS_UNDIRECTED, ENCODING_INCLUSION_FILTER])
 
 
 def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> List[clingo.Symbol]:
