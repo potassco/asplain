@@ -154,7 +154,6 @@ def foil_inspection(foil_pg: str) -> None:
                 removed_rules.append(node.tags["first_order"])
             if node.programs == set(["foil"]):
                 added_rules.append(node.tags["first_order"])
-    print("Foil atoms inspected")
     return foil_atoms, added_rules, removed_rules
 
 
