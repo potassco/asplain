@@ -36,6 +36,7 @@ def reify_program(
     Returns:
         The reified program as a string.
     """
+    constants = constants or {}
     extensions = [
         TagExtension(include_program=True, include_loc=True, include_id=True),
         ShowExtension(),
@@ -55,6 +56,7 @@ def reify_program(
 
 
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 def construct_program_graph(
     file_paths: List[str],
     prg: str = "",
@@ -104,7 +106,9 @@ def construct_program_graph(
     return symbols_to_prg(list(model_symbols))
 
 
-def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = None) -> Control:
+def set_model_subgraphs_ctl(
+    pg: str, ctl: Optional[Control] = None, model_symbols: Optional[List[str]] = None
+) -> Control:
     """
     Sets the control object for computing model subgraphs.
     Args:

@@ -1,8 +1,9 @@
 """Visualization utilities for Asplain."""
 
 import logging
+from typing import Any
 
-from clingo import Control, parse_term
+from clingo import Control
 from clingo.script import enable_python
 from clingraph.clingo_utils import ClingraphContext  # type: ignore
 from clingraph.graphviz import compute_graphs, render  # type: ignore
@@ -13,31 +14,13 @@ from asplain.utils.clingo import load_encoding
 log = logging.getLogger(__name__)
 
 
-def viz_graph_mock(
-    pg: str,
-    title: str,
-    open: bool = False,
-    name: str = "graph",
-    format: str = "svg",
-) -> dict[str, str]:
-    """
-    Visualize the explanation graph using cligraph
-    Args:
-        pg: The program graph as a string of facts. This might define multiple graphs.
-        title: Title of the graph.
-        open: Whether to open the generated graph image.
-        name: Name format for the output file.
-    """
-    return {}
-
-
 def viz_graph(
     pg: str,
     title: str,
-    open: bool = False,
+    show: bool = False,
     name: str = "graph",
-    format: str = "svg",
-) -> dict[str, str]:
+    format: str = "svg",  # pylint: disable=redefined-builtin
+) -> dict[str, Any]:
     """
     Visualize the explanation graph using cligraph
     Args:
@@ -57,7 +40,7 @@ def viz_graph(
     ctl.ground([("base", [])], context=ctx)
     ctl.solve(on_model=fb.add_model)
     graphs = compute_graphs(fb, graphviz_type="directed")
-    files = render(graphs, view=open, directory="out", name_format=f"{name}", format=format)
+    files = render(graphs, view=show, directory="out", name_format=f"{name}", format=format)
     if len(files) == 0:
         log.warning("No graphs were generated.")
         return graphs

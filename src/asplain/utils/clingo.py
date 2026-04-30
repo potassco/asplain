@@ -135,7 +135,19 @@ def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "ref") -
     return model
 
 
-def foil_inspection(foil_pg: str) -> None:
+def foil_inspection(foil_pg: str) -> tuple[list[str], list[str], list[str]]:
+    """
+    Inspect the foil program graph to extract the foil model, added and removed rules.
+
+    Args:
+        foil_pg: The program graph of the foil model as a string of facts.
+
+    Returns:
+        A tuple containing three lists:
+        - foil_atoms: The atoms in the foil model.
+        - added_rules: The rules added in the foil model.
+        - removed_rules: The rules removed in the foil model.
+    """
     ctl = Control()
     ctl.add("base", [], foil_pg)
     ctl.ground([("base", [])])
@@ -147,7 +159,7 @@ def foil_inspection(foil_pg: str) -> None:
         added_rules = []
         removed_rules = []
         foil_atoms = []
-        for node in graph._nodes.values():
+        for node in graph._nodes.values():  # pylint: disable=protected-access
             if node.type == "atom" and "foil" in node.models:
                 foil_atoms.append(node.id)
             if node.programs == set(["ref"]):
@@ -157,8 +169,15 @@ def foil_inspection(foil_pg: str) -> None:
     return foil_atoms, added_rules, removed_rules
 
 
-def print_foil(foil_atoms, added_rules, removed_rules) -> None:
+def print_foil(foil_atoms: list[str], added_rules: list[str], removed_rules: list[str]) -> None:
+    """
+    Print the foil model, added and removed rules.
 
+    Args:
+        foil_atoms: The atoms in the foil model.
+        added_rules: The rules added in the foil model.
+        removed_rules: The rules removed in the foil model.
+    """
     print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
     if len(removed_rules) > 0:
         print(colored("red", "            Removed: " + "\t".join([str(s) for s in removed_rules])))
@@ -167,6 +186,16 @@ def print_foil(foil_atoms, added_rules, removed_rules) -> None:
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:
+    """
+    Get the query program string for the given included and excluded query atoms.
+
+    Args:
+        query_include: A list of symbols to include in the query.
+        query_exclude: A list of symbols to exclude from the query.
+
+    Returns:
+        A string representing the query as an ASP program.
+    """
     qi = "".join([f"query({str(s)},1)." for s in query_include])
     qe = "".join([f"query({str(s)},0)." for s in query_exclude])
     return qi + qe

@@ -6,9 +6,9 @@ import os
 import sys
 from textwrap import dedent
 from time import time
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
-from clingo import Application, ApplicationOptions, Control, Flag, Model, parse_term
+from clingo import Application, ApplicationOptions, Control, Flag, Model, Symbol, parse_term
 
 from asplain import (
     construct_program_graph,
@@ -27,8 +27,6 @@ from asplain.utils.clingo import (
 from asplain.utils.logging import colored, configure_logging, save_out
 from asplain.utils.viz import viz_graph
 
-# from asplain.utils.viz import viz_graph_mock as viz_graph
-
 try:
     from asplain.llm.models import ModelTag, OpenAIModel
     from asplain.llm.models.google import GoogleModel
@@ -43,22 +41,23 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
+# pylint: disable=too-many-instance-attributes, too-many-public-methods
 class AsplainApp(Application):
     """Application for reification with extensions."""
 
-    def __init__(self, name, constants: Optional[dict[str, str]] = None) -> None:
+    def __init__(self, name: str, constants: Optional[dict[str, str]] = None) -> None:
         """Initialize AsplainApp."""
         self.program_name = name
         self._log_level = "WARNING"
         self._constants = constants or {}
-        self._query_include = []
-        self._query_exclude = []
-        self._assumptions = []
+        self._query_include: List[Symbol] = []
+        self._query_exclude: List[Symbol] = []
+        self._assumptions: List[Tuple[str, bool]] = []
         self._number_explanations = 1
 
-        self._dynamic_tags = []
-        self._cost_encoding = []
-        self._model_symbols = None
+        self._dynamic_tags: list[str] = []
+        self._cost_encoding: list[str] = []
+        self._model_symbols: Optional[list[str]] = None
 
         self._open: Flag = Flag()
 
@@ -66,7 +65,7 @@ class AsplainApp(Application):
         if INSTALLED_LLMS:
             self._llm_tag: Optional[ModelTag] = None
 
-        self.statistics = {
+        self.statistics: dict[str, Any] = {
             "Program Graph": {},
             "Reference Graph": {},
             "Contrastive Graph": {},
@@ -81,7 +80,7 @@ class AsplainApp(Application):
             if not os.path.isfile(value):
                 raise ValueError(f"File '{value}' does not exist.")
             if not multi:
-                self.__setattr__(attr_name, value)
+                setattr(self, attr_name, value)
             else:
                 current_value = getattr(self, attr_name, [])
                 if not isinstance(current_value, list):
@@ -89,7 +88,7 @@ class AsplainApp(Application):
                     log.error("Setting value to list")
                     current_value = [current_value]
                 current_value.append(value)
-                self.__setattr__(attr_name, current_value)  # Use direct assignment instead of __setattr__
+                setattr(self, attr_name, current_value)
             return True
 
         return setter
@@ -104,7 +103,7 @@ class AsplainApp(Application):
 
         return True
 
-    def parse_assumptions(self, value) -> bool:
+    def parse_assumptions(self, value: str) -> bool:
         """
         Parse assumptions string
         """
@@ -115,25 +114,28 @@ class AsplainApp(Application):
 
         return True
 
-    def parse_number_explanations(self, value) -> bool:
+    def parse_number_explanations(self, value: str) -> bool:
         """
         Parse number of explanations
         """
         self._number_explanations = int(value)
         return True
 
-    def parse_query(self, value) -> bool:
+    def parse_query(self, value: str) -> bool:
         """
         Parse query string
         """
 
         true_queries, false_queries = divide_space_string(value)
-        self._query_include = [str(parse_term(s)) for s in true_queries]
-        self._query_exclude = [str(parse_term(s)) for s in false_queries]
+        self._query_include = [parse_term(s) for s in true_queries]
+        self._query_exclude = [parse_term(s) for s in false_queries]
 
         return True
 
     def parse_model(self, value: str) -> bool:
+        """
+        Save the model command line in the object
+        """
         self.parse_file("_model_file")(value)
         ctl = Control(["1", "--warn=none"])
         ctl.load(value)
@@ -147,6 +149,9 @@ class AsplainApp(Application):
         return False
 
     def parse_llm_tag(self, value: str) -> bool:
+        """
+        Save the LLM tag for prompting in the object
+        """
         if INSTALLED_LLMS:
             if value in [str(m) for m in ModelTag.__members__]:
                 tag = ModelTag[value]
@@ -155,6 +160,9 @@ class AsplainApp(Application):
         return False
 
     def parse_pruning(self, value: str) -> bool:
+        """
+        Save the pruning method in the object
+        """
         if value in [str(m) for m in PruningMethod.__members__]:
             method = PruningMethod[value]
             self._pruning_methods.append(method)
@@ -162,6 +170,7 @@ class AsplainApp(Application):
         return False
 
     def register_options(self, options: ApplicationOptions) -> None:
+        """Register command line options."""
         group = colored("blue", "Asplain Options")
 
         options.add(
@@ -289,7 +298,7 @@ class AsplainApp(Application):
             self._open,
         )
 
-    def size_for_statistics(self, name: str, pg: str) -> dict[str, int]:
+    def size_for_statistics(self, name: str, pg: str) -> dict[str, Any]:
         """
         Compute size statistics for a program graph.
         """
@@ -305,10 +314,15 @@ class AsplainApp(Application):
                         count = s.arguments[1].number
                         self.statistics[name][category] = count
 
-    def on_statistics(self, step, accu) -> None:
-        self.statistics["Cost encoding"] = len(self._cost_encoding)
-        self.statistics["Pruning methods"] = len(self._pruning_methods)
-        self.statistics["Explanations"] = self._number_explanations
+        return self.statistics[name]  # type: ignore
+
+    def on_statistics(self, _: Any, accu: dict[str, Any]) -> None:
+        """
+        Callback to collect statistics after solving
+        """
+        self.statistics["Cost encoding"] = {"count": len(self._cost_encoding)}
+        self.statistics["Pruning methods"] = {"count": len(self._pruning_methods)}
+        self.statistics["Explanations"] = {"count": self._number_explanations}
         self.statistics["Number of changes"] = (
             {"added": len(self._foil_inspection[1]), "removed": len(self._foil_inspection[2])}
             if self._foil_inspection
@@ -316,15 +330,17 @@ class AsplainApp(Application):
         )
         accu["Asplain"] = self.statistics
 
-    def print_model(self, model: Model, _) -> None:
+    def print_model(self, model: Model, _) -> None:  # type: ignore
+        """Print the model's symbols."""
         symbols = model.symbols(shown=True)
         print(" ".join([str(s) for s in model_symbols(symbols)]))
 
-    def main(self, ctl: Control, files: Sequence[str]) -> None:
+    def main(self, control: Control, files: Sequence[str]) -> None:
         """
         Main entry point.
         """
         # pylint: disable=W0201
+        # pylint: disable=too-many-branches, too-many-statements
 
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
         query_prg = get_query_prg(self._query_include, self._query_exclude)
@@ -351,8 +367,8 @@ class AsplainApp(Application):
         )
         self.size_for_statistics("Program Graph", reference_pg)
         start_time = time()
-        model_subgraphs_ctl = set_model_subgraphs_ctl(pg=reference_pg, ctl=ctl, model_symbols=self._model_symbols)
-        with model_subgraphs_ctl.solve(yield_=True, on_statistics=self.on_statistics) as hnd:
+        model_subgraphs_ctl = set_model_subgraphs_ctl(pg=reference_pg, ctl=control, model_symbols=self._model_symbols)
+        with model_subgraphs_ctl.solve(yield_=True, on_statistics=self.on_statistics) as hnd:  # type: ignore
             model_found = False
             for model in hnd:
                 model_found = True
@@ -406,14 +422,14 @@ class AsplainApp(Application):
                             pg=explanation_graph,
                             title="Contrastive Graph",
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
-                            open=self._open.flag,
+                            show=self._open.flag,
                         )
                         if INSTALLED_LLMS:
                             if self._llm_tag is not None:
                                 # Prompt the LLM
                                 if self._llm_tag.value.openai is not None:
                                     log.info("Using OpenAI API")
-                                    llm = OpenAIModel(model_tag=self._llm_tag)
+                                    llm: Union[OpenAIModel, GoogleModel] = OpenAIModel(model_tag=self._llm_tag)
                                 elif self._llm_tag.value.google is not None:
                                     log.info("Using Google API")
                                     llm = GoogleModel(model_tag=self._llm_tag)
@@ -451,7 +467,7 @@ class AsplainApp(Application):
                             pg=explanation_graph,
                             title="Contrastive Graph",
                             name=f"contrastive_pg_UNSAT_{foil_model.number}",
-                            open=self._open.flag,
+                            show=self._open.flag,
                         )
                         explanation_symbols = list(foil_model.symbols(shown=True))
                         for method in self._pruning_methods:
