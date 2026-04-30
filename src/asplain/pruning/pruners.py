@@ -48,15 +48,11 @@ def prune_explanation_graph(
 
 
 def prune_changes(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
-    return solve_program(
-        symbols=symbols, files=[ENCODING_CHANGES, ENCODING_INCLUSION_FILTER]
-    )
+    return solve_program(symbols=symbols, files=[ENCODING_CHANGES, ENCODING_INCLUSION_FILTER])
 
 
 def prune_orphans(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
-    return solve_program(
-        symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER]
-    )
+    return solve_program(symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER])
 
 
 def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.Symbol]:
@@ -65,21 +61,16 @@ def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.
     depth_symbol = clingo.parse_term(f"{SIGNATURE_PATH_DEPTH}({depth})")
     symbols.append(depth_symbol)
     # Solve and return model
-    return solve_program(
-        symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER]
-    )
+    return solve_program(symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER])
 
 
 def prune_path_undirected(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
+    """Pruning method finding a connecting path between abducibles and query in the graph disregarding edge directions"""
     symbols = list(symbols)
-    return solve_program(
-        symbols=symbols, files=[ENCODING_PATHS_UNDIRECTED, ENCODING_INCLUSION_FILTER]
-    )
+    return solve_program(symbols=symbols, files=[ENCODING_PATHS_UNDIRECTED, ENCODING_INCLUSION_FILTER])
 
 
-def solve_program(
-    symbols: Iterable[clingo.Symbol], files: Iterable[str]
-) -> List[clingo.Symbol]:
+def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> List[clingo.Symbol]:
     control = clingo.Control()
     # Add explanation graph
     control.add(" ".join([f"{str(s)}." for s in symbols]))
