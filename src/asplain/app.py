@@ -10,18 +10,12 @@ from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
 from clingo import Application, ApplicationOptions, Control, Flag, Model, Symbol, parse_term
 
-from asplain import (
-    construct_program_graph,
-    set_foil_ctl,
-    set_model_subgraphs_ctl,
-)
+from asplain import Foil, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
 from asplain.pruning.pruners import PruningMethod, prune_explanation_graph
 from asplain.utils.clingo import (
     divide_space_string,
-    foil_inspection,
     get_query_prg,
     model_symbols,
-    print_foil,
     symbols_to_prg,
 )
 from asplain.utils.logging import colored, configure_logging, save_out
@@ -45,9 +39,12 @@ log = logging.getLogger(__name__)
 class AsplainApp(Application):
     """Application for reification with extensions."""
 
-    def __init__(self, name: str, constants: Optional[dict[str, str]] = None) -> None:
+    def __init__(
+        self, name: str, constants: Optional[dict[str, str]] = None, on_foil: Optional[Callable[[Foil], None]] = None
+    ) -> None:
         """Initialize AsplainApp."""
         self.program_name = name
+        self._on_foil = on_foil if on_foil is not None else lambda foil: None
         self._log_level = "WARNING"
         self._constants = constants or {}
         self._query_include: List[Symbol] = []
@@ -70,6 +67,8 @@ class AsplainApp(Application):
             "Reference Graph": {},
             "Contrastive Graph": {},
         }
+
+        self._foil: Optional[Foil] = None
 
     def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
         """
@@ -324,8 +323,8 @@ class AsplainApp(Application):
         self.statistics["Pruning methods"] = {"count": len(self._pruning_methods)}
         self.statistics["Explanations"] = {"count": self._number_explanations}
         self.statistics["Number of changes"] = (
-            {"added": len(self._foil_inspection[1]), "removed": len(self._foil_inspection[2])}
-            if self._foil_inspection
+            {"added": len(self._foil.added_rules), "removed": len(self._foil.removed_rules)}
+            if self._foil is not None
             else None
         )
         accu["Asplain"] = self.statistics
@@ -415,8 +414,9 @@ class AsplainApp(Application):
                             explanation_graph,
                         )
                         log.debug("Inspecting foil...")
-                        self._foil_inspection = foil_inspection(explanation_graph)
-                        print_foil(*self._foil_inspection)
+                        self._foil = Foil.from_explanation_graph(explanation_graph)
+                        self._on_foil(self._foil)
+                        self._foil.print()
 
                         viz_graph(
                             pg=explanation_graph,
@@ -478,7 +478,8 @@ class AsplainApp(Application):
                             )
                         explanation_graph = symbols_to_prg(explanation_symbols)
 
-                        self._foil_inspection = foil_inspection(explanation_graph)
-                        print_foil(*self._foil_inspection)
+                        self._foil = Foil.from_explanation_graph(explanation_graph)
+                        self._on_foil(self._foil)
+                        self._foil.print()
                     if not foil_found:
                         log.warning("No foil found.")

@@ -2,12 +2,11 @@
 
 import argparse
 import logging
-from importlib.resources import path
+from importlib.resources import files
 from typing import List, Sequence, Tuple
 
 from clingo import Control, Symbol, SymbolType
 
-from asplain.llm.utils.graph import Graph
 from asplain.utils.logging import colored
 
 log = logging.getLogger(__name__)
@@ -90,9 +89,9 @@ def load_encoding(ctl: Control, encoding_name: str) -> None:
     """
     Load an encoding into the given clingo Control object.
     """
-    with path("asplain.encodings", encoding_name) as base_encoding:
-        log.debug("Loading encoding: %s", base_encoding)
-        ctl.load(str(base_encoding))
+    base_encoding = files("asplain.encodings").joinpath(encoding_name)
+    log.debug("Loading encoding: %s", base_encoding)
+    ctl.load(str(base_encoding))
 
 
 def assert_no_errors(symbols: List[Symbol], function_name: str = "error") -> None:
@@ -133,40 +132,6 @@ def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "ref") -
 
     model = [s for s in model if s in shown]
     return model
-
-
-def foil_inspection(foil_pg: str) -> tuple[list[str], list[str], list[str]]:
-    """
-    Inspect the foil program graph to extract the foil model, added and removed rules.
-
-    Args:
-        foil_pg: The program graph of the foil model as a string of facts.
-
-    Returns:
-        A tuple containing three lists:
-        - foil_atoms: The atoms in the foil model.
-        - added_rules: The rules added in the foil model.
-        - removed_rules: The rules removed in the foil model.
-    """
-    ctl = Control()
-    ctl.add("base", [], foil_pg)
-    ctl.ground([("base", [])])
-    with ctl.solve(yield_=True) as handle:
-        model = handle.model()
-        log.debug("Inspecting foil model")
-        graph = Graph("".join([str(s) + "." for s in model.symbols(shown=True)]))
-        log.debug("Constructed graph")
-        added_rules = []
-        removed_rules = []
-        foil_atoms = []
-        for node in graph._nodes.values():  # pylint: disable=protected-access
-            if node.type == "atom" and "foil" in node.models:
-                foil_atoms.append(node.id)
-            if node.programs == set(["ref"]):
-                removed_rules.append(node.tags["first_order"])
-            if node.programs == set(["foil"]):
-                added_rules.append(node.tags["first_order"])
-    return foil_atoms, added_rules, removed_rules  # type: ignore
 
 
 def print_foil(foil_atoms: list[str], added_rules: list[str], removed_rules: list[str]) -> None:
