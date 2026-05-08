@@ -4,6 +4,8 @@ Test cases for main application functionality.
 
 import tempfile
 from importlib.resources import files as files_path
+from pathlib import Path
+from typing import Optional
 from unittest import TestCase
 
 from clorm.clingo import clingo_main
@@ -14,18 +16,32 @@ from asplain.utils import logging
 from asplain.utils.parser import get_parser
 
 
-def run_asplain(
-    files,
+def run_asplain(  # pylint: disable=too-many-positional-arguments
+    files: list[str],
     n_models: int = 0,
     n_explanations: int = 0,
-    constants_dict=None,
+    constants_dict: Optional[dict[str, str]] = None,
     q: str = "",
     model: str = "",
-    cost_encodings: list[str] = None,
-    prunning: list[str] = None,
+    cost_encodings: Optional[list[str]] = None,
+    prunning: Optional[list[str]] = None,
+    assumptions: str = "",
+    dynamic_tags: Optional[list[str]] = None,
 ) -> list[Foil]:
     """
     Run the main application with the given arguments.
+
+    Args:
+        files: List of file paths to load.
+        n_models: Number of models to generate.
+        n_explanations: Number of explanations to generate.
+        constants_dict: Dictionary of constants to pass to clingo.
+        q: Query to explain.
+        model: Reference model to use for explanations.
+        cost_encodings: List of cost encodings to use.
+        prunning: List of prunning methods to use.
+        assumptions: Assumptions to include as integrity constraints as a single string
+        dynamic_tags: List of encodings to use for dynamic tags.
     """
     foils = []
     if constants_dict is None:
@@ -34,8 +50,10 @@ def run_asplain(
         cost_encodings = []
     if prunning is None:
         prunning = []
+    if dynamic_tags is None:
+        dynamic_tags = []
 
-    def save_foil(foil) -> None:
+    def save_foil(foil: Foil) -> None:
         foils.append(foil)
 
     args = files + [
@@ -54,6 +72,10 @@ def run_asplain(
         args += ["--cost-encoding", ce]
     for pe in prunning or []:
         args += ["--prune", pe]
+    if assumptions:
+        args += ["--assumptions", assumptions]
+    for dt in dynamic_tags or []:
+        args += ["--dynamic-tags", dt]
 
     print("------- test running asplain with arguments:", args)
     clingo_main(
@@ -63,144 +85,200 @@ def run_asplain(
     return foils
 
 
-def compare_expected(foils, expected):
+def compare_expected(foils: list[Foil], expected: list[Foil]) -> None:
+    """
+    Compare the obtained foils with the expected ones.
+    Assert that the number of foils is the same, and that each foil matches the expected one
+    regardless of the order.
+
+    Args:
+        - foils: List of obtained foils.
+        - expected: List of expected foils.
+    """
     assert len(foils) == len(expected), f"Expected {len(expected)} foils, but got {len(foils)}"
     assert set(foils) == set(expected), (
         f"Foils do not match expected.\n"
-        f"Got: {[f.__dict__ for f in foils]}\n"
-        f"Expected: {[e.__dict__ for e in expected]}"
+        f"Got: {[{'reference_atoms': f.reference_atoms,
+            'foil_atoms': f.foil_atoms,
+            'added_rules': f.added_rules,
+            'removed_rules': f.removed_rules} for f in foils]}\n"
+        f"Expected: {[{'reference_atoms': e.reference_atoms,
+            'foil_atoms': e.foil_atoms,
+            'added_rules': e.added_rules,
+            'removed_rules': e.removed_rules} for e in expected]}"
     )
 
 
-def check_facts(foil: Foil, expected_facts: list[str], expected_not_facts: list[str]) -> None:
-    for fact in expected_facts:
+def check_facts(foil: Foil, expected: list[str], not_expected: list[str]) -> None:
+    """
+    Check that the expected facts are present in the foil's explanation graph facts,
+    and that the expected not facts are not present.
+    Args:
+        - foil: The foil whose explanation graph facts to check.
+        - expected: List of facts that should be present in the explanation graph.
+        - not_expected: List of facts that should not be present in the explanation graph.
+    """
+    for fact in expected:
         assert fact in foil.explanation_graph_facts, f"Expected fact '{fact}' not found in explanation graph."
-    for fact in expected_not_facts:
+    for fact in not_expected:
         assert fact not in foil.explanation_graph_facts, f"Unexpected fact '{fact}' found in explanation graph."
 
 
+# --- File constants ---
+
+JAMES_FILE = str(Path("examples").joinpath("james-bond").joinpath("encoding.lp"))
+
+# Cost encodings
+COST_ASSUMPTIONS = str(
+    files_path("asplain.encodings").joinpath("costs").joinpath("penalize-non-assumptions-removed.lp")
+)
+COST_ADDED = str(files_path("asplain.encodings").joinpath("costs").joinpath("penalize-added.lp"))
+COST_PD = str(files_path("asplain.encodings").joinpath("costs").joinpath("program-difference.lp"))
+COST_MD = str(files_path("asplain.encodings").joinpath("costs").joinpath("model-difference.lp"))
+
+# Dynamic tag encodings
+DYNAMIC_TAGS_ASSUMPTIONS = str(
+    files_path("asplain.encodings").joinpath("dynamic-tags").joinpath("removable-assumptions.lp")
+)
+
+
 class TestMain(TestCase):
-    """
-    Test cases for main application functionality.
-    """
+    """Test cases for main application functionality."""
+
+    def setUp(self) -> None:
+        self.files = [JAMES_FILE]
 
     def test_parser(self) -> None:
-        """
-        Test the parser.
-        """
+        """Test the parser."""
         parser = get_parser()
         ret = parser.parse_args(["--log", "info"])
         self.assertEqual(ret.log, logging.INFO)
 
-    def test_app_james(self) -> None:
-        """
-        Test the main application with a simple example.
-        """
-        files = ["examples/james-bond/encoding.lp"]
-
-        model = "c. a."
-        foils = run_asplain(files, n_models=0, n_explanations=1, q="p ", model=model)
-        expected = [
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"p", "d"},
-                added_rules=set(),
-                removed_rules={"c.", "a."},
-            )
-        ]
-        compare_expected(foils, expected)
-        foils = run_asplain(files, n_models=0, n_explanations=1, q="p ")
-        expected = expected + [
-            Foil(
-                reference_atoms={"d", "c", "a"},
-                foil_atoms={"p", "d"},
-                added_rules=set(),
-                removed_rules={"c.", "a."},
-            ),
-        ]
-        compare_expected(foils, expected)
-
-        foils = run_asplain(files, n_models=0, n_explanations=0, q="p ", model=model)
-        expected = [
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"p", "d"},
-                added_rules=set(),
-                removed_rules={"c.", "a."},
-            ),
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"p", "t", "d"},
-                added_rules={"t."},
-                removed_rules={"c.", "a."},
-            ),
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"a", "p", "t"},
-                added_rules={"t."},
-                removed_rules={"c."},
-            ),
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"a", "p", "t", "d"},
-                added_rules={"t."},
-                removed_rules={"c."},
-            ),
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"p", "t"},
-                added_rules={"t."},
-                removed_rules={"c.", "a."},
-            ),
-        ]
-        compare_expected(foils, expected)
-
-        cost_encoding_pd = files_path("asplain.encodings").joinpath("costs").joinpath("program-difference.lp")
-        foils = run_asplain(
-            files, n_models=0, n_explanations=0, q="p ", model=model, cost_encodings=[str(cost_encoding_pd)]
+    def test_app_james_basic(self) -> None:
+        """Test basic foil generation without assumptions."""
+        foils = run_asplain(self.files, n_models=0, n_explanations=1, q="p ", model="c. a.")
+        compare_expected(
+            foils,
+            [
+                Foil(reference_atoms=["c", "a"], foil_atoms=["p", "d"], added_rules=[], removed_rules=["c.", "a."]),
+            ],
         )
-        expected = [
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"p", "d"},
-                added_rules=set(),
-                removed_rules={"c.", "a."},
-            ),
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"a", "p", "t"},
-                added_rules={"t."},
-                removed_rules={"c."},
-            ),
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"a", "p", "t", "d"},
-                added_rules={"t."},
-                removed_rules={"c."},
-            ),
-        ]
-        compare_expected(foils, expected)
 
-        cost_encoding_pd = files_path("asplain.encodings").joinpath("costs").joinpath("program-difference.lp")
-        cost_encoding_md = files_path("asplain.encodings").joinpath("costs").joinpath("model-difference.lp")
+        foils = run_asplain(self.files, n_models=0, n_explanations=1, q="p ")
+        compare_expected(
+            foils,
+            [
+                Foil(reference_atoms=["c", "a"], foil_atoms=["p", "d"], added_rules=[], removed_rules=["c.", "a."]),
+                Foil(
+                    reference_atoms=["d", "c", "a"], foil_atoms=["p", "d"], added_rules=[], removed_rules=["c.", "a."]
+                ),
+            ],
+        )
+
+    def test_app_james_assumptions(self) -> None:
+        """Test foil generation with assumptions."""
+        foils = run_asplain(self.files, n_models=0, n_explanations=0, q="p ", assumptions="-d")
+        compare_expected(
+            foils,
+            [
+                Foil(reference_atoms=["c", "a"], foil_atoms=["p", "a", "t"], added_rules=["t."], removed_rules=["c."]),
+                Foil(reference_atoms=["c", "a"], foil_atoms=["p", "t"], added_rules=["t."], removed_rules=["c.", "a."]),
+            ],
+        )
+
         foils = run_asplain(
-            files,
+            self.files,
             n_models=0,
             n_explanations=0,
             q="p ",
-            model=model,
-            cost_encodings=[str(cost_encoding_pd), str(cost_encoding_md)],
+            assumptions="-d",
+            cost_encodings=[COST_ASSUMPTIONS, COST_ADDED],
+            dynamic_tags=[DYNAMIC_TAGS_ASSUMPTIONS],
+        )
+        compare_expected(
+            foils,
+            [
+                Foil(
+                    reference_atoms=["c", "a"],
+                    foil_atoms=["p", "d"],
+                    added_rules=[],
+                    removed_rules=["c.", "a.", "#false :- d."],
+                ),
+            ],
+        )
+
+    def test_app_james_unsat(self) -> None:
+        """Test foil generation in UNSAT cases."""
+        foils = run_asplain(
+            self.files,
+            n_models=0,
+            n_explanations=0,
+            q="",
+            assumptions="-c -d",
+            cost_encodings=[COST_ASSUMPTIONS, COST_PD],
+            dynamic_tags=[DYNAMIC_TAGS_ASSUMPTIONS],
+        )
+        compare_expected(
+            foils,
+            [
+                Foil(reference_atoms=[], foil_atoms=["a", "c"], added_rules=[], removed_rules=["#false :- c."]),
+            ],
+        )
+
+    def test_app_james_cost_encodings(self) -> None:
+        """Test foil generation with various cost encoding combinations."""
+        model = "c. a."
+
+        # No cost encoding
+        foils = run_asplain(self.files, n_models=0, n_explanations=0, q="p ", model=model)
+        compare_expected(
+            foils,
+            [
+                Foil(reference_atoms=["c", "a"], foil_atoms=["p", "d"], added_rules=[], removed_rules=["c.", "a."]),
+                Foil(
+                    reference_atoms=["c", "a"],
+                    foil_atoms=["p", "t", "d"],
+                    added_rules=["t."],
+                    removed_rules=["c.", "a."],
+                ),
+                Foil(reference_atoms=["c", "a"], foil_atoms=["a", "p", "t"], added_rules=["t."], removed_rules=["c."]),
+                Foil(
+                    reference_atoms=["c", "a"],
+                    foil_atoms=["a", "p", "t", "d"],
+                    added_rules=["t."],
+                    removed_rules=["c."],
+                ),
+                Foil(reference_atoms=["c", "a"], foil_atoms=["p", "t"], added_rules=["t."], removed_rules=["c.", "a."]),
+            ],
+        )
+
+        # Program difference cost
+        foils = run_asplain(self.files, n_models=0, n_explanations=0, q="p ", model=model, cost_encodings=[COST_PD])
+        compare_expected(
+            foils,
+            [
+                Foil(reference_atoms=["c", "a"], foil_atoms=["p", "d"], added_rules=[], removed_rules=["c.", "a."]),
+                Foil(reference_atoms=["c", "a"], foil_atoms=["a", "p", "t"], added_rules=["t."], removed_rules=["c."]),
+                Foil(
+                    reference_atoms=["c", "a"],
+                    foil_atoms=["a", "p", "t", "d"],
+                    added_rules=["t."],
+                    removed_rules=["c."],
+                ),
+            ],
+        )
+
+        # Program + model difference cost
+        foils = run_asplain(
+            self.files, n_models=0, n_explanations=0, q="p ", model=model, cost_encodings=[COST_PD, COST_MD]
+        )
+        compare_expected(
+            foils,
+            [
+                Foil(reference_atoms=["c", "a"], foil_atoms=["a", "p", "t"], added_rules=["t."], removed_rules=["c."]),
+            ],
         )
         expected = [
-            Foil(
-                reference_atoms={"c", "a"},
-                foil_atoms={"a", "p", "t"},
-                added_rules={"t."},
-                removed_rules={"c."},
-            ),
-        ]
-        compare_expected(foils, expected)
-        expected_facts = [
             "node(d,atom).",
             "node(a,atom).",
             "program(d,ref).",
@@ -208,31 +286,36 @@ class TestMain(TestCase):
             "model(a,ref).",
             "model(a,foil).",
         ]
-        check_facts(foils[0], expected_facts, [])
+        check_facts(foils[0], expected, [])
 
+    def test_app_james_pruning(self) -> None:
+        """Test foil generation with pruning enabled."""
+        model = "c. a."
         foils = run_asplain(
-            files,
+            self.files,
             n_models=0,
             n_explanations=0,
             q="p ",
             model=model,
-            cost_encodings=[str(cost_encoding_pd), str(cost_encoding_md)],
+            cost_encodings=[COST_PD, COST_MD],
             prunning=["CHANGES"],
         )
-        expected_facts = [
-            "node(t,atom).",
-            "node(p,atom).",
-            "node(c,atom).",
-            "program(t,foil).",
-            "model(t,foil).",
-            "model(c,ref).",
-        ]
-        expected_facts_not = [
-            "node(d,atom).",
-            "node(a,atom).",
-            "program(d,ref).",
-            "program(a,ref).",
-            "model(a,ref).",
-            "model(a,foil).",
-        ]
-        check_facts(foils[0], expected_facts, expected_facts_not)
+        check_facts(
+            foils[0],
+            expected=[
+                "node(t,atom).",
+                "node(p,atom).",
+                "node(c,atom).",
+                "program(t,foil).",
+                "model(t,foil).",
+                "model(c,ref).",
+            ],
+            not_expected=[
+                "node(d,atom).",
+                "node(a,atom).",
+                "program(d,ref).",
+                "program(a,ref).",
+                "model(a,ref).",
+                "model(a,foil).",
+            ],
+        )

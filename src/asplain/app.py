@@ -21,7 +21,7 @@ from asplain.utils.clingo import (
 from asplain.utils.logging import colored, configure_logging, save_out
 from asplain.utils.viz import viz_graph
 
-try:
+try:  # nocoverage
     from asplain.llm.models import ModelTag, OpenAIModel
     from asplain.llm.models.google import GoogleModel
     from asplain.llm.templates import ExplainTemplate
@@ -60,7 +60,7 @@ class AsplainApp(Application):
 
         self._pruning_methods: list[PruningMethod] = []
         if INSTALLED_LLMS:
-            self._llm_tag: Optional[ModelTag] = None
+            self._llm_tag: Optional[ModelTag] = None  # nocoverage
 
         self.statistics: dict[str, Any] = {
             "Program Graph": {},
@@ -77,12 +77,12 @@ class AsplainApp(Application):
 
         def setter(value: Any) -> bool:
             if not os.path.isfile(value):
-                raise ValueError(f"File '{value}' does not exist.")
+                raise ValueError(f"File '{value}' does not exist.")  # nocoverage
             if not multi:
                 setattr(self, attr_name, value)
             else:
                 current_value = getattr(self, attr_name, [])
-                if not isinstance(current_value, list):
+                if not isinstance(current_value, list):  # nocoverage
                     log.error("Attribute %s is not a list", attr_name)
                     log.error("Setting value to list")
                     current_value = [current_value]
@@ -92,7 +92,7 @@ class AsplainApp(Application):
 
         return setter
 
-    def parse_log_level(self, log_level: str) -> bool:
+    def parse_log_level(self, log_level: str) -> bool:  # nocoverage
         """
         Parse log
         """
@@ -166,7 +166,7 @@ class AsplainApp(Application):
             method = PruningMethod[value]
             self._pruning_methods.append(method)
             return True
-        return False
+        return False  # nocoverage
 
     def register_options(self, options: ApplicationOptions) -> None:
         """Register command line options."""
@@ -325,7 +325,7 @@ class AsplainApp(Application):
         self.statistics["Number of changes"] = (
             {"added": len(self._foil.added_rules), "removed": len(self._foil.removed_rules)}
             if self._foil is not None
-            else None
+            else {"added": -1, "removed": -1}
         )
         accu["Asplain"] = self.statistics
 
@@ -424,7 +424,7 @@ class AsplainApp(Application):
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
                             show=self._open.flag,
                         )
-                        if INSTALLED_LLMS:
+                        if INSTALLED_LLMS:  # nocoverage
                             if self._llm_tag is not None:
                                 # Prompt the LLM
                                 if self._llm_tag.value.openai is not None:

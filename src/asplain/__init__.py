@@ -3,8 +3,7 @@ The asplain project.
 """
 
 import logging
-from importlib.resources import path
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from clingo import Control, SolveHandle, Symbol
 from meta_tools import classic_reify, extend_reification, transform
@@ -187,7 +186,8 @@ def construct_contrastive(
 
 class Foil:
     """
-    Class to represent a foil, including the atoms in the foil model, the added and removed rules, and the reference atoms.
+    Class to represent a foil, including the atoms in the foil model,
+    the added and removed rules, and the reference atoms.
     Intended to save the result of obtaining foils
     """
 
@@ -242,7 +242,7 @@ class Foil:
                     added_rules.append(node.tags["first_order"])
         return cls(foil_atoms, added_rules, removed_rules, reference_atoms, foil_pg)  # type: ignore
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Foil):
             return NotImplemented
         return (
@@ -252,13 +252,13 @@ class Foil:
             and self.reference_atoms == other.reference_atoms
         )
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         return getattr(self, key)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(
             (
                 frozenset(self.foil_atoms),
