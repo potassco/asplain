@@ -1,5 +1,6 @@
 """Basic Explanation Prompt Template"""
 
+import logging
 from pathlib import Path
 
 from ..utils import Graph
@@ -8,7 +9,6 @@ from .base import Template
 PROMPT_FILE_INSTRUCTIONS = "prompt_templates/explain_instructions.txt"
 PROMPT_FILE_INPUT = "prompt_templates/explain_input.txt"
 
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class ExplainTemplate(Template):
     def compose_input(self) -> str:
         with open(Path(__file__).parent / PROMPT_FILE_INPUT, "r", encoding="utf-8") as prompt_file:
             prompt_template = prompt_file.read()
-        prompt = prompt_template.format(graph=self._graph.json())
+        prompt = prompt_template.format(graph=self._graph.json)
         log.debug("-----------------\nLLM Prompt Input:\n%s", prompt)
         log.debug(prompt)
         return prompt

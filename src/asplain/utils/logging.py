@@ -57,6 +57,7 @@ class SingleLevelFilter(logging.Filter):
         return record.levelno == self.passlevel
 
 
+# pylint: disable=invalid-name
 _current_logging_level = None  # Module-level variable to store the configured level
 
 
@@ -64,7 +65,7 @@ def configure_logging(stream: TextIO, level: int, use_color: bool) -> None:
     """
     Configure application logging.
     """
-    global _current_logging_level
+    global _current_logging_level  # pylint: disable=global-statement
     _current_logging_level = level
 
     def format_str(color: str) -> str:
@@ -129,6 +130,6 @@ def save_out(file_name: str, content: str) -> None:
     out_dir = os.path.join(os.getcwd(), "out")
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, file_name)
-    with open(out_path, "w") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         f.write(content)
     log.info("Saved output to %s", out_path)

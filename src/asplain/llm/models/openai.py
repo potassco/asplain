@@ -32,6 +32,8 @@ class OpenAIModel(AbstractModel):
         return OpenAIModel.transform_output(response.output_text)
 
     def prompt_sync(self, instructions_string: str, input_string: str) -> str:
+        """Prompts the OpenAI API in a synchronous manner"""
+
         response = self._client_sync.responses.create(
             model=self.model_tag,
             instructions=instructions_string,
@@ -46,6 +48,8 @@ class OpenAIModel(AbstractModel):
         )
 
     def prompt_template_sync(self, template: Template) -> str:
+        """Prompts the OpenAI API with a template in a synchronous manner"""
+
         return self.prompt_sync(
             instructions_string=template.compose_instructions(),
             input_string=template.compose_input(),

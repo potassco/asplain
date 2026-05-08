@@ -1,56 +1,104 @@
+"""
+Graph utilities for generating the explanation graph representation for the LLM
+"""
+
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, TypedDict
 
 from clorm import FactBase
-from clorm.clingo import ClormControl, ClormModel
+from clorm._clingo import ClormControl, ClormModel
 
-from .predicates import Edge, Fired, Model, Node, Program, Query, Tag, TagLabel, TagRuleFirstOrder, World
-from .processes import ProcessAbducibleRemoved, TagProcess
+from .predicates import (
+    Edge,
+    Fired,
+    Model,
+    Node,
+    Program,
+    Query,
+    Tag,
+    TagLabel,
+    TagRuleFirstOrder,
+)
 
 
 @dataclass
 class GraphNode:
+    """Node of the explanation graph"""
+
     id: str
     type: str
     models: Set[str]
     programs: Set[str]
-    tags: Dict[str, str | bool | Dict[str, str | int]]
+    tags: Dict[str, str | bool]
+    fired: bool
+
+
+class GraphNodeDict(TypedDict):
+    """Dictionary Type of a graph node"""
+
+    type: str
+    models: Set[str]
+    programs: Set[str]
+    tags: Dict[str, str | bool]
     fired: bool
 
 
 @dataclass
 class GraphEdge:
+    """Edge of the explanation graph"""
+
     source: str
     target: str
     positive: bool
 
 
+class JsonEdge(TypedDict):
+    """Dictionary Type of a JSON edge"""
+
+    type: str
+    source: str
+    target: str
+
+
+class JsonQuery(TypedDict):
+    """Dictionary Type of a JSON query"""
+
+    query_atom: str
+    type: str
+
+
+# No TypedDict here to accommodate dynamic tag keys
+JsonNodeTagged = Dict[str, str | bool | List[str]]
+
+
 class Graph:
+    """Representation of the explanation graph for the LLM"""
+
     def __init__(self, contrastive_program_graph: str) -> None:
         self._graph: str = contrastive_program_graph
         self._facts: Optional[FactBase] = None
         self._nodes: Dict[str, GraphNode] = {}
         self._edges: Dict[Tuple[str, str], GraphEdge] = {}
         self._queries: Dict[str, bool] = {}
-        self._tag_processes: Set[TagProcess] = {
-            ProcessAbducibleRemoved(),
-        }
 
-        self.get_facts(self._graph)
-        self.compute_nodes()
-        self.compute_edges()
-        self.compute_queries()
+        self._get_facts(self._graph)
+        self._compute_nodes()
+        self._compute_edges()
+        self._compute_queries()
 
-        # for node in self._nodes.values():
-        # for edge in self._edges.values():
-        # for query in self._queries.items():
-
+    @property
     def json(
         self,
-    ) -> Dict[str, List[Dict[str, str | int | bool]]]:
-        json_nodes = []
+    ) -> Dict[str, List[JsonNodeTagged] | List[JsonEdge] | List[JsonQuery]]:
+        """
+        A JSON representation of the explanation graph
+        Returns:
+            A JSON representation of the explanation graph as a python dictionary
+        """
+
+        json_nodes: List[JsonNodeTagged] = []
         for node in self._nodes.values():
-            json_node = {
+            json_node: JsonNodeTagged = {
                 "type": node.type,
                 "id": node.id,
                 "models": list(node.models),
@@ -60,16 +108,16 @@ class Graph:
             if node.fired:
                 json_node["fired"] = True
             json_nodes.append(json_node)
-        json_edges = []
+        json_edges: List[JsonEdge] = []
         for edge in self._edges.values():
-            json_edge = {
+            json_edge: JsonEdge = {
                 "type": ["negative", "positive"][edge.positive],
                 "source": edge.source,
                 "target": edge.target,
             }
             json_edges.append(json_edge)
-        json_queries = [
-            {"query_atom": atom, "type": ["negative", "positive"][inclusion]}
+        json_queries: List[JsonQuery] = [
+            {"query_atom": atom, "type": "positive" if inclusion else "negative"}
             for (atom, inclusion) in self._queries.items()
         ]
         return {"nodes": json_nodes, "edges": json_edges, "query": json_queries}
@@ -77,30 +125,30 @@ class Graph:
     def _on_facts_model(self, model: ClormModel) -> None:
         self._facts = model.facts(atoms=True)
 
-    def get_facts(self, program: str) -> None:
+    def _get_facts(self, program: str) -> None:
         ctl = ClormControl(unifier=[Node, Program, Model, Tag, Edge, Query, Fired])
         ctl.add("base", [], program)
         ctl.ground([("base", [])])
         ctl.solve(on_model=self._on_facts_model)
 
-    def compute_nodes(self) -> None:
+    def _compute_nodes(self) -> None:
         if self._facts is None:
             return
         query_nodes = self._facts.query(Node).select(Node)
-        nodes = {}
-        for node in query_nodes.all():
-            nodes[str(node.element)] = {
-                "type": str(node.type),
+        nodes: Dict[str, GraphNodeDict] = {}
+        for n in query_nodes.all():
+            nodes[str(n.element)] = {
+                "type": str(n.type),
                 "models": set(),
                 "programs": set(),
                 "tags": {},
                 "fired": False,
             }
 
-        self.set_node_model_worlds(nodes)
-        self.set_node_program_worlds(nodes)
-        self.set_node_tags(nodes)
-        self.set_node_fired(nodes)
+        self._set_node_model_worlds(nodes)
+        self._set_node_program_worlds(nodes)
+        self._set_node_tags(nodes)
+        self._set_node_fired(nodes)
         for node_id, node in nodes.items():
             graph_node = GraphNode(
                 id=node_id,
@@ -112,27 +160,27 @@ class Graph:
             )
             self._nodes[node_id] = graph_node
 
-    def set_node_fired(self, nodes) -> None:
+    def _set_node_fired(self, nodes: Dict[str, GraphNodeDict]) -> None:
         if self._facts is None:
             return
         for qf in self._facts.query(Fired).all():
             nodes[str(qf.node)]["fired"] = True
 
-    def set_node_model_worlds(self, nodes) -> None:
+    def _set_node_model_worlds(self, nodes: Dict[str, GraphNodeDict]) -> None:
         if self._facts is None:
             return
         for m in self._facts.query(Model).all():
             nodes[str(m.node)]["models"].add(m.world)
 
-    def set_node_program_worlds(self, nodes) -> None:
+    def _set_node_program_worlds(self, nodes: Dict[str, GraphNodeDict]) -> None:
         if self._facts is None:
             return
         for p in self._facts.query(Program).all():
             nodes[str(p.node)]["programs"].add(p.world)
 
-    def set_node_tags(self, nodes) -> None:
+    def _set_node_tags(self, nodes: Dict[str, GraphNodeDict]) -> None:
         if self._facts is None:
-            return {}
+            return
         for tag in self._facts.query(Tag).all():
             if str(tag.tag) == "shown":
                 continue
@@ -142,11 +190,11 @@ class Graph:
                 case TagLabel():
                     nodes[str(tag.node)]["tags"]["label"] = tag.tag.label.format(
                         *[str(a) for a in tag.tag.variables.symbol.arguments]
-                    )  # TODO: Add variables here!
+                    )
                 case TagRuleFirstOrder():
                     nodes[str(tag.node)]["tags"]["first_order"] = tag.tag.first_order
 
-    def compute_edges(self) -> None:
+    def _compute_edges(self) -> None:
         if self._facts is None:
             return
         query_edges = self._facts.query(Edge).select(Edge)
@@ -159,7 +207,7 @@ class Graph:
             )
             self._edges[edge_id] = graph_edge
 
-    def compute_queries(self) -> None:
+    def _compute_queries(self) -> None:
         if self._facts is None:
             return
         query_query = self._facts.query(Query).select(Query)

@@ -55,8 +55,8 @@ vattr(node,N,fontname,@clinguin_fontname()):-  vnode(N).
 % Rule style
 vattr(node,N,shape,box):-vnode(N), node(N,rule(_)).
 vattr(node,N,style,filled):- vnode(N).
-% vattr(node,N,style,filled):- vnode(N), not abducible(_, N).
-% vattr(node,N,style,"filled,dashed"):- vnode(N), abducible(_, N).
+% vattr(node,N,style,filled):- vnode(N), not optional(_, N).
+% vattr(node,N,style,"filled,dashed"):- vnode(N), optional(_, N).
 
 % Tooltips
 vattr(node,N,tooltip,"<{{rule}}    {{label}}>"):- vnode(N).
@@ -78,17 +78,17 @@ active_node(N):- vnode(N), node(N,_), model(N, foil), solved(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(ref, N), not show(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(foil, N).
 
-abduced(rm,R):-node(R,_), program(R, ref), not program(R, foil), solved(foil).
-abduced(add,R):-node(R,_), program(R, foil), not program(R, ref), solved(foil).
+change(rm,R):-node(R,_), program(R, ref), not program(R, foil), solved(foil).
+change(add,R):-node(R,_), program(R, foil), not program(R, ref), solved(foil).
 
 gray_node(N):-vnode(N),
             not active_node(N),
-            not abduced(_,N).
+            not change(_,N).
 
 vattr(node,N,(fontcolor;color),C):- gray_node(N),
                                 color_set(light,C).
-vattr(node,R,(fontcolor;color),red):- abduced(rm,R).
-vattr(node,R,(fontcolor;color),blue):- abduced(add,R).
+vattr(node,R,(fontcolor;color),red):- change(rm,R).
+vattr(node,R,(fontcolor;color),blue):- change(add,R).
 
 % -------------- Edges
 vattr(edge,E,style,dashed):- vedge(E), edge(E,0).

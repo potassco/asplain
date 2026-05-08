@@ -1,3 +1,5 @@
+"""Pruning methods for the explanation graph."""
+
 import logging
 from enum import Enum
 from pathlib import Path
@@ -21,6 +23,8 @@ class PruningException(Exception):
 
 
 class PruningMethod(Enum):
+    """Available pruning methods"""
+
     NONE = "None"
     ORPHANS = "Orphans"
     PATHS = "Path"
@@ -33,7 +37,8 @@ def prune_explanation_graph(
     method: PruningMethod,
     path_depth: int = 0,
 ) -> List[clingo.Symbol]:
-    log.info(f"Pruning Graph using Method: {method}")
+    """Prune the explanation graph using the specified method."""
+    log.info("Pruning Graph using Method: %s", method)
     match method:
         case PruningMethod.NONE:
             return list(symbols)
@@ -48,14 +53,32 @@ def prune_explanation_graph(
 
 
 def prune_changes(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
+    """
+    Prune methods to keep only changes between reference and foil models
+
+    Args:
+        symbols: The symbols of the explanation graph to prune
+    """
     return solve_program(symbols=symbols, files=[ENCODING_CHANGES, ENCODING_INCLUSION_FILTER])
 
 
 def prune_orphans(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
+    """
+    Prune method to remove orphan nodes, i.e., nodes that are not connected to any query.
+    Args:
+        symbols: The symbols of the explanation graph to prune
+    """
     return solve_program(symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER])
 
 
 def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.Symbol]:
+    """
+    Pruning method finding a connecting path between changed rules
+    and query in the graph with a maximum depth.
+    Args:
+        symbols: The symbols of the explanation graph to prune
+        depth: The maximum depth of the path to keep
+    """
     symbols = list(symbols)
     # Add depth symbol
     depth_symbol = clingo.parse_term(f"{SIGNATURE_PATH_DEPTH}({depth})")
@@ -65,12 +88,28 @@ def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> List[clingo.
 
 
 def prune_path_undirected(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
-    """Pruning method finding a connecting path between abducibles and query in the graph disregarding edge directions"""
+    """
+    Pruning method finding a connecting path between changed rules
+    and query in the graph disregarding edge directions
+    Args:
+        symbols: The symbols of the explanation graph to prune
+
+    """
     symbols = list(symbols)
     return solve_program(symbols=symbols, files=[ENCODING_PATHS_UNDIRECTED, ENCODING_INCLUSION_FILTER])
 
 
 def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> List[clingo.Symbol]:
+    """
+    Solve the ASP program with the given symbols and files.
+
+    Args:
+        symbols: The symbols of the explanation graph to include in the program
+        files: The ASP files to load and include in the program
+
+    Returns:
+        The symbols of the solved model
+    """
     control = clingo.Control()
     # Add explanation graph
     control.add(" ".join([f"{str(s)}." for s in symbols]))
@@ -85,3 +124,4 @@ def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> Lis
                 raise PruningException()
             case clingo.Model():
                 return list(model.symbols(shown=True))
+    raise PruningException()

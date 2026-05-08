@@ -28,7 +28,8 @@ class GoogleModel(AbstractModel):
             model=self.model_tag,
             contents=contents,
         )
-        return GoogleModel.transform_output(response.text)
+        response_string = response.text if response.text is not None else ""
+        return GoogleModel.transform_output(response_string)
 
     async def prompt_template(self, template: Template) -> str:
         return await self.prompt(

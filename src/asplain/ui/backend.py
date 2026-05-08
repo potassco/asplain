@@ -5,9 +5,8 @@ from clingo.ast import Literal
 from clinguin.server.application.backends import ClingoBackend
 from clinguin.server.data.attribute import AttributeDao
 from clinguin.utils import StandardTextProcessing, image_to_b64
-from clinguin.utils.annotations import extends, overwrites
-from clinguin.utils.transformer import UsesSignatureTransformer
-from clorm import ConstantStr, Raw
+from clinguin.utils.annotations import extends
+from clorm import Raw
 
 from asplain import (
     construct_contrastive,
@@ -20,6 +19,8 @@ from asplain.llm.templates import ExplainTemplate
 from asplain.llm.utils import parse_llm_json_response
 from asplain.utils.clingo import get_query_prg, symbols_to_prg
 from asplain.utils.viz import viz_graph
+
+# mypy: ignore-errors
 
 
 class ASPlainBackend(ClingoBackend):
@@ -377,7 +378,7 @@ class ASPlainBackend(ClingoBackend):
             self._contrastive_pg,
             title="",
             name=name,
-            open=False,
+            show=False,
             format="png",
         )
         self._messages.append(

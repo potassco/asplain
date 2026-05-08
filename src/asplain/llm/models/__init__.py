@@ -1,3 +1,5 @@
+"""Backends to call different LLM APIs"""
+
 from .base import AbstractModel
 from .openai import OpenAIModel
 from .tags import ModelTag, Tag

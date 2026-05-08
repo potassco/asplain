@@ -46,7 +46,7 @@ edge((R, A),1):-
 #show edge/2.
 
 % Program membership for reference
-program(N, ref):-node(N,_), not abducible(add, N).
+program(N, ref):-node(N,_), not optional(add, N).
 #show program/2.
 
 % ------- Tags ------
@@ -57,20 +57,20 @@ asplain_tag(A,T):-tag(atom(E),T), symbol_literal(A,E).
 #show tag(N,T): asplain_tag(N,T).
 
 
-% ----- Abducibles -----
+% ----- Optional rules -----
 
-% Abducible to remove
-abducible(remove, R):-asplain_tag(R, removable).
+% Optional to remove
+optional(remove, R):-asplain_tag(R, removable).
 % For now dynamic tags are not added here
-% abducible(remove, rule(disjunction(H),B)):-
+% optional(remove, rule(disjunction(H),B)):-
 %     tag(G, rule(disjunction(H),B),fact), %is a fact
 %     removable_if_fact(A), %flagged as removable if A
 %     atom_tuple(H,E), %the head atom is A
 %     symbol_literal(A,E).
 
-% Abducible to add also includes the edges that would be added
-abducible(add, R):-asplain_tag(R, addable).
+% Optional to add also includes the edges that would be added
+optional(add, R):-asplain_tag(R, addable).
 
-#show abducible/2.
+#show optional/2.
 
 #include "utils-tags.lp".

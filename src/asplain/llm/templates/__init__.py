@@ -1,3 +1,7 @@
+"""
+Prompt Templates for LLMs
+"""
+
 from .base import Template
 from .explain import ExplainTemplate
 

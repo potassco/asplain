@@ -1,9 +1,9 @@
-#include "./abduced.lp".
+#include "./change.lp".
 
 % Always include query
 node_included(N,T) :- query(N, _), node(N,T).
-% Always include abductions
-node_included(N,T) :- abduced(_, N), node(N,T).
+% Always include changes
+node_included(N,T) :- change(_, N), node(N,T).
 node_included(N,T) :- fired(N), node(N,T).
 
 node_included(N,T) :- node(N, T), model(N, ref), not model(N, foil).

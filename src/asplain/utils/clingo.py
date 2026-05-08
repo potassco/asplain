@@ -2,12 +2,11 @@
 
 import argparse
 import logging
-from importlib.resources import path
+from importlib.resources import files
 from typing import List, Sequence, Tuple
 
 from clingo import Control, Symbol, SymbolType
 
-from asplain.llm.utils.graph import Graph
 from asplain.utils.logging import colored
 
 log = logging.getLogger(__name__)
@@ -90,9 +89,9 @@ def load_encoding(ctl: Control, encoding_name: str) -> None:
     """
     Load an encoding into the given clingo Control object.
     """
-    with path("asplain.encodings", encoding_name) as base_encoding:
-        log.debug("Loading encoding: %s", base_encoding)
-        ctl.load(str(base_encoding))
+    base_encoding = files("asplain.encodings").joinpath(encoding_name)
+    log.debug("Loading encoding: %s", base_encoding)
+    ctl.load(str(base_encoding))
 
 
 def assert_no_errors(symbols: List[Symbol], function_name: str = "error") -> None:
@@ -135,30 +134,15 @@ def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "ref") -
     return model
 
 
-def foil_inspection(foil_pg: str) -> None:
-    ctl = Control()
-    ctl.add("base", [], foil_pg)
-    ctl.ground([("base", [])])
-    with ctl.solve(yield_=True) as handle:
-        model = handle.model()
-        log.debug("Inspecting foil model")
-        graph = Graph("".join([str(s) + "." for s in model.symbols(shown=True)]))
-        log.debug("Constructed graph")
-        added_rules = []
-        removed_rules = []
-        foil_atoms = []
-        for node in graph._nodes.values():
-            if node.type == "atom" and "foil" in node.models:
-                foil_atoms.append(node.id)
-            if node.programs == set(["ref"]):
-                removed_rules.append(node.tags["first_order"])
-            if node.programs == set(["foil"]):
-                added_rules.append(node.tags["first_order"])
-    return foil_atoms, added_rules, removed_rules
+def print_foil(foil_atoms: list[str], added_rules: list[str], removed_rules: list[str]) -> None:
+    """
+    Print the foil model, added and removed rules.
 
-
-def print_foil(foil_atoms, added_rules, removed_rules) -> None:
-
+    Args:
+        foil_atoms: The atoms in the foil model.
+        added_rules: The rules added in the foil model.
+        removed_rules: The rules removed in the foil model.
+    """
     print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
     if len(removed_rules) > 0:
         print(colored("red", "            Removed: " + "\t".join([str(s) for s in removed_rules])))
@@ -167,6 +151,16 @@ def print_foil(foil_atoms, added_rules, removed_rules) -> None:
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:
+    """
+    Get the query program string for the given included and excluded query atoms.
+
+    Args:
+        query_include: A list of symbols to include in the query.
+        query_exclude: A list of symbols to exclude from the query.
+
+    Returns:
+        A string representing the query as an ASP program.
+    """
     qi = "".join([f"query({str(s)},1)." for s in query_include])
     qe = "".join([f"query({str(s)},0)." for s in query_exclude])
     return qi + qe

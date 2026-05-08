@@ -1,4 +1,4 @@
-#include "./abduced.lp".
+#include "./change.lp".
 
 % Generate distance steps with the number of nodes being the maximum distance
 %max_dist(D) :- D = #count{N: node(N,_)}.
@@ -10,15 +10,15 @@ uedge(N,M) :- edge((N,M),_).
 uedge(M,N) :- edge((N,M),_).
 
 % REACHABILITY
-% Start reachability from abduced nodes
-reach(A,A,0) :- abduced(_,A).
+% Start reachability from change nodes
+reach(A,A,0) :- change(_,A).
 
 % Reachability step with distance and cycle breaking
 reach(N,O,D+1) :- reach(N,M,D), uedge(M,O), dist(D+1), not reach(N,O,D_BEFORE), dist(D_BEFORE), D_BEFORE < D+1.
 
 % SHORTEST PATH
-% Find best path from abduced nodes to queries
-path(A,Q,D) :- reach(A,Q,D), abduced(_,A), query(Q,_).
+% Find best path from change nodes to queries
+path(A,Q,D) :- reach(A,Q,D), change(_,A), query(Q,_).
 path_shortest_dist(D_MIN) :- D_MIN = #min{D: path(A,Q,D)}.
 path_shortest(A,Q,D) :- path(A,Q,D), path_shortest_dist(D).
 

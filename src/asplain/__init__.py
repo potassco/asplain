@@ -3,14 +3,14 @@ The asplain project.
 """
 
 import logging
-from importlib.resources import path
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from clingo import Control, SolveHandle, Symbol
 from meta_tools import classic_reify, extend_reification, transform
 from meta_tools.extensions import ShowExtension, TagExtension
 from meta_tools.utils.theory import extend_with_theory_symbols
 
+from asplain.llm.utils.graph import Graph
 from asplain.utils.clingo import (
     assert_no_errors,
     assumptions_as_ic,
@@ -18,7 +18,7 @@ from asplain.utils.clingo import (
     load_encoding,
     symbols_to_prg,
 )
-from asplain.utils.logging import save_out
+from asplain.utils.logging import colored, save_out
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +36,7 @@ def reify_program(
     Returns:
         The reified program as a string.
     """
+    constants = constants or {}
     extensions = [
         TagExtension(include_program=True, include_loc=True, include_id=True),
         ShowExtension(),
@@ -55,6 +56,7 @@ def reify_program(
 
 
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 def construct_program_graph(
     file_paths: List[str],
     prg: str = "",
@@ -104,7 +106,9 @@ def construct_program_graph(
     return symbols_to_prg(list(model_symbols))
 
 
-def set_model_subgraphs_ctl(pg, ctl=None, model_symbols: Optional[List[str]] = None) -> Control:
+def set_model_subgraphs_ctl(
+    pg: str, ctl: Optional[Control] = None, model_symbols: Optional[List[str]] = None
+) -> Control:
     """
     Sets the control object for computing model subgraphs.
     Args:
@@ -178,3 +182,106 @@ def construct_contrastive(
         return symbols_to_prg(list(model_symbols))
 
     raise RuntimeError("No contrastive explanation could be constructed.")
+
+
+class Foil:
+    """
+    Class to represent a foil, including the atoms in the foil model,
+    the added and removed rules, and the reference atoms.
+    Intended to save the result of obtaining foils
+    """
+
+    def __init__(
+        self,
+        foil_atoms: list[str],
+        added_rules: list[str],
+        removed_rules: list[str],
+        reference_atoms: list[str],
+        explanation_graph_facts: str = "",
+    ) -> None:
+        self.foil_atoms = set(foil_atoms)
+        self.added_rules = set(added_rules)
+        self.removed_rules = set(removed_rules)
+        self.reference_atoms = set(reference_atoms)
+        self.explanation_graph_facts = explanation_graph_facts
+
+    @classmethod
+    def from_explanation_graph(cls, foil_pg: str) -> "Foil":
+        """
+        Inspect the foil program graph to extract the foil model, added and removed rules.
+
+        Args:
+            foil_pg: The program graph of the foil model as a string of facts.
+
+        Returns:
+            A tuple containing three lists:
+            - foil_atoms: The atoms in the foil model.
+            - added_rules: The rules added in the foil model.
+            - removed_rules: The rules removed in the foil model.
+        """
+        ctl = Control()
+        ctl.add("base", [], foil_pg)
+        ctl.ground([("base", [])])
+        with ctl.solve(yield_=True) as handle:
+            model = handle.model()
+            log.debug("Inspecting foil model")
+            graph = Graph("".join([str(s) + "." for s in model.symbols(shown=True)]))
+            log.debug("Constructed graph")
+            added_rules = []
+            removed_rules = []
+            foil_atoms = []
+            reference_atoms = []
+            for node in graph._nodes.values():  # pylint: disable=protected-access
+                if node.type == "atom" and "foil" in node.models:
+                    foil_atoms.append(node.id)
+                if node.type == "atom" and "ref" in node.models:
+                    reference_atoms.append(node.id)
+                if node.programs == set(["ref"]):
+                    removed_rules.append(node.tags["first_order"])
+                if node.programs == set(["foil"]):
+                    added_rules.append(node.tags["first_order"])
+        return cls(foil_atoms, added_rules, removed_rules, reference_atoms, foil_pg)  # type: ignore
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Foil):
+            return NotImplemented
+        return (
+            self.foil_atoms == other.foil_atoms
+            and self.added_rules == other.added_rules
+            and self.removed_rules == other.removed_rules
+            and self.reference_atoms == other.reference_atoms
+        )
+
+    def __ne__(self, other: object) -> bool:
+        return not self.__eq__(other)
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def __hash__(self) -> int:
+        return hash(
+            (
+                frozenset(self.foil_atoms),
+                frozenset(self.added_rules),
+                frozenset(self.removed_rules),
+                frozenset(self.reference_atoms),
+            )
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"Foil(reference_atoms={self.reference_atoms}, "
+            f"foil_atoms={self.foil_atoms}, "
+            f"added_rules={self.added_rules}, "
+            f"removed_rules={self.removed_rules})"
+        )
+
+    def print(self) -> None:
+        """
+        Print the foil model, added and removed rules.
+        """
+        print(colored("blue", "Foil model: " + " ".join([str(s) for s in self.foil_atoms])))
+        if len(self.removed_rules) > 0:
+            print(colored("red", "            Removed: " + "\t".join([str(s) for s in self.removed_rules])))
+        if len(self.added_rules) > 0:
+            print(colored("green", "            Added: " + "\t".join([str(s) for s in self.added_rules])))
