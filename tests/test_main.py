@@ -95,17 +95,20 @@ def compare_expected(foils: list[Foil], expected: list[Foil]) -> None:
         - foils: List of obtained foils.
         - expected: List of expected foils.
     """
+
+    def foil_dict(f):
+        return {
+            "reference_atoms": f.reference_atoms,
+            "foil_atoms": f.foil_atoms,
+            "added_rules": f.added_rules,
+            "removed_rules": f.removed_rules,
+        }
+
     assert len(foils) == len(expected), f"Expected {len(expected)} foils, but got {len(foils)}"
     assert set(foils) == set(expected), (
         f"Foils do not match expected.\n"
-        f"Got: {[{'reference_atoms': f.reference_atoms,
-            'foil_atoms': f.foil_atoms,
-            'added_rules': f.added_rules,
-            'removed_rules': f.removed_rules} for f in foils]}\n"
-        f"Expected: {[{'reference_atoms': e.reference_atoms,
-            'foil_atoms': e.foil_atoms,
-            'added_rules': e.added_rules,
-            'removed_rules': e.removed_rules} for e in expected]}"
+        f"Got:      {[foil_dict(f) for f in foils]}\n"
+        f"Expected: {[foil_dict(e) for e in expected]}"
     )
 
 
