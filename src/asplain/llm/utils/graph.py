@@ -3,7 +3,7 @@ Graph utilities for generating the explanation graph representation for the LLM
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, TypedDict
 
 from clorm import FactBase
 from clorm._clingo import ClormControl, ClormModel
@@ -29,7 +29,15 @@ class GraphNode:
     type: str
     models: Set[str]
     programs: Set[str]
-    tags: Dict[str, str | bool | Dict[str, str | int]]
+    tags: Dict[str, str | bool]
+    fired: bool
+
+
+class GraphNodeDict(TypedDict):
+    type: str
+    models: Set[str]
+    programs: Set[str]
+    tags: Dict[str, str | bool]
     fired: bool
 
 
@@ -40,6 +48,21 @@ class GraphEdge:
     source: str
     target: str
     positive: bool
+
+
+class JsonEdge(TypedDict):
+    type: str
+    source: str
+    target: str
+
+
+class JsonQuery(TypedDict):
+    query_atom: str
+    type: str
+
+
+# No TypedDict here to accommodate dynamic tag keys
+JsonNodeTagged = Dict[str, str | bool | List[str]]
 
 
 class Graph:
@@ -57,18 +80,19 @@ class Graph:
         self._compute_edges()
         self._compute_queries()
 
+    @property
     def json(
         self,
-    ) -> Dict[str, List[Dict[str, str | int | bool]]]:
+    ) -> Dict[str, List[JsonNodeTagged] | List[JsonEdge] | List[JsonQuery]]:
         """
         A JSON representation of the explanation graph
         Returns:
             A JSON representation of the explanation graph as a python dictionary
         """
 
-        json_nodes = []
+        json_nodes: List[JsonNodeTagged] = []
         for node in self._nodes.values():
-            json_node = {
+            json_node: JsonNodeTagged = {
                 "type": node.type,
                 "id": node.id,
                 "models": list(node.models),
@@ -78,15 +102,15 @@ class Graph:
             if node.fired:
                 json_node["fired"] = True
             json_nodes.append(json_node)
-        json_edges = []
+        json_edges: List[JsonEdge] = []
         for edge in self._edges.values():
-            json_edge = {
+            json_edge: JsonEdge = {
                 "type": ["negative", "positive"][edge.positive],
                 "source": edge.source,
                 "target": edge.target,
             }
             json_edges.append(json_edge)
-        json_queries = [
+        json_queries: List[JsonQuery] = [
             {"query_atom": atom, "type": "positive" if inclusion else "negative"}
             for (atom, inclusion) in self._queries.items()
         ]
@@ -105,10 +129,10 @@ class Graph:
         if self._facts is None:
             return
         query_nodes = self._facts.query(Node).select(Node)
-        nodes = {}
-        for node in query_nodes.all():
-            nodes[str(node.element)] = {
-                "type": str(node.type),
+        nodes: Dict[str, GraphNodeDict] = {}
+        for n in query_nodes.all():
+            nodes[str(n.element)] = {
+                "type": str(n.type),
                 "models": set(),
                 "programs": set(),
                 "tags": {},
@@ -130,25 +154,25 @@ class Graph:
             )
             self._nodes[node_id] = graph_node
 
-    def _set_node_fired(self, nodes) -> None:
+    def _set_node_fired(self, nodes: Dict[str, GraphNodeDict]) -> None:
         if self._facts is None:
             return
         for qf in self._facts.query(Fired).all():
             nodes[str(qf.node)]["fired"] = True
 
-    def _set_node_model_worlds(self, nodes) -> None:
+    def _set_node_model_worlds(self, nodes: Dict[str, GraphNodeDict]) -> None:
         if self._facts is None:
             return
         for m in self._facts.query(Model).all():
             nodes[str(m.node)]["models"].add(m.world)
 
-    def _set_node_program_worlds(self, nodes) -> None:
+    def _set_node_program_worlds(self, nodes: Dict[str, GraphNodeDict]) -> None:
         if self._facts is None:
             return
         for p in self._facts.query(Program).all():
             nodes[str(p.node)]["programs"].add(p.world)
 
-    def _set_node_tags(self, nodes) -> None:
+    def _set_node_tags(self, nodes: Dict[str, GraphNodeDict]) -> None:
         if self._facts is None:
             return
         for tag in self._facts.query(Tag).all():

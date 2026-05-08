@@ -35,7 +35,7 @@ def typecheck(session):
     """
     Typecheck the code using mypy.
     """
-    session.install("-e", ".[typecheck]")
+    session.install("-e", ".[typecheck,llm]")
     session.run("mypy", "--strict", "-p", "asplain", "-p", "tests")
 
 
