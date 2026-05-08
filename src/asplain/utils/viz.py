@@ -42,7 +42,7 @@ def viz_graph(
     graphs = compute_graphs(fb, graphviz_type="directed")
     files = render(graphs, view=show, directory="out", name_format=f"{name}", format=format)
     if len(files) == 0:
-        log.warning("No graphs were generated.")
+        log.warning("No graph images were rendered.")
         return graphs  # type: ignore
     log.info("Graph image saved in: %s", files["default"])
     return graphs  # type: ignore

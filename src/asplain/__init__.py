@@ -268,6 +268,14 @@ class Foil:
             )
         )
 
+    def __repr__(self) -> str:
+        return (
+            f"Foil(reference_atoms={self.reference_atoms}, "
+            f"foil_atoms={self.foil_atoms}, "
+            f"added_rules={self.added_rules}, "
+            f"removed_rules={self.removed_rules})"
+        )
+
     def print(self) -> None:
         """
         Print the foil model, added and removed rules.

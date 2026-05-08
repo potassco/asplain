@@ -7,6 +7,7 @@ from importlib.resources import files as files_path
 from pathlib import Path
 from typing import Optional
 from unittest import TestCase
+from unittest.mock import patch
 
 from clorm.clingo import clingo_main
 
@@ -96,20 +97,8 @@ def compare_expected(foils: list[Foil], expected: list[Foil]) -> None:
         - expected: List of expected foils.
     """
 
-    def foil_dict(f):
-        return {
-            "reference_atoms": f.reference_atoms,
-            "foil_atoms": f.foil_atoms,
-            "added_rules": f.added_rules,
-            "removed_rules": f.removed_rules,
-        }
-
     assert len(foils) == len(expected), f"Expected {len(expected)} foils, but got {len(foils)}"
-    assert set(foils) == set(expected), (
-        f"Foils do not match expected.\n"
-        f"Got:      {[foil_dict(f) for f in foils]}\n"
-        f"Expected: {[foil_dict(e) for e in expected]}"
-    )
+    assert set(foils) == set(expected), f"Foils do not match expected.\n" f"Got:      {foils}\n" f"Expected: {expected}"
 
 
 def check_facts(foil: Foil, expected: list[str], not_expected: list[str]) -> None:
@@ -150,6 +139,8 @@ class TestMain(TestCase):
 
     def setUp(self) -> None:
         self.files = [JAMES_FILE]
+        self.mock_graphviz = patch("asplain.utils.viz.render").start()
+        self.addCleanup(patch.stopall)
 
     def test_parser(self) -> None:
         """Test the parser."""
