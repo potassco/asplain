@@ -1,5 +1,6 @@
 """Basic Explanation Prompt Template"""
 
+import logging
 from pathlib import Path
 
 from ..utils import Graph
@@ -8,7 +9,6 @@ from .base import Template
 PROMPT_FILE_INSTRUCTIONS = "prompt_templates/explain_instructions.txt"
 PROMPT_FILE_INPUT = "prompt_templates/explain_input.txt"
 
-import logging
 
 log = logging.getLogger(__name__)
 

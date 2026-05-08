@@ -1,8 +1,12 @@
+"""
+Graph utilities for generating the explanation graph representation for the LLM
+"""
+
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
 
 from clorm import FactBase
-from clorm.clingo import ClormControl, ClormModel
+from clorm._clingo import ClormControl, ClormModel
 
 from .predicates import (
     Edge,
@@ -14,12 +18,13 @@ from .predicates import (
     Tag,
     TagLabel,
     TagRuleFirstOrder,
-    World,
 )
 
 
 @dataclass
 class GraphNode:
+    """Node of the explanation graph"""
+
     id: str
     type: str
     models: Set[str]
@@ -30,12 +35,16 @@ class GraphNode:
 
 @dataclass
 class GraphEdge:
+    """Edge of the explanation graph"""
+
     source: str
     target: str
     positive: bool
 
 
 class Graph:
+    """Representation of the explanation graph for the LLM"""
+
     def __init__(self, contrastive_program_graph: str) -> None:
         self._graph: str = contrastive_program_graph
         self._facts: Optional[FactBase] = None
@@ -43,18 +52,20 @@ class Graph:
         self._edges: Dict[Tuple[str, str], GraphEdge] = {}
         self._queries: Dict[str, bool] = {}
 
-        self.get_facts(self._graph)
-        self.compute_nodes()
-        self.compute_edges()
-        self.compute_queries()
-
-        # for node in self._nodes.values():
-        # for edge in self._edges.values():
-        # for query in self._queries.items():
+        self._get_facts(self._graph)
+        self._compute_nodes()
+        self._compute_edges()
+        self._compute_queries()
 
     def json(
         self,
     ) -> Dict[str, List[Dict[str, str | int | bool]]]:
+        """
+        A JSON representation of the explanation graph
+        Returns:
+            A JSON representation of the explanation graph as a python dictionary
+        """
+
         json_nodes = []
         for node in self._nodes.values():
             json_node = {
@@ -84,13 +95,13 @@ class Graph:
     def _on_facts_model(self, model: ClormModel) -> None:
         self._facts = model.facts(atoms=True)
 
-    def get_facts(self, program: str) -> None:
+    def _get_facts(self, program: str) -> None:
         ctl = ClormControl(unifier=[Node, Program, Model, Tag, Edge, Query, Fired])
         ctl.add("base", [], program)
         ctl.ground([("base", [])])
         ctl.solve(on_model=self._on_facts_model)
 
-    def compute_nodes(self) -> None:
+    def _compute_nodes(self) -> None:
         if self._facts is None:
             return
         query_nodes = self._facts.query(Node).select(Node)
@@ -104,10 +115,10 @@ class Graph:
                 "fired": False,
             }
 
-        self.set_node_model_worlds(nodes)
-        self.set_node_program_worlds(nodes)
-        self.set_node_tags(nodes)
-        self.set_node_fired(nodes)
+        self._set_node_model_worlds(nodes)
+        self._set_node_program_worlds(nodes)
+        self._set_node_tags(nodes)
+        self._set_node_fired(nodes)
         for node_id, node in nodes.items():
             graph_node = GraphNode(
                 id=node_id,
@@ -119,27 +130,27 @@ class Graph:
             )
             self._nodes[node_id] = graph_node
 
-    def set_node_fired(self, nodes) -> None:
+    def _set_node_fired(self, nodes) -> None:
         if self._facts is None:
             return
         for qf in self._facts.query(Fired).all():
             nodes[str(qf.node)]["fired"] = True
 
-    def set_node_model_worlds(self, nodes) -> None:
+    def _set_node_model_worlds(self, nodes) -> None:
         if self._facts is None:
             return
         for m in self._facts.query(Model).all():
             nodes[str(m.node)]["models"].add(m.world)
 
-    def set_node_program_worlds(self, nodes) -> None:
+    def _set_node_program_worlds(self, nodes) -> None:
         if self._facts is None:
             return
         for p in self._facts.query(Program).all():
             nodes[str(p.node)]["programs"].add(p.world)
 
-    def set_node_tags(self, nodes) -> None:
+    def _set_node_tags(self, nodes) -> None:
         if self._facts is None:
-            return {}
+            return
         for tag in self._facts.query(Tag).all():
             if str(tag.tag) == "shown":
                 continue
@@ -149,11 +160,11 @@ class Graph:
                 case TagLabel():
                     nodes[str(tag.node)]["tags"]["label"] = tag.tag.label.format(
                         *[str(a) for a in tag.tag.variables.symbol.arguments]
-                    )  # TODO: Add variables here!
+                    )
                 case TagRuleFirstOrder():
                     nodes[str(tag.node)]["tags"]["first_order"] = tag.tag.first_order
 
-    def compute_edges(self) -> None:
+    def _compute_edges(self) -> None:
         if self._facts is None:
             return
         query_edges = self._facts.query(Edge).select(Edge)
@@ -166,7 +177,7 @@ class Graph:
             )
             self._edges[edge_id] = graph_edge
 
-    def compute_queries(self) -> None:
+    def _compute_queries(self) -> None:
         if self._facts is None:
             return
         query_query = self._facts.query(Query).select(Query)
