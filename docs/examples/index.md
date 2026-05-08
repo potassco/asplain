@@ -5,19 +5,57 @@ hide:
 
 # Examples
 
-Welcome to the **Examples** section of our documentation! 🎉
+This is a collection of examples for applying `asplain`.
+These examples are of varying complexity and cover a range of problem types that benefit from explanations.
+The corresponding encodings for each example are available in the project's [repository](https://github.com/potassco/asplain/tree/master/examples).
 
-Here, you'll find a comprehensive set of practical examples designed to help
-you get the most out of our system. Whether you're a first-time user or an
-experienced pro, these guides will walk you through common use cases and
-provide step-by-step instructions.
+<div class="grid cards" markdown>
 
-## How to Use This Section
+-   __James Bond__
 
-Each example includes:
+    ---
 
-1. **Instructions** to run the example.
-1. **Code snippets** to demonstrate implementation.
-1. **Helpful visuals** to illustrate key concepts.
+    A simple encoding with no variables
 
-Dive in and start exploring!
+    <figure markdown="span">
+      ![James Bond Example](../assets/images/jamesbond.svg){ width="300" }
+    </figure>
+
+    [:octicons-arrow-right-24: See Example](jamesbond)
+
+-   __Cat & Dog Seating__
+
+    ---
+
+    A simple assignment encoding with variables
+
+    <figure markdown="span">
+      ![Cat & Dog Seating Example](../assets/images/catdog.svg){ width="250" }
+    </figure>
+
+    [:octicons-arrow-right-24: See Example](catdog)
+
+-   __Don't Drive Drunk__
+
+    ---
+
+    A simple encoding using variables
+
+    <figure markdown="span">
+      ![Don't Drive Drunk Example](../assets/images/dontdrivedrunk.svg){ height="250" }
+    </figure>
+
+    [:octicons-arrow-right-24: See Example](dontdrivedrunk)
+
+-   __Sudoku__
+
+    ---
+
+    A sudoku encoding covering `4x4` or `9x9` instances
+
+    <figure markdown="span">
+      ![Sudoku Example](../assets/images/sudoku.svg){ width="250" }
+    </figure>
+
+    [:octicons-arrow-right-24: See Example](sudoku)
+</div>

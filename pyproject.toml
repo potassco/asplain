@@ -25,10 +25,13 @@ test = ["coverage[toml]"]
 doc = [
     "mkdocs",
     "mkdocs-material",
-    "mkdocstrings[python]",
-    "mkdoclingo",
+    "mkdocstrings>=1.0.4",
+    "mkdocstrings-python>=2.0",
+    "clindocs>=1.5.2",
     "mkdocs-literate-nav",
+    "pygments_clingo",
 ]
+
 dev = ["asplain[test,typecheck,lint_pylint,doc]"]
 
 [project.scripts]

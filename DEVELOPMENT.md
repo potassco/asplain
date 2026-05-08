@@ -51,6 +51,12 @@ provided link to open it in the browser.
 mkdocs serve
 ```
 
+Live development:
+
+```bash
+mkdocs serve --livereload
+```
+
 [editable]: https://setuptools.pypa.io/en/latest/userguide/development_mode.html
 [nox]: https://nox.thea.codes/en/stable/index.html
 [pipx]: https://pypa.github.io/pipx/
