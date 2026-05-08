@@ -4,8 +4,18 @@ from typing import Dict, List, Optional, Set, Tuple
 from clorm import FactBase
 from clorm.clingo import ClormControl, ClormModel
 
-from .predicates import Edge, Fired, Model, Node, Program, Query, Tag, TagLabel, TagRuleFirstOrder, World
-from .processes import ProcessChangeRemoved, TagProcess
+from .predicates import (
+    Edge,
+    Fired,
+    Model,
+    Node,
+    Program,
+    Query,
+    Tag,
+    TagLabel,
+    TagRuleFirstOrder,
+    World,
+)
 
 
 @dataclass
@@ -32,9 +42,6 @@ class Graph:
         self._nodes: Dict[str, GraphNode] = {}
         self._edges: Dict[Tuple[str, str], GraphEdge] = {}
         self._queries: Dict[str, bool] = {}
-        self._tag_processes: Set[TagProcess] = {
-            ProcessChangeRemoved(),
-        }
 
         self.get_facts(self._graph)
         self.compute_nodes()
