@@ -34,6 +34,8 @@ class GraphNode:
 
 
 class GraphNodeDict(TypedDict):
+    """Dictionary Type of a graph node"""
+
     type: str
     models: Set[str]
     programs: Set[str]
@@ -51,12 +53,16 @@ class GraphEdge:
 
 
 class JsonEdge(TypedDict):
+    """Dictionary Type of a JSON edge"""
+
     type: str
     source: str
     target: str
 
 
 class JsonQuery(TypedDict):
+    """Dictionary Type of a JSON query"""
+
     query_atom: str
     type: str
 
