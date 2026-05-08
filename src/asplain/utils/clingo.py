@@ -166,7 +166,7 @@ def foil_inspection(foil_pg: str) -> tuple[list[str], list[str], list[str]]:
                 removed_rules.append(node.tags["first_order"])
             if node.programs == set(["foil"]):
                 added_rules.append(node.tags["first_order"])
-    return foil_atoms, added_rules, removed_rules
+    return foil_atoms, added_rules, removed_rules  # type: ignore
 
 
 def print_foil(foil_atoms: list[str], added_rules: list[str], removed_rules: list[str]) -> None:

@@ -43,6 +43,6 @@ def viz_graph(
     files = render(graphs, view=show, directory="out", name_format=f"{name}", format=format)
     if len(files) == 0:
         log.warning("No graphs were generated.")
-        return graphs
+        return graphs  # type: ignore
     log.info("Graph image saved in: %s", files["default"])
-    return graphs
+    return graphs  # type: ignore
