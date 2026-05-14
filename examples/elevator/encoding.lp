@@ -1,10 +1,8 @@
 % Elevator Temporal Example
-%
-% fluents : holds(F,T)    (F=fluent, T=timestep)
-% actions : occur(A,T)    (A=action, T=timestep)
-%         : action(A)
-% time    : time(T)       (T=timestep)
-%         : horizon(T)
+
+% @time(T) :: occur(A,T)
+% @time(T) :: holds(F,T)
+
 
 % DEFINITIONS
 
