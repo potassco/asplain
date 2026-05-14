@@ -44,5 +44,5 @@ def viz_graph(
     if len(files) == 0:
         log.warning("No graph images were rendered.")
         return graphs  # type: ignore
-    log.info("Graph image saved in: %s", files["default"])
+    log.info("Graph image saved in: %s", files["explanation"])
     return graphs  # type: ignore

@@ -24,12 +24,22 @@ color_set(light, gray78).
 
 #const setdpi = 80.
 
-vnode(X):-node(X,_),solved(foil),     program(X, foil).
-vnode(X):-node(X,_),solved(foil), not program(X, foil),     program(X, ref).
-vnode(X):-node(X,_),not solved(foil), solved(ref), program(X, ref).
-vnode(X):-node(X,_),not solved(foil), not solved(ref).
-vedge((X,Y)):-edge((X, Y),_), vnode(X), vnode(Y).
-vtag(X,T):-tag(X, T).
+% Timestep Sub-Graphs
+vgraph(explanation) :- tag(_,time(_)).
+vgraph(time(T),explanation) :- tag(_,time(T)).
+vattr(graph, time(T), label, "Timestep {{ time }}") :- tag(_,time(T)).
+vattr(graph, time(T), (label,time), T) :- tag(_,time(T)).
+
+vnode(X,explanation) :- node(X,_),solved(foil), program(X, foil),                      not tag(X,time(_)).
+vnode(X,time(T))     :- node(X,_),solved(foil), program(X, foil),                          tag(X,time(T)).
+vnode(X,explanation) :- node(X,_),solved(foil), not program(X, foil), program(X, ref), not tag(X,time(_)).
+vnode(X,time(T))     :- node(X,_),solved(foil), not program(X, foil), program(X, ref),     tag(X,time(T)).
+vnode(X,explanation) :- node(X,_),not solved(foil), solved(ref), program(X, ref),      not tag(X,time(_)).
+vnode(X,time(T))     :- node(X,_),not solved(foil), solved(ref), program(X, ref),          tag(X,time(T)).
+vnode(X,explanation) :- node(X,_),not solved(foil), not solved(ref),                   not tag(X,time(_)).
+vnode(X,time(T))     :- node(X,_),not solved(foil), not solved(ref),                       tag(X,time(T)).
+vedge((X,Y),explanation) :- edge((X, Y),_), vnode(X,_), vnode(Y,_).
+vtag(X,T) :- tag(X, T).
 
 vattr(graph,default,label,"<<b>{{name}}</b><br/>{{description}}>"):-show_title.
 vattr(graph,default,(label,name),T):-title(T),show_title.
@@ -38,50 +48,50 @@ vattr(graph,default,dpi,setdpi).
 
 % Rule labels
 vattr(node,R,label,"<<font point-size=\"8\"> </font><br/> r{{value}} <br/> <u><font point-size=\"9\"><i>{{output}}</i></font></u>>"):-
-    vnode(R), node(R,rule(_)).
+    vnode(R,_), node(R,rule(_)).
 vattr(node,R,(label,output),"choice"):-
-    vnode(R), node(R,rule(choice)).
+    vnode(R,_), node(R,rule(choice)).
 vattr(node,R,(label,output),"disjunction"):-
-    vnode(R), node(R,rule(disjunction)).
+    vnode(R,_), node(R,rule(disjunction)).
 vattr(node,R,(label,value),R):-
-    vnode(R).
+    vnode(R,_).
 
 % Atom labels
-vattr(node, A, label, "< <font point-size=\"10\">{{value}}</font> >"):- vnode(A), node(A, atom).
+vattr(node, A, label, "< <font point-size=\"10\">{{value}}</font> >"):- vnode(A,_), node(A, atom).
 
 % General style
-vattr(node,N,fontname,@clinguin_fontname()):-  vnode(N).
+vattr(node,N,fontname,@clinguin_fontname()):-  vnode(N,_).
 
 % Rule style
-vattr(node,N,shape,box):-vnode(N), node(N,rule(_)).
-vattr(node,N,style,filled):- vnode(N).
+vattr(node,N,shape,box):-vnode(N,_), node(N,rule(_)).
+vattr(node,N,style,filled):- vnode(N,_).
 % vattr(node,N,style,filled):- vnode(N), not optional(_, N).
 % vattr(node,N,style,"filled,dashed"):- vnode(N), optional(_, N).
 
 % Tooltips
-vattr(node,N,tooltip,"<{{rule}}    {{label}}>"):- vnode(N).
-vattr(node,N,(tooltip,rule),@html_escape(S)):- vnode(N), vtag( N, rule_fo(S)).
-vattr(node,N,(tooltip,label),S):- vnode(N), vtag( N, label(S)).
-vattr(node,N,(tooltip,label),@format(F,A)):- vnode(N), vtag( N, label(F,A)).
+vattr(node,N,tooltip,"<{{rule}}    {{label}}>"):- vnode(N,_).
+vattr(node,N,(tooltip,rule),@html_escape(S)):- vnode(N,_), vtag( N, rule_fo(S)).
+vattr(node,N,(tooltip,label),S):- vnode(N,_), vtag( N, label(S)).
+vattr(node,N,(tooltip,label),@format(F,A)):- vnode(N,_), vtag( N, label(F,A)).
 
 % Colors
-no_model(N):- vnode(N), not model(N, ref), not model(N, foil).
-both_models(N):- vnode(N), model(N, ref), model(N, foil).
-vattr(node,N,fillcolor,C):- vnode(N), not both_models(N), model(N,G), color_set(G,C).
+no_model(N):- vnode(N,_), not model(N, ref), not model(N, foil).
+both_models(N):- vnode(N,_), model(N, ref), model(N, foil).
+vattr(node,N,fillcolor,C):- vnode(N,_), not both_models(N), model(N,G), color_set(G,C).
 vattr(node,N,fillcolor,C):- both_models(N), color_set(union,C).
-vattr(node,N,fillcolor,white):- vnode(N), no_model(N), not fired(N).
+vattr(node,N,fillcolor,white):- vnode(N,_), no_model(N), not fired(N).
 % vattr(node,N,fillcolor,white):- vnode(N).
 
 
-active_node(N):- vnode(N), node(N,_), not solved(foil).
-active_node(N):- vnode(N), node(N,_), model(N, foil), solved(foil).
+active_node(N):- vnode(N,_), node(N,_), not solved(foil).
+active_node(N):- vnode(N,_), node(N,_), model(N, foil), solved(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(ref, N), not show(foil).
 % active_node(N):- vnode(N), not show(model(_)), node(foil, N).
 
 change(rm,R):-node(R,_), program(R, ref), not program(R, foil), solved(foil).
 change(add,R):-node(R,_), program(R, foil), not program(R, ref), solved(foil).
 
-gray_node(N):-vnode(N),
+gray_node(N):-vnode(N,_),
             not active_node(N),
             not change(_,N).
 
@@ -91,12 +101,12 @@ vattr(node,R,(fontcolor;color),red):- change(rm,R).
 vattr(node,R,(fontcolor;color),blue):- change(add,R).
 
 % -------------- Edges
-vattr(edge,E,style,dashed):- vedge(E), edge(E,0).
-vattr(edge,E,arrowhead,vee):- vedge(E).
-vattr(edge,E,arrowsize,"0.5"):- vedge(E).
+vattr(edge,E,style,dashed):- vedge(E,explanation), edge(E,0).
+vattr(edge,E,arrowhead,vee):- vedge(E,explanation).
+vattr(edge,E,arrowsize,"0.5"):- vedge(E,explanation).
 
-active_edge((N1,N2)):- vedge((N1,N2)), active_node(N1), active_node(N2).
-vattr(edge,E,color,C):- vedge(E), not active_edge(E), color_set(light,C).
+active_edge((N1,N2)):- vedge((N1,N2),explanation), active_node(N1), active_node(N2).
+vattr(edge,E,color,C):- vedge(E,explanation), not active_edge(E), color_set(light,C).
 
 
 vattr(node,X, fillcolor, C):-fired(X), color_set(constraint,C).
