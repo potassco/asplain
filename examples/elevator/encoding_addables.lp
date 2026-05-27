@@ -1,3 +1,3 @@
 % @addable
-% time(T)
+% @time(horizon+1)
 time(horizon+1).
