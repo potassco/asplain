@@ -33,6 +33,7 @@ fluent(ready).
 % @time(T)
 :- time(T), time(T+1), occur(A1,T), occur(A2,T), A1!=A2.
 % @time(T)
+% @hide
 has_action(T) :- occur(A,T).
 % @label("At time {} there cannot be no action.",(T,))
 % @time(T)
