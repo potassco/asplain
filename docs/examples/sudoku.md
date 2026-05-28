@@ -7,7 +7,7 @@ hide:
 
 <div class="grid" markdown>
 
-Sudoku is a logic puzzle where the objective is to fill a `4x4` or `9x9` grid with digits so that each column, each row, and each of the nine `2x2` or `3x3` subgrids contains all of the digits from `1` to `9`.
+Sudoku is a logic puzzle where the objective is to fill a `4x4` or `9x9` grid with digits so that each column, each row, and each of the nine `2x2` or `3x3` subgrids contains all of the digits from `1` to `4` / `9`.
 In ASP solvers for this problem are often implemented using a generate and test approach.
 Explaining queries for encodings like this can be challenging since they often lead to big explanation graphs containing many nodes.
 To address this, `asplain`'s __pruning fuctionality__ can be used to reduce the size of the explanation graph and make an interpretation easier.
