@@ -41,5 +41,9 @@ These graphs can be rendered as an image, further explored through an interactiv
 
     [:octicons-arrow-right-24: Examples](examples)
 
-
 </div>
+
+<figure markdown="span">
+    ![](assets/images/asplain.svg)
+    <figcaption>Illustration of a workflow in Asplain for the [James Bond Example](examples/jamesbond)</figcaption>
+</figure>
