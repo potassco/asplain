@@ -121,6 +121,7 @@ nav:
       - Problem: reference/problem/index.md
       - Encodings: reference/encodings/index.md
       - API: reference/api/index.md
+      - CLI: reference/cli/index.md
   - Community:
       - community/index.md
       - Help: community/help.md

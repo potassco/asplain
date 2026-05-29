@@ -9,6 +9,7 @@ learn about specific components, or access essential resources.
 ## What’s Inside
 
 - **API Documentation:** Comprehensive details on general classes.
+- **CLI Documentation** Detailed explanation of all command line options.
 - **ASP Encodings:** Explore the encodings used in our system.
 - **Problem Specifications:** Detailed description and definitions of the
   problem.
