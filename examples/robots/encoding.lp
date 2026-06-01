@@ -86,8 +86,10 @@ holds(reached_goal(R),T+1) :- holds(reached_goal(R),T), time(T+1).
 
 % @label("Robot {} and {} cannot be both at node {} at time {} (Vertex Conflict)",(R1,R2,POS,T,))
 % @time(T)
+% @removable
 :- holds(at(R1,POS),T), holds(at(R2,POS),T), R1>R2.
 
 % @label("Robot {} and {} cannot switch positions ({} <-> {}) between timesteps {} and {} (Edge Conflict)",(R1,R2,POS1,POS2,T,T+1,))
 % @time(T)
+% @removable
 :- holds(at(R1,POS1),T), holds(at(R1,POS2),T+1), holds(at(R2,POS2),T), holds(at(R2,POS1),T+1), R1>R2.

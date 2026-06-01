@@ -1,4 +1,4 @@
-#const horizon=4.
+#const horizon=5.
 
 robot(1).
 robot(2).
