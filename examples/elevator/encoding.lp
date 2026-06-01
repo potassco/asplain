@@ -6,8 +6,6 @@
 % @time(T) :: has_action(T)
 
 
-% DEFINITIONS
-
 time(0..horizon).
 
 % Define actions
