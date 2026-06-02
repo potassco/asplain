@@ -6,8 +6,6 @@ hide:
 
 # Asplain
 
-!!! info
-    *asplain* is part of the [Potassco](https://potassco.org) suite.
 
 Asplain is a contrastive explanation system built on [clingo](https://potassco.org/clingo/)'s API and meta-programming features.
 It is able to generate contrastive explanation graphs from annotated logic programs.
@@ -47,3 +45,7 @@ These graphs can be rendered as an image, further explored through an interactiv
     ![](assets/images/asplain.svg)
     <figcaption>Illustration of a workflow in Asplain for the [James Bond Example](examples/jamesbond)</figcaption>
 </figure>
+
+
+!!! info
+    *asplain* is part of the [Potassco](https://potassco.org) suite.

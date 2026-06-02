@@ -95,6 +95,8 @@ markdown_extensions:
 plugins:
   - search
   - autorefs
+  - literate-nav:
+      nav_file: SUMMARY.md
   - mkdocstrings:
       handlers:
         python:
@@ -111,21 +113,3 @@ plugins:
               show_inherited_detail: true
               show_inherited_detail_toc: true
               show_inherited_detail_tree: true
-
-nav:
-  - Home: index.md
-  - Getting Started: getting_started.md
-  - Examples: examples/index.md
-  - Reference:
-      - reference/index.md
-      - Problem: reference/problem/index.md
-      - Encodings: reference/encodings/index.md
-      - API: reference/api/index.md
-      - CLI: reference/cli/index.md
-  - Community:
-      - community/index.md
-      - Help: community/help.md
-      - Changes: community/CHANGES.md
-      - Contributing: community/CONTRIBUTING.md
-      - Development: community/DEVELOPMENT.md
-      - Deployment: community/DEPLOYMENT.md
