@@ -29,6 +29,7 @@ doc = [
     "mkdocstrings-python>=2.0",
     "mkdoclingo>=1.4.0",
     "mkdocs-literate-nav",
+    "pygments_clingo",
 ]
 
 dev = ["asplain[test,typecheck,lint_pylint,doc]"]
