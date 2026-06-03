@@ -1,34 +1,18 @@
----
-hide:
-  - navigation
----
-
 # Cat & Dog Seating
 
-<div class="grid" markdown>
+!!! note
+    View the source code for this example [here](https://github.com/potassco/asplain/tree/master/examples/cat-dog).
 
-The cat & dog seating example encoding is an assignment ASP encoding with variables.
-It models a scenario where there is an event where people are seated on tables depending on their preferences in pets.
-Dog people are only allowed to sit with other dog people, and cat people are only allowed to sit with other cat people.
-The goal is to seat all people while adhering to their pet preferences, while optionally optimizing for using the fewest number of tables possible.
+--8<-- "examples/cat-dog/README.md:description"
 
-![Sudoku Example](../assets/images/catdog.svg){ width="300", align=right }
-
-</div>
+<figure markdown="span">
+    ![Cat & Dog Seating Example](../assets/images/catdog.svg){ width="300" }
+    <figcaption>Illustration of the Cat & Dog Seating Problem</figcaption>
+</figure>
 
 ## Usage
 
-Explanation:
-
-```bash
-asplain examples/cat-dog/encoding.lp examples/cat-dog/instance.lp 1 --open --query='assign("Susana",(1,2))'
-```
-
-Explanation with optimization:
-
-```bash
-MISSING COMMAND
-```
+--8<-- "examples/cat-dog/README.md:usage"
 
 ## Encodings
 

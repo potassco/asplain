@@ -1,71 +1,61 @@
 # James Bond
 
-James Bond might drink $d$ a martini, he cannot be poisoned $p$ if he is
-careful $c$. There are two possible causes of poisoning:
+> [!Note] Read the full documentation for this example
+> [here](https://potassco.org/asplain/examples/jamesbond/).
 
-- by contact with a toxin $t$,
-- or by drinking without taking an antidote $a$.
+<!-- --8<-- [start:description] -->
 
-Bond is careful and he takes the antidote.
+The James Bond example encoding is a simple ASP encoding without any variables.
+It is a causal encoding that models a scenario where James Bond is on vacation
+and is offered a poisoned martini. If he is carful, he will notice the poison
+and avoid drinking it. Or since he is a seasoned spy, he might have taken a
+profilactic antidote that prevents him from being poisoned even if he drinks
+the martini.
 
-## Command line
+<!-- --8<-- [end:description] -->
 
-There are two models, but in none of them Bond is poisoned.
+![James Bond Example](../../docs/assets/images/jamesbond.svg)
 
-Asplain can be used to explain why Bond is not poisoned by checking the changes
-needed for him to be poisoned.
+## Usage
 
-```console
-asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0
+<!-- --8<-- [start:usage] -->
+
+Explanation:
+
+```bash
+asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p" 0
 ```
 
-### Fixing the model
+Explanation with __fixed model__:
 
-A single model can be provided using the `--model` option.
-
-```console
-asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp
+```bash
+asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p" 0 --model examples/james-bond/model.lp
 ```
 
-### Cost function
-
-A cost function is used to select the best explanation via optimization.
+Using a cost function for selecting __preferred explanations__:
 
 - Penalizing program changes
 
-```console
-asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp
-```
+  ```bash
+  asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp
+  ```
 
 - Penalizing also model difference
 
-```console
-asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp --cost-encoding src/asplain/encodings/costs/model-difference.lp
-```
+  ```bash
+  asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp --cost-encoding src/asplain/encodings/costs/model-difference.lp
+  ```
 
-### LLM
+Getting a __natural language__ explanation:
 
-To get the explanation in natural language, use the `--llm` option. Make sure
-to set up the LLM integration as described in the
-[README.md](../../README.md#llm-intergration).
-
-```console
+```bash
 asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp --cost-encoding src/asplain/encodings/costs/model-difference.lp  --llm GPT_4O
 ```
 
-### Visualization
+Using the __interactive__ explanation interface:
 
-The graph can be visualized using the `--open` option which opens the browser
-with the corresponding image. Hover on the nodes to see their labels.
-
-```console
-asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp --cost-encoding src/asplain/encodings/costs/model-difference.lp --open
-```
-
-### User interface
-
-To open the user interface, use the `clinguin` command as follows:
-
-````console
+````bash
 clinguin client-server --domain-files examples/james-bond/encoding.lp --ui-files src/asplain/encodings/ui.lp --custom-classes src/asplain/ui --backend ASPlainBackend  --cost-encoding src/asplain/encodings/costs/program-difference.lp```
 ````
+
+<!-- --8<-- [end:usage] -->

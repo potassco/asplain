@@ -1,27 +1,18 @@
----
-hide:
-  - navigation
----
-
 # Don't Drive Drunk
 
-<div class="grid" markdown>
+!!! note
+    View the source code for this example [here](https://github.com/potassco/asplain/tree/master/examples/dont-drive-drunk).
 
-The don't drive drunk example encoding is a simple ASP encoding with variables.
-It models a scenario where there are two people, Gabriel and Clare.
-If any of the two people are drunk and also drives they get sentenced and have to go to prison.
+--8<-- "examples/dont_drive_drunk/README.md:description"
 
-![Sudoku Example](../assets/images/dontdrivedrunk.svg){ width="400", align=right }
-
-</div>
+<figure markdown="span">
+    ![Don't Drive Drunk Example](../assets/images/dontdrivedrunk.svg){ width="400" }
+    <figcaption>Illustration of the Don't Drive Drunk Problem</figcaption>
+</figure>
 
 ## Usage
 
-Explanation:
-
-```bash
-asplain examples/dont_drive_drunk/encoding.lp 1 --log info --query "sentence(gabriel,innocent)"
-```
+--8<-- "examples/dont_drive_drunk/README.md:usage"
 
 ## Encodings
 
