@@ -7,14 +7,14 @@ icon: "material/wrench"
 === "Pip"
 
     ```console
-    pip install asplin
+    pip install asplain
     ```
 
 === "Development mode"
 
     ```console
-    git clone https://github.com/potassco/asplin.git
-    cd asplin
+    git clone https://github.com/potassco/asplain.git
+    cd asplain
     pip install -e .[all]
     ```
 
@@ -24,10 +24,10 @@ icon: "material/wrench"
 
 -----
 
-A successful installation will make the `asplin` command available in your terminal. You can check the installation by running:
+A successful installation will make the `asplain` command available in your terminal. You can check the installation by running:
 
 ```console
-asplin -h
+asplain -h
 ```
 
 This will display the help message with available options and usage instructions.
