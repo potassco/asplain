@@ -14,7 +14,7 @@ These graphs can be rendered as an image, further explored through an interactiv
 
 <div class="grid cards" markdown>
 
--   :material-clock-fast:{ .lg .middle } __Getting Started__
+-   :material-rocket-launch:{ .lg .middle } __Getting Started__
 
     ---
 
