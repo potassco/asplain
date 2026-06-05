@@ -11,15 +11,13 @@ def label(rule):
     return Number(n)
 #end.
 
+% Error occurs when a sum is encountered in the input (unsupported)
 
 error("Sum not supported") :- rule(H,sum(B)).
 
-% Create PG_Rs,
-
 % Gather all rules and atoms
 
-label(rule(H,B), @label(rule(H,B))) :- rule(H,B). % <-------- Correct line
-% label(rule(H,B), ID) :- tag(rule(H,B),rule_id(ID)). % <--------  HACK just for the paper
+label(rule(H,B), @label(rule(H,B))) :- rule(H,B).
 node(A,atom) :- symbol_literal(A,L).
 node(R,rule(disjunction)) :- label(rule(disjunction(H),B), R).
 node(R,rule(choice)) :- label(rule(choice(H),B), R).
@@ -49,15 +47,11 @@ edge((R, A),1):-
 program(N, ref):-node(N,_), not optional(add, N).
 #show program/2.
 
-% ------- Tags ------
 % Tags into reference graph
 asplain_tag(R,T):-tag(rule(H,B),T), label(rule(H,B),R).
 asplain_tag(A,T):-tag(atom(E),T), symbol_literal(A,E).
 
 #show tag(N,T): asplain_tag(N,T).
-
-
-% ----- Optional rules -----
 
 % Optional to remove
 optional(remove, R):-asplain_tag(R, removable).
