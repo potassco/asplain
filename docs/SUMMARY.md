@@ -4,13 +4,13 @@
     * [Help](use/help.md)
 * Reference
     * [Reference](reference/index.md)
-    * [API](reference/api/index.md)
     * [CLI](reference/cli/index.md)
     * [Tagging](reference/tagging/index.md)
-    * [Foil Preferences](reference/preferences/index.md)
+    * [Explanation Preferences](reference/preferences/index.md)
     * [Explanation Graph](reference/explanation-graph/index.md)
     * [Pruning Methods](reference/pruning/index.md)
     * [Encodings](reference/encodings/index.md)
+    * [API](reference/api/index.md)
 * Examples
     * [Examples](examples/index.md)
     * [James Bond](examples/jamesbond.md)
