@@ -24,6 +24,7 @@ fluent(ready).
 % ACTION GENERATION
 
 % Generate actions for each time step
+% @label("At time {} action {} occurs",(T,A,))
 % @time(T)
 {occur(A,T): action(A)} :- time(T),time(T+1).
 % Cardinality constraints
@@ -65,17 +66,18 @@ holds(at(X),T+1) :- holds(at(X),T), occur(wait,T), time(T).
 % @time(T)
 holds(at(X),T+1) :- holds(at(X),T), occur(serve,T), time(T).
 
-% Compute served
-% QUESTION : Does it make sense / is it good pratice to define causal rules only using fluents and no actions?
+% @label("Serve floor {} at time {} when serve action occurs on floor {}",(X,T,X))
 % @time(T)
 holds(served(X),T) :- holds(at(X),T), occur(serve,T).
-% Compute called
+% @label("Call elevator for floor {} at {} if elevator was called before and not served",(X,T+1,))
 % @time(T)
 holds(called(X),T+1) :- holds(called(X),T), not holds(served(X),T), time(T).
 % Compute ready
+% @label("The elevator is ready at time {} if at that time is was called to floor {} and also is at that floor",(T,X,))
 % @time(T)
 holds(ready,T) :- holds(called(X),T), holds(at(X),T).
 
 % Only allow calling the elevator inside horizon
+% @label("The elevator cannot be called at time {}, because it is outside the allowed timesteps",(T,))
 % @time(T)
 :- holds(called(X),T), not time(T).
