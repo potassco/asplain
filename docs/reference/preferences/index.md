@@ -9,8 +9,15 @@ They are used to assign higher costs to certain rules and/or atoms, e.g., to pri
 
 Asplain comes out of the box with a range of predefined cost functions for common preferences. You can use these functions as-is, or write your own to fit your needs.
 
+__Usage__
 
-## Model Difference
+```bash
+asplain [...] --costs-encoding=<YOUR-COST-ENCODING>
+```
+
+## Predefined Cost Functions
+
+### Model Difference
 
 Prioritize a different model in the foil.
 
@@ -20,9 +27,9 @@ Prioritize a different model in the foil.
         encodings:
             git_link: true
             source: true
-        start_level: 2
+        start_level: 3
 
-## Program Difference
+### Program Difference
 
 Prioritize a different program as the foil.
 
@@ -32,10 +39,10 @@ Prioritize a different program as the foil.
         encodings:
             git_link: true
             source: true
-        start_level: 2
+        start_level: 3
 
 
-## Penalize Added
+### Penalize Added
 
 Penalize adding new rules.
 
@@ -45,9 +52,9 @@ Penalize adding new rules.
         encodings:
             git_link: true
             source: true
-        start_level: 2
+        start_level: 3
 
-## Penalize Removed
+### Penalize Removed
 
 Penalize removing existing rules.
 
@@ -57,9 +64,9 @@ Penalize removing existing rules.
         encodings:
             git_link: true
             source: true
-        start_level: 2
+        start_level: 3
 
-## Penalize Removing Non-Assumptions
+### Penalize Removing Non-Assumptions
 
 Prioritize removing assumptions over other rules.
 
@@ -69,9 +76,9 @@ Prioritize removing assumptions over other rules.
         encodings:
             git_link: true
             source: true
-        start_level: 2
+        start_level: 3
 
-## Penalize Removing Non-Constraints
+### Penalize Removing Non-Constraints
 
 Prioritize removing constraints over other rules.
 
@@ -81,9 +88,9 @@ Prioritize removing constraints over other rules.
         encodings:
             git_link: true
             source: true
-        start_level: 2
+        start_level: 3
 
-## Penalize Removing Non-Facts
+### Penalize Removing Non-Facts
 
 Prioritize removing facts over other rules.
 
@@ -93,4 +100,4 @@ Prioritize removing facts over other rules.
         encodings:
             git_link: true
             source: true
-        start_level: 2
+        start_level: 3
