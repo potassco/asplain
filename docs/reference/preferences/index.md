@@ -12,15 +12,19 @@ Asplain comes out of the box with a range of predefined cost functions for commo
 
 ## Model Difference
 
+Prioritize a different model in the foil.
+
 ::: src/asplain/encodings/costs/model-difference.lp
     handler: asp
     options:
         encodings:
             git_link: true
             source: true
-        start_level: 1
+        start_level: 2
 
 ## Program Difference
+
+Prioritize a different program as the foil.
 
 ::: src/asplain/encodings/costs/program-difference.lp
     handler: asp
@@ -28,10 +32,12 @@ Asplain comes out of the box with a range of predefined cost functions for commo
         encodings:
             git_link: true
             source: true
-        start_level: 1
+        start_level: 2
 
 
 ## Penalize Added
+
+Penalize adding new rules.
 
 ::: src/asplain/encodings/costs/penalize-added.lp
     handler: asp
@@ -39,9 +45,11 @@ Asplain comes out of the box with a range of predefined cost functions for commo
         encodings:
             git_link: true
             source: true
-        start_level: 1
+        start_level: 2
 
 ## Penalize Removed
+
+Penalize removing existing rules.
 
 ::: src/asplain/encodings/costs/penalize-removed.lp
     handler: asp
@@ -49,9 +57,11 @@ Asplain comes out of the box with a range of predefined cost functions for commo
         encodings:
             git_link: true
             source: true
-        start_level: 1
+        start_level: 2
 
 ## Penalize Removing Non-Assumptions
+
+Prioritize removing assumptions over other rules.
 
 ::: src/asplain/encodings/costs/penalize-non-assumptions-removed.lp
     handler: asp
@@ -59,9 +69,11 @@ Asplain comes out of the box with a range of predefined cost functions for commo
         encodings:
             git_link: true
             source: true
-        start_level: 1
+        start_level: 2
 
 ## Penalize Removing Non-Constraints
+
+Prioritize removing constraints over other rules.
 
 ::: src/asplain/encodings/costs/penalize-non-constraint-removed.lp
     handler: asp
@@ -69,9 +81,11 @@ Asplain comes out of the box with a range of predefined cost functions for commo
         encodings:
             git_link: true
             source: true
-        start_level: 1
+        start_level: 2
 
 ## Penalize Removing Non-Facts
+
+Prioritize removing facts over other rules.
 
 ::: src/asplain/encodings/costs/penalize-non-facts-removed.lp
     handler: asp
@@ -79,4 +93,4 @@ Asplain comes out of the box with a range of predefined cost functions for commo
         encodings:
             git_link: true
             source: true
-        start_level: 1
+        start_level: 2
