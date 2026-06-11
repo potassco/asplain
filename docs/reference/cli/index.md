@@ -58,9 +58,7 @@ asplain [...] --prune=<PRUNING-METHOD>
 ```
 
 Pruning can be used as a post-processing feature to reduce the size of the contrastive explanation graph.
-For complex problems the size of the explanation graph can grow to a level where interpretation can be difficult.
-For cases like this pruning can be useful to remove parts of the explanation that are unrelated or not necessary.
-The applicability and usfulness of the different pruning approaches vary for different programs.
+A more detailed description of the different pruning methods can be found in the [Pruning Reference](../pruning/).
 
 - Options for `<PRUNING-METHOD>` :
     - `ORPHAN` :
