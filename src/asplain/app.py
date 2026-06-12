@@ -8,7 +8,15 @@ from textwrap import dedent
 from time import time
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
-from clingo import Application, ApplicationOptions, Control, Flag, Model, Symbol, parse_term
+from clingo import (
+    Application,
+    ApplicationOptions,
+    Control,
+    Flag,
+    Model,
+    Symbol,
+    parse_term,
+)
 
 from asplain import Foil, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
 from asplain.pruning.pruners import PruningMethod, prune_explanation_graph
@@ -40,7 +48,10 @@ class AsplainApp(Application):
     """Application for reification with extensions."""
 
     def __init__(
-        self, name: str, constants: Optional[dict[str, str]] = None, on_foil: Optional[Callable[[Foil], None]] = None
+        self,
+        name: str,
+        constants: Optional[dict[str, str]] = None,
+        on_foil: Optional[Callable[[Foil], None]] = None,
     ) -> None:
         """Initialize AsplainApp."""
         self.program_name = name
@@ -323,7 +334,10 @@ class AsplainApp(Application):
         self.statistics["Pruning methods"] = {"count": len(self._pruning_methods)}
         self.statistics["Explanations"] = {"count": self._number_explanations}
         self.statistics["Number of changes"] = (
-            {"added": len(self._foil.added_rules), "removed": len(self._foil.removed_rules)}
+            {
+                "added": len(self._foil.added_rules),
+                "removed": len(self._foil.removed_rules),
+            }
             if self._foil is not None
             else {"added": -1, "removed": -1}
         )
