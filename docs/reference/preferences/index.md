@@ -2,102 +2,37 @@
 icon: material/heart
 ---
 
-# Explanation Preferences
+# Explanation Selection
 
 Domain-specific preferences can be added to an explanation over cost functions.
 They are used to assign higher costs to certain rules and/or atoms, e.g., to prioritize changes over the input, or the removal of integrity constraints over facts.
 
 Asplain comes out of the box with a range of predefined cost functions for common preferences. You can use these functions as-is, or write your own to fit your needs.
 
-__Usage__
+## Usage
 
 ```bash
 asplain [...] --costs-encoding=<YOUR-COST-ENCODING>
 ```
 
-## Predefined Cost Functions
+!!! tip "Multiple cost functions"
 
-### Model Difference
+    You can provide multiple cost functions by repeating the `--costs-encoding` option multiple times.
 
-Prioritize a different model in the foil.
+Your cost encoding must obtain atoms using the `cost/3` predicate.
 
-::: src/asplain/encodings/costs/model-difference.lp
+::: src/asplain/encodings/costs/docs.lp
     handler: asp
     options:
-        encodings:
-            git_link: true
-            source: true
-        start_level: 3
-
-### Program Difference
-
-Prioritize a different program as the foil.
-
-::: src/asplain/encodings/costs/program-difference.lp
-    handler: asp
-    options:
-        encodings:
-            git_link: true
-            source: true
+        glossary:
+            include_title: false
+            include_references: false
         start_level: 3
 
 
-### Penalize Added
+!!! example "Cost encodings"
 
-Penalize adding new rules.
+    In this section we provide a few examples of cost encodings for common preferences.
+    Browse the files in the left for more examples and the complete list of predefined cost encodings.
 
-::: src/asplain/encodings/costs/penalize-added.lp
-    handler: asp
-    options:
-        encodings:
-            git_link: true
-            source: true
-        start_level: 3
-
-### Penalize Removed
-
-Penalize removing existing rules.
-
-::: src/asplain/encodings/costs/penalize-removed.lp
-    handler: asp
-    options:
-        encodings:
-            git_link: true
-            source: true
-        start_level: 3
-
-### Penalize Removing Non-Assumptions
-
-Prioritize removing assumptions over other rules.
-
-::: src/asplain/encodings/costs/penalize-non-assumptions-removed.lp
-    handler: asp
-    options:
-        encodings:
-            git_link: true
-            source: true
-        start_level: 3
-
-### Penalize Removing Non-Constraints
-
-Prioritize removing constraints over other rules.
-
-::: src/asplain/encodings/costs/penalize-non-constraint-removed.lp
-    handler: asp
-    options:
-        encodings:
-            git_link: true
-            source: true
-        start_level: 3
-
-### Penalize Removing Non-Facts
-
-Prioritize removing facts over other rules.
-
-::: src/asplain/encodings/costs/penalize-non-facts-removed.lp
-    handler: asp
-    options:
-        encodings:
-            git_link: true
-            source: true
-        start_level: 3
+    Adjust the `Value` and `Level` to prioritize certain explanations over others.

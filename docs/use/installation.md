@@ -4,23 +4,12 @@ icon: "material/wrench"
 
 # Installation
 
-=== "Pip"
+The *asplain* system is available in [PyPI](https://pypi.org/project/asplain/).
+Install it using pip by running the following command in your terminal:
 
-    ```console
-    pip install asplain
-    ```
-
-=== "Development mode"
-
-    ```console
-    git clone https://github.com/potassco/asplain.git
-    cd asplain
-    pip install -e .[all]
-    ```
-
-    !!! warning
-
-        Use only for development purposes
+```console
+pip install asplain
+```
 
 -----
 

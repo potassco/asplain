@@ -21,7 +21,7 @@ These graphs can be rendered as an image, further explored through an interactiv
     Install [`asplain`](#) with [`pip`](#) and get up
     and running in minutes
 
-    [:octicons-arrow-right-24: Getting started](getting_started)
+    [:octicons-arrow-right-24: Getting started](use/quick-start)
 
 -   :octicons-command-palette-24:{ .lg .middle } __CLI Reference__
 

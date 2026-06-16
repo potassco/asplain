@@ -23,7 +23,7 @@ asplain [...] --prune ORPHANS
     options:
         encodings:
             git_link: true
-            source: true
+            include_title: false
         start_level: 4
 
 
@@ -41,7 +41,7 @@ asplain [...] --prune PATHS
     options:
         encodings:
             git_link: true
-            source: true
+            include_title: false
         start_level: 4
 
 
@@ -49,6 +49,10 @@ asplain [...] --prune PATHS
 
 This pruning method only keeps the nodes that changed between the reference program and the found foil.
 This method is especially useful for really large graphs where only focusing on the changed nodes can provide a clearer explanation.
+
+!!! warning
+
+    When the query is already satisfied in the reference model, this pruning method will not keep any nodes since there are no changes between the reference and the foil.
 
 ```bash
 asplain [...] --prune CHANGES
@@ -59,5 +63,5 @@ asplain [...] --prune CHANGES
     options:
         encodings:
             git_link: true
-            source: true
+            include_title: false
         start_level: 4

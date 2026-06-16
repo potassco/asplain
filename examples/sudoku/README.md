@@ -42,4 +42,14 @@ asplain examples/sudoku/encoding.lp examples/sudoku/instance4x4.lp --query "sudo
 asplain examples/sudoku/encoding.lp examples/sudoku/instance9x9.lp --query "sudoku(2,2,2)" --prune CHANGES --prune ORPHANS
 ```
 
+### Dynamic tags
+
+Instead of annotating the encoding with static tags, dynamic tags can be used
+to tag the nodes in the explanation graph based on their relation to other
+nodes.
+
+```bash
+asplain examples/sudoku/encoding.lp examples/sudoku/instance4x4-no-tags.lp --query "sudoku(1,1,2)" --dynamic-tags examples/sudoku/dynamic-tags.lp
+```
+
 <!-- --8<-- [end:usage] -->

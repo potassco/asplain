@@ -48,13 +48,17 @@ program(N, ref):-node(N,_), not optional(add, N).
 #show program/2.
 
 % Tags into reference graph
-asplain_tag(R,T):-tag(rule(H,B),T), label(rule(H,B),R).
-asplain_tag(A,T):-tag(atom(E),T), symbol_literal(A,E).
+original_tag(tag(rule(H,B),T)):-tag(rule(H,B),T).
+original_tag(tag(atom(E),T)):-tag(atom(E),T).
+tag(R,T):-tag(rule(H,B),T), label(rule(H,B),R).
+tag(A,T):-tag(atom(E),T), symbol_literal(A,E).
+% Tag comes from dynamic tags
+% asplain_tag(X,T):-tag(X,T), not original_tag(tag(X,T)).
 
-#show tag(N,T): asplain_tag(N,T).
+#show tag(N,T): tag(N,T), not original_tag(tag(N,T)).
 
 % Optional to remove
-optional(remove, R):-asplain_tag(R, removable).
+optional(remove, R):-tag(R, removable), not original_tag(tag(R,removable)).
 % For now dynamic tags are not added here
 % optional(remove, rule(disjunction(H),B)):-
 %     tag(G, rule(disjunction(H),B),fact), %is a fact
@@ -63,7 +67,7 @@ optional(remove, R):-asplain_tag(R, removable).
 %     symbol_literal(A,E).
 
 % Optional to add also includes the edges that would be added
-optional(add, R):-asplain_tag(R, addable).
+optional(add, R):-tag(R, addable), not original_tag(tag(R,addable)).
 
 #show optional/2.
 

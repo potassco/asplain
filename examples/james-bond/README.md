@@ -20,7 +20,7 @@ the martini.
 
 <!-- --8<-- [start:usage] -->
 
-Explanation:
+### Explanation
 
 ```bash
 asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p" 0
@@ -32,7 +32,7 @@ Explanation with __fixed model__:
 asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p" 0 --model examples/james-bond/model.lp
 ```
 
-Using a cost function for selecting __preferred explanations__:
+### Using a cost function for selecting __preferred explanations__:
 
 - Penalizing program changes
 
@@ -46,13 +46,13 @@ Using a cost function for selecting __preferred explanations__:
   asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp --cost-encoding src/asplain/encodings/costs/model-difference.lp
   ```
 
-Getting a __natural language__ explanation:
+### Getting a __natural language__ explanation:
 
 ```bash
 asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p"  0 --model examples/james-bond/model.lp --cost-encoding src/asplain/encodings/costs/program-difference.lp --cost-encoding src/asplain/encodings/costs/model-difference.lp  --llm GPT_4O
 ```
 
-Using the __interactive__ explanation interface:
+### Using the __interactive__ explanation interface:
 
 ````bash
 clinguin client-server --domain-files examples/james-bond/encoding.lp --ui-files src/asplain/encodings/ui.lp --custom-classes src/asplain/ui --backend ASPlainBackend  --cost-encoding src/asplain/encodings/costs/program-difference.lp```
