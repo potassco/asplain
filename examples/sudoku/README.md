@@ -1,44 +1,55 @@
 # Sudoku
 
-Classic encoding of the sudoku puzzle in a 4x4 format. The problem instance
-looks the following way:
+> [!Note] Read the full documentation for this example
+> [here](https://potassco.org/asplain/examples/sudoku/).
 
-|     |     |     |     |
-| :-: | :-: | :-: | :-: |
-|  1  |     |     |     |
-|     |     |     |  2  |
-|     |  1  |     |     |
-|     |     |  2  |     |
+<!-- --8<-- [start:description] -->
 
-For this configuration of the problem there are 4 possible model solutions, one
-being provided in the file `model.lp`.
+Sudoku is a logic puzzle where the objective is to fill a `4x4` or `9x9` grid
+with digits so that each column, each row, and each of the nine `2x2` or `3x3`
+subgrids contains all of the digits from `1` to `4` / `9`. In ASP solvers for
+this problem are often implemented using a generate and test approach.
+Explaining queries for encodings like this can be challenging since they often
+lead to big explanation graphs containing many nodes. To address this,
+`asplain`'s __pruning fuctionality__ can be used to reduce the size of the
+explanation graph and make an interpretation easier.
 
-## Command line
+<!-- --8<-- [end:description] -->
 
-The command line is used for passing a model solution to the given problem
-problem. We also include the query `sudoku(3,2,1)` for which we want to know
-why it is in the solution.
+![Sudoku Example](../../docs/assets/images/sudoku.svg)
 
-```console
-asplain examples/sudoku/encoding.lp examples/sudoku/instance4x4.lp --log debug --query "sudoku(3,2,1)"  --prune PATHS
+## Usage
+
+<!-- --8<-- [start:usage] -->
+
+Basic Explanation (No Pruning):
+
+```bash
+asplain examples/sudoku/encoding.lp examples/sudoku/instance4x4.lp --query "sudoku(3,2,1)"
 ```
 
-To get a contrastive explanation, we can ask for a query that is not in the
-solution, for example `sudoku(2,2,2)`.
-
-```console
-asplain examples/sudoku/encoding.lp examples/sudoku/instance4x4.lp --log debug --query "sudoku(2,2,2)"  --prune PATHS
+```bash
+asplain examples/sudoku/encoding.lp examples/sudoku/instance9x9.lp --query "sudoku(2,2,2)"
 ```
 
-### Further pruning and optimization methods
+Simplified Explanation (`CHANGES` + `ORPHANS` Pruning):
 
-Obtain an explanation for the same query, but with further pruning methods and
-cost encoding for model difference.
-
-```console
-asplain encoding.lp --query 'sudoku(2,2,2)' --prune CHANGES --prune ORPHANS --cost-encoding ../../src/asplain/encodings/costs/model-difference.lp instance4x4.lp
+```bash
+asplain examples/sudoku/encoding.lp examples/sudoku/instance4x4.lp --query "sudoku(3,2,1)" --prune CHANGES --prune ORPHANS
 ```
 
-```console
-asplain encoding.lp --query 'sudoku(2,2,2)' --prune CHANGES --prune ORPHANS --cost-encoding ../../src/asplain/encodings/costs/model-difference.lp instance9x9.lp
+```bash
+asplain examples/sudoku/encoding.lp examples/sudoku/instance9x9.lp --query "sudoku(2,2,2)" --prune CHANGES --prune ORPHANS
 ```
+
+### Dynamic tags
+
+Instead of annotating the encoding with static tags, dynamic tags can be used
+to tag the nodes in the explanation graph based on their relation to other
+nodes.
+
+```bash
+asplain examples/sudoku/encoding.lp examples/sudoku/instance4x4-no-tags.lp --query "sudoku(1,1,2)" --dynamic-tags examples/sudoku/dynamic-tags.lp
+```
+
+<!-- --8<-- [end:usage] -->

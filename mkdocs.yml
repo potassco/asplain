@@ -3,7 +3,8 @@ site_url: https://docs.potassco.org/asplain
 site_description:
 repo_name: potassco/asplain
 repo_url: https://github.com/potassco/asplain
-copyright: Copyright &copy; 2024 Potassco
+copyright: Copyright &copy; 2026 Potassco
+site_dir: site/docs
 
 extra_css:
   - _custom/css/extra.css
@@ -59,10 +60,16 @@ theme:
 
 extra:
   social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/potassco/asplain
     - icon: potassco-logo
       link: https://potassco.org
+    - icon: fontawesome/brands/github
+      link: https://github.com/potassco
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/potassco
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/potassco
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/@Potassco-live
   generator: false
 
 markdown_extensions:
@@ -91,10 +98,15 @@ markdown_extensions:
   - toc:
       permalink: true
   - footnotes
+  - pymdownx.highlight:
+      use_pygments: true
+      pygments_lang_class: true
 
 plugins:
   - search
   - autorefs
+  - literate-nav:
+      nav_file: SUMMARY.md
   - mkdocstrings:
       handlers:
         python:
@@ -111,20 +123,3 @@ plugins:
               show_inherited_detail: true
               show_inherited_detail_toc: true
               show_inherited_detail_tree: true
-
-nav:
-  - Home: index.md
-  - Getting Started: getting_started.md
-  - Examples: examples/index.md
-  - Reference:
-      - reference/index.md
-      - Problem: reference/problem/index.md
-      - Encodings: reference/encodings/index.md
-      - API: reference/api/index.md
-  - Community:
-      - community/index.md
-      - Help: community/help.md
-      - Changes: community/CHANGES.md
-      - Contributing: community/CONTRIBUTING.md
-      - Development: community/DEVELOPMENT.md
-      - Deployment: community/DEPLOYMENT.md

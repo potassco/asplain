@@ -24,13 +24,17 @@ color_set(light, gray78).
 
 #const setdpi = 80.
 
+% Nodes
 vnode(X):-node(X,_),solved(foil),     program(X, foil).
 vnode(X):-node(X,_),solved(foil), not program(X, foil),     program(X, ref).
 vnode(X):-node(X,_),not solved(foil), solved(ref), program(X, ref).
 vnode(X):-node(X,_),not solved(foil), not solved(ref).
+% Edges
 vedge((X,Y)):-edge((X, Y),_), vnode(X), vnode(Y).
+% Tags
 vtag(X,T):-tag(X, T).
 
+% Graph attributes
 vattr(graph,default,label,"<<b>{{name}}</b><br/>{{description}}>"):-show_title.
 vattr(graph,default,(label,name),T):-title(T),show_title.
 vattr(graph,default,bgcolor,"#00000000").
@@ -90,7 +94,9 @@ vattr(node,N,(fontcolor;color),C):- gray_node(N),
 vattr(node,R,(fontcolor;color),red):- change(rm,R).
 vattr(node,R,(fontcolor;color),blue):- change(add,R).
 
-% -------------- Edges
+
+% Edge Attributes
+
 vattr(edge,E,style,dashed):- vedge(E), edge(E,0).
 vattr(edge,E,arrowhead,vee):- vedge(E).
 vattr(edge,E,arrowsize,"0.5"):- vedge(E).
