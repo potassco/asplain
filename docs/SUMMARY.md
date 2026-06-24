@@ -18,7 +18,6 @@
         * [penalize-non-assumptions.lp](reference/preferences/penalize-non-assumptions.md)
     * [Explanation Graph](reference/explanation-graph.md)
     * [Pruning Methods](reference/pruning.md)
-    * [Encodings](reference/encodings/index.md)
     * [API](reference/api/index.md)
 * Examples
     * [Examples](examples/index.md)
