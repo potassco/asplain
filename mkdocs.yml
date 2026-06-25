@@ -1,10 +1,9 @@
-site_name: asplain
-site_url: https://docs.potassco.org/asplain
-site_description:
-repo_name: potassco/asplain
-repo_url: https://github.com/potassco/asplain
+site_name: asplin
+site_url: https://docs.potassco.org/asplin/
+site_description: A system for contrastive explanation of answer sets of logic programs.
+repo_name: potassco/asplin
+repo_url: https://github.com/potassco/asplin
 copyright: Copyright &copy; 2026 Potassco
-site_dir: site/docs
 
 extra_css:
   - _custom/css/extra.css

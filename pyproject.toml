@@ -13,7 +13,11 @@ readme = "README.md"
 dependencies = ["clingo>=5.6.0", "meta-tools-clingo>=0.3.4", "clingraph>=1.2.2"]
 
 [project.urls]
-Homepage = "asplain"
+Homepage = "https://github.com/potassco/asplain.git/"
+Documentation = "https://docs.potassco.org/asplain/"
+Repository = "https://github.com/potassco/asplain"
+Issues = "https://github.com/potassco/asplain/issues"
+Changelog = "https://github.com/potassco/asplain/blob/master/CHANGES.md"
 
 [project.optional-dependencies]
 ui = ["clinguin>=2.7.5"]

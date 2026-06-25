@@ -1,3 +1,7 @@
+[![Documentation](https://img.shields.io/badge/docs-potassco.org-blue)](https://docs.potassco.org/asplain/)
+[![PyPI version](https://img.shields.io/pypi/v/asplain)](https://pypi.org/project/asplain/)
+[![License](https://img.shields.io/github/license/potassco/asplain)](LICENSE)
+
 # asplain
 
 Asplain is a tool for generating contrastive explanations for answer set
@@ -14,6 +18,11 @@ pip install .
 For rendering the images with cligraph, Graphviz needs to be installed
 following `graphviz <https://www.graphviz.org/download/>`\_ (version 2.50 or
 greater).
+
+## Documentation
+
+Full documentation is available at
+**[docs.potassco.org/asplain](https://docs.potassco.org/asplain/)**.
 
 ## Usage
 
