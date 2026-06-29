@@ -19,7 +19,7 @@ def viz_graph(
     title: str,
     show: bool = False,
     name: str = "graph",
-    format: str = "svg",  # pylint: disable=redefined-builtin
+    format: str = "png",  # pylint: disable=redefined-builtin
 ) -> dict[str, Any]:
     """
     Visualize the explanation graph using cligraph

@@ -43,7 +43,7 @@ class ASPlainBackend(ClingoBackend):
 
         self._engine = "dot"
 
-        self._intermediate_format = "svg"
+        self._intermediate_format = "png"
         self._attribute_image_key = "image_type"
         self._attribute_image_value = "clingraph"
         self._shown_graphs = [

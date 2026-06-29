@@ -5,20 +5,22 @@
 % #external show(model(reference)).
 % #external show(model(foil)).
 world(ref;foil).
-
-#const _color_blue = "#0052CC50".
-#const _color_green = "#36B37E".
+% show_ref.
+#const _color_blue = "#025BFF".
+#const _color_green = "#9DA322".
 #const _color_orange = "#FFAB0050".
 #const _color_red = "#FF5630".
 #const _color_gray = "#B3BAC550".
 #const _color_light = "#B3BAC560".
 #const _color_purple = "#6554C0".
 #const _color_both = "#57B5BD50".
-% color_set(model(reference), @concat(_color_purple,"80")):-not show(model(foil)).
-color_set(ref, @concat(_color_purple,"25")):- solved(foil).
-color_set(ref, @concat(_color_purple,"80")):- not solved(foil).
-color_set(foil, _color_green).
-color_set(union, "#36B37E;0.5:#6554C080").
+% color_set(model(reference), @concat(_color_blue,"80")):-not show(model(foil)).
+color_set(ref, white):- solved(foil), not show_ref.
+color_set(ref, @concat(_color_blue,"25")):- solved(foil), show_ref.
+color_set(ref, @concat(_color_blue,"80")):- not solved(foil).
+color_set(foil, @concat(_color_green,"80")).
+color_set(union, "#9DA32280;0.5:#025BFF80"):-show_ref.
+color_set(union, @concat(_color_green,"80")):-not show_ref.
 color_set(constraint, @concat(_color_red,"25")).
 color_set(light, gray78).
 
@@ -26,8 +28,8 @@ color_set(light, gray78).
 
 % Nodes
 vnode(X):-node(X,_),solved(foil),     program(X, foil).
-vnode(X):-node(X,_),solved(foil), not program(X, foil),     program(X, ref).
-vnode(X):-node(X,_),not solved(foil), solved(ref), program(X, ref).
+vnode(X):-node(X,_),solved(foil), not program(X, foil),     program(X, ref), show_ref.
+vnode(X):-node(X,_),not solved(foil), solved(ref), program(X, ref), show_ref.
 vnode(X):-node(X,_),not solved(foil), not solved(ref).
 % Edges
 vedge((X,Y)):-edge((X, Y),_), vnode(X), vnode(Y).
@@ -74,6 +76,7 @@ both_models(N):- vnode(N), model(N, ref), model(N, foil).
 vattr(node,N,fillcolor,C):- vnode(N), not both_models(N), model(N,G), color_set(G,C).
 vattr(node,N,fillcolor,C):- both_models(N), color_set(union,C).
 vattr(node,N,fillcolor,white):- vnode(N), no_model(N), not fired(N).
+vattr(node,N,fillcolor,white):- vnode(N), no_model(N), fired(N), not show_ref.
 % vattr(node,N,fillcolor,white):- vnode(N).
 
 
@@ -91,8 +94,8 @@ gray_node(N):-vnode(N),
 
 vattr(node,N,(fontcolor;color),C):- gray_node(N),
                                 color_set(light,C).
-vattr(node,R,(fontcolor;color),red):- change(rm,R).
-vattr(node,R,(fontcolor;color),blue):- change(add,R).
+vattr(node,R,(fontcolor;color),red):- change(rm,R), show_ref.
+vattr(node,R,(fontcolor;color),blue):- change(add,R), show_ref.
 
 
 % Edge Attributes
@@ -105,4 +108,4 @@ active_edge((N1,N2)):- vedge((N1,N2)), active_node(N1), active_node(N2).
 vattr(edge,E,color,C):- vedge(E), not active_edge(E), color_set(light,C).
 
 
-vattr(node,X, fillcolor, C):-fired(X), color_set(constraint,C).
+vattr(node,X, fillcolor, C):-fired(X), color_set(constraint,C), show_ref.
