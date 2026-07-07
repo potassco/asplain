@@ -5,7 +5,7 @@
 % #external show(model(reference)).
 % #external show(model(foil)).
 world(ref;foil).
-% show_ref.
+show_ref.
 #const _color_blue = "#025BFF".
 #const _color_green = "#9DA322".
 #const _color_orange = "#FFAB0050".
