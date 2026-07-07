@@ -15,9 +15,10 @@ from asplain import (
     set_model_subgraphs_ctl,
 )
 from asplain.llm.models import ModelTag, OpenAIModel
-from asplain.llm.templates import ExplainTemplate
+from asplain.llm.templates import ExplainTemplate, TranslateTemplate
 from asplain.llm.utils import parse_llm_json_response
-from asplain.utils.clingo import get_query_prg, symbols_to_prg
+from asplain.llm.utils.graph import Graph
+from asplain.utils.clingo import get_query_prg, symbols_to_prg, divide_space_string
 from asplain.utils.viz import viz_graph
 
 # mypy: ignore-errors
@@ -327,6 +328,39 @@ class ASPlainBackend(ClingoBackend):
         self._explanation_iterator = None
         self._outdate_explanation()
         self.next_explanation()
+
+    def add_nl_query(self, nl_query: str):
+        """Translate a natural language query into an ASP query and add it."""
+        llm = OpenAIModel(model_tag=ModelTag.GPT_4O)
+
+        self._update_reference_pg()
+
+        reference_model_pg = self._reference_model_pg
+        ref_graph = Graph(reference_model_pg)
+
+        atoms = []
+        for item, node in ref_graph._nodes.items():
+            if node.type == "atom":
+                atoms.append(
+                    {"atom": item, "label": node.tags["label"]}
+                    if "label" in node.tags
+                    else {"atom": item, "label": "no label available"}
+                )
+
+        template = TranslateTemplate(
+            nl_query=nl_query,
+            atoms=atoms,
+        )
+
+        response = llm.prompt_template_sync(template).strip()
+
+        true_queries, false_queries = divide_space_string(response)
+
+        for query in true_queries:
+            self.add_query(query, "true")
+
+        for query in false_queries:
+            self.add_query(query, "false")
 
     def remove_query(self, query: str):
         """Remove a query from the explanation."""

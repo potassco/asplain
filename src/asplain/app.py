@@ -24,8 +24,9 @@ from asplain.utils.viz import viz_graph
 try:  # nocoverage
     from asplain.llm.models import ModelTag, OpenAIModel
     from asplain.llm.models.google import GoogleModel
-    from asplain.llm.templates import ExplainTemplate
+    from asplain.llm.templates import ExplainTemplate, TranslateTemplate, Template
     from asplain.llm.utils import parse_llm_json_response
+    from asplain.llm.utils.graph import Graph
 
     INSTALLED_LLMS = True
 except ImportError:
@@ -49,6 +50,7 @@ class AsplainApp(Application):
         self._constants = constants or {}
         self._query_include: List[Symbol] = []
         self._query_exclude: List[Symbol] = []
+        self.nl_query = None
         self._assumptions: List[Tuple[str, bool]] = []
         self._number_explanations = 1
 
@@ -129,6 +131,13 @@ class AsplainApp(Application):
         self._query_include = [parse_term(s) for s in true_queries]
         self._query_exclude = [parse_term(s) for s in false_queries]
 
+        return True
+
+    def parse_nl_query(self, value: str) -> bool:
+        """
+        Parse NL query string
+        """
+        self.nl_query = value
         return True
 
     def parse_model(self, value: str) -> bool:
@@ -245,6 +254,18 @@ class AsplainApp(Application):
                 ),
                 self.parse_llm_tag,
                 argument="<llm-tag>",
+            )
+
+            options.add(
+                group,
+                "nl-query",
+                dedent(
+                    """\
+                    A natural language query to explain.
+                                If not provided, queries can be entered interactively via the command line."""
+                ),
+                self.parse_nl_query,
+                argument="<nl-query>",
             )
 
         options.add(
@@ -380,6 +401,23 @@ class AsplainApp(Application):
                     title="Reference Graph",
                     name=f"reference_model_pg_{model.number}",
                 )
+
+                if INSTALLED_LLMS and self.nl_query is not None:
+                    llm = OpenAIModel(model_tag=ModelTag.GPT_4O)
+
+                    ref_graph = Graph(reference_model_pg)
+                    atoms = []
+                    for item, node in ref_graph._nodes.items():
+                        if node.type == "atom":
+                            atoms.append({"atom": item, "label": node.tags["label"]}
+                                         if "label" in node.tags else {"atom": item, "label": "-"})
+
+                    template = TranslateTemplate(nl_query=self.nl_query, atoms=atoms)
+                    response = llm.prompt_template_sync(template)
+
+                    self.parse_query(response)
+                    query_prg = get_query_prg(self._query_include, self._query_exclude)
+
                 start_time = time()
                 foil_ctl = set_foil_ctl(
                     pg=reference_model_pg,
