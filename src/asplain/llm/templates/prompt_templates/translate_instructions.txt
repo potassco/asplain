@@ -1,0 +1,210 @@
+Your task is to translate a natural language question into an ASP query.
+
+You will receive:
+1 A natural language question.
+2 A list of available atoms with labels.
+
+The output must use following query syntax:
+- A positive query is written as the atom itself:
+Example: a
+
+- A negative query is written with a leading minus sign:
+Example: -b
+
+- Multiple queries are separated by exactly one space:
+Example: a -b c
+
+Your task:
+- Use a positive query: atom, when the question contains negation "not", "isn't", "wasn't", "doesn't", "didn't" or when user asks about a proposition that does not hold, is prevented, impossible, absent, or is desired to hold.
+Typical question patterns:
+Why not X?
+Why isn't X?
+Why is X not the case?
+Why is X false?
+Why is X absent?
+Why can't X happen?
+What prevents X?
+Why does someone avoid X?
+How can X happen?
+How could X happen?
+How can it be possible for X to happen?
+
+- Use a negative query, -atom, when the question is NOT negated or when the user asks about a proposition that holds, happens, is true, is derived, is included, or is observed.
+Typical question patterns:
+Why X?
+Why is X true?
+Why is X the case?
+Why does X happen?
+Why did X happen?
+Why does someone do X?
+What makes X be Y?
+Why is someone X?
+Why is X derived?
+Why is X included?
+Why is X present?
+Why does X hold?
+Why can X happen?
+Why is X possible?
+Why is X necessary?
+
+- Multiple-query rule:
+Generate multiple ASP queries only when the question explicitly asks multiple independent propositions.
+Indicators of multiple propositions:
+- and
+- or
+- but
+- separate questions
+- separate sentences
+A single proposition must produce exactly one ASP query (positive or negative).
+Use multiple query format.
+
+Typical question patterns:
+Why not X and not Y? -> X Y
+Why not X and why Y? -> X -Y
+Why X? Why not Y? -> -X Y
+Why X and why Y? -> -X -Y
+
+
+Important:
+The question may contain words such as "necessary", "prevents", "requires", "allows", or "due to". Do not select the reason, cause, condition, requirement, explanation, or justification suggested by those words.
+Select the proposition that the question is about.
+
+Output format:
+Return the ASP query string.
+Do not use Markdown, code fences or quotes.
+Use ONLY atoms that are in the available atom list. Do NOT use atoms from the examples.
+
+
+EXAMPLE 1 START
+
+Input:
+Query:
+Why is Gabriel not innocent?
+
+Available atoms with labels:
+[
+  {
+    "atom": "person(gabriel)",
+    "label": "gabriel is a person"
+  },
+  {
+    "atom": "person(clare)",
+    "label": "clare is a person"
+  },
+  {
+    "atom": "drive(clare)",
+    "label": "clare is driving"
+  },
+  {
+    "atom": "drive(gabriel)",
+    "label": "gabriel is driving"
+  },
+  {
+    "atom": "alcohol(gabriel)",
+    "label": "gabriel is drinking alcohol"
+  },
+  {
+    "atom": "resist(gabriel)",
+    "label": "gabriel is resisting the authorities"
+  },
+  {
+    "atom": "resist(clare)",
+    "label": "clare is resisting the authorities"
+  },
+  {
+    "atom": "punish(gabriel)",
+    "label": "gabriel is punished"
+  },
+  {
+    "atom": "punish(clare)",
+    "label": "clare is punished"
+  },
+  {
+    "atom": "sentence(gabriel,innocent)",
+    "label": "gabriel is innocent"
+  },
+  {
+    "atom": "sentence(clare,innocent)",
+    "label": "clare is innocent"
+  },
+  {
+    "atom": "sentence(gabriel,prison)",
+    "label": "gabriel is sentenced to prison"
+  },
+  {
+    "atom": "sentence(clare,prison)",
+    "label": "clare is sentenced to prison"
+  }
+]
+
+Output:
+sentence(gabriel,innocent)
+
+EXAMPLE 1 END
+
+EXAMPLE 2 START
+
+Input:
+Query:
+Why is Gabriel sentences to prison?
+
+Available atoms with labels:
+[
+  {
+    "atom": "person(gabriel)",
+    "label": "gabriel is a person"
+  },
+  {
+    "atom": "person(clare)",
+    "label": "clare is a person"
+  },
+  {
+    "atom": "drive(clare)",
+    "label": "clare is driving"
+  },
+  {
+    "atom": "drive(gabriel)",
+    "label": "gabriel is driving"
+  },
+  {
+    "atom": "alcohol(gabriel)",
+    "label": "gabriel is drinking alcohol"
+  },
+  {
+    "atom": "resist(gabriel)",
+    "label": "gabriel is resisting the authorities"
+  },
+  {
+    "atom": "resist(clare)",
+    "label": "clare is resisting the authorities"
+  },
+  {
+    "atom": "punish(gabriel)",
+    "label": "gabriel is punished"
+  },
+  {
+    "atom": "punish(clare)",
+    "label": "clare is punished"
+  },
+  {
+    "atom": "sentence(gabriel,innocent)",
+    "label": "gabriel is innocent"
+  },
+  {
+    "atom": "sentence(clare,innocent)",
+    "label": "clare is innocent"
+  },
+  {
+    "atom": "sentence(gabriel,prison)",
+    "label": "gabriel is sentenced to prison"
+  },
+  {
+    "atom": "sentence(clare,prison)",
+    "label": "clare is sentenced to prison"
+  }
+]
+
+Output:
+-sentence(gabriel,prison)
+
+EXAMPLE 2 END

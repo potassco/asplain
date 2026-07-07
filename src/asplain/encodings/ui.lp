@@ -82,7 +82,6 @@ attr(main(explanation_conf), class, ("mt-5")).
         elem(content(queries), container, section(queries)).
 
             elem(elem_container(query(A)), container, content(queries)):-query(A,V).
-
                 elem(elem_title(query(A)), label, elem_container(query(A))):-query(A,V).
                 attr(elem_title(query(A)), label, A):-query(A,V).
                 attr(elem_title(query(A)), class, "text-success"):-query(A,1).
@@ -129,7 +128,28 @@ attr(main(explanation_conf), class, ("mt-5")).
                 attr(footer_item(query(btn)),label,"Add query").
                 when(footer_item(query(btn)),click,call, add_query(_context_value(query_name,const),_context_value(query_val))).
 
+            elem(footer_elem(nl_queries), container, footer(queries)).
+
+                elem(footer_item(nl_query(name)),textfield,footer_elem(nl_queries)).
+                attr(footer_item(nl_query(name)), width, "180pt").
+                attr(footer_item(nl_query(name)),order,3).
+                attr(footer_item(nl_query(name)), placeholder, "Activate LLM first") :- not llm_active.
+                attr(footer_item(nl_query(name)), placeholder, "Enter a question") :- llm_active.
+                attr(footer_item(nl_query(name)), class, ("opacity-25";"m-1")) :- not llm_active.
+                attr(footer_item(nl_query(name)), class, "m-1") :- llm_active.
+                when(footer_item(nl_query(name)),input,context,(nl_query,_value)).
+
+                elem(footer_item(nl_query(btn)),button,footer_elem(nl_queries)).
+                attr(footer_item(nl_query(btn)),order,1).
+                attr(footer_item(nl_query(btn)),label,"Add NL query").
+                attr(footer_item(nl_query(btn)), class, ("btn-primary";"opacity-25")) :- not llm_active.
+                attr(footer_item(nl_query(btn)), class, "btn-primary") :- llm_active.
+                when(footer_item(nl_query(btn)), click, call, add_nl_query(_context_value(nl_query, str))) :-
+                llm_active.
+                attr(footer_item(nl_query(btn)), tooltip, "Activate the LLM to use this feature") :- not llm_active.
+
             elem(footer_elem(clear_queries), container, footer(queries)).
+            attr(footer_elem(clear_queries), order, 3).
 
                 elem(footer_item(clear_queries), button, footer_elem(clear_queries)).
                 attr(footer_item(clear_queries), label, "Clear").
@@ -171,17 +191,6 @@ attr(main(explanation_conf), class, ("mt-5")).
 
 
                 elem(footer_elem(next_explanation), container, content(exbrowse)).
-
-                    elem(footer_item(get_llm_explanation), button, footer_elem(next_explanation)).
-                    attr(footer_item(get_llm_explanation), order, 1).
-                    attr(footer_item(get_llm_explanation), label, "Activate LLM"):-not llm_active.
-                    attr(footer_item(get_llm_explanation), label, "De-activate LLM"):- llm_active.
-                    attr(footer_item(get_llm_explanation), icon, "fa-comment-dots").
-                    attr(footer_item(get_llm_explanation), class, ("btn-primary";"opacity-25")):- not llm_active.
-                    attr(footer_item(get_llm_explanation), class, "btn-primary"):- llm_active.
-                    % attr(button(get_llm_explanation), class, ("btn-primary";"pe-4";"pt-2")).
-                    when(footer_item(get_llm_explanation), click, call, activate_llm(true)):-not llm_active.
-                    when(footer_item(get_llm_explanation), click, call, activate_llm(false)):-llm_active.
 
                     elem(footer_item(next_explanation), button, footer_elem(next_explanation)).
                     attr(footer_item(next_explanation), icon, "fa-forward-step").
@@ -637,3 +646,12 @@ attr(main(model), order, 1).
         attr(menu_bar_restart, class, "btn-outline-danger").
         attr(menu_bar_restart, class, "border-0").
         when(menu_bar_restart, click, call, restart).
+
+        elem(menu_bar_llm, button, menu_bar).
+        attr(menu_bar_llm, label, "Activate LLM") :- not llm_active.
+        attr(menu_bar_llm, label, "De-activate LLM") :- llm_active.
+        attr(menu_bar_llm, icon, "fa-comment-dots").
+        attr(menu_bar_llm, class, ("btn-primary";"opacity-25")):- not llm_active.
+        attr(menu_bar_llm, class, "btn-primary"):- llm_active.
+        when(menu_bar_llm, click, call, activate_llm(true)) :- not llm_active.
+        when(menu_bar_llm, click, call, activate_llm(false)) :- llm_active.

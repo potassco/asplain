@@ -1,0 +1,5 @@
+Query:
+{query}
+
+Available atoms with labels:
+{atoms}

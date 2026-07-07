@@ -32,6 +32,13 @@ Explanation with __fixed model__:
 asplain examples/james-bond/encoding.lp --nexplanations 0 --query "p" 0 --model examples/james-bond/model.lp
 ```
 
+NL query explanation
+
+```bash
+asplain examples/james-bond/encoding.lp --nexplanations 0 --nl-query "Why is Bond not poisoned?" 0
+
+```
+
 ### Using a cost function for selecting __preferred explanations__:
 
 - Penalizing program changes
