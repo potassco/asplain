@@ -379,12 +379,12 @@ class ASPlainBackend(ClingoBackend):
             title="",
             name=name,
             show=False,
-            format="png",
+            format="svg",
         )
         self._messages.append(
             (
                 "Download successful",
-                f"Information saved in file out/{name}.png",
+                f"Information saved in file out/{name}.svg",
                 "success",
             )
         )

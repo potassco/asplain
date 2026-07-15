@@ -11,7 +11,7 @@ punish(P) :- drive(P), alcohol(P),  person(P).
 % @label("{} is punished since they resisted the authorities ",(P,))
 punish(P) :- resist(P), person(P).
 
-% @label("{} is innocent since they were not punished",(P,))
+% @label("{} is prison since they were not punished",(P,))
 sentence(P, prison) :- punish(P).
 % @label("{} is innocent since they were not punished",(P,))
 sentence(P, innocent) :- person(P), not punish(P).

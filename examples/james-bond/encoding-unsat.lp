@@ -9,6 +9,7 @@
 {d}.
 
 % @label("Can't be poisoned he was careful")
+% @removable
 :- p, c.
 
 % @label("Bond is poisoned due to contact with toxin")
@@ -22,10 +23,5 @@ a.
 % @removable
 c.
 
-% Addable rules can optionally be added in a program called asplain
-% This way, they will not be considered in the clingo or clinguin calls,
-% but only when running asplain
-
-#program asplain.
-% @addable
+% @removable
 t.
