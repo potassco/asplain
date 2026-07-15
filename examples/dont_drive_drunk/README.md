@@ -24,4 +24,16 @@ Explanation:
 asplain examples/dont_drive_drunk/encoding.lp 1 --log info --query "sentence(gabriel,innocent)"
 ```
 
+### Pruned graph
+
+```bash
+asplain examples/dont_drive_drunk/encoding.lp 1 --log info --query "sentence(gabriel,innocent)" --open --prune CHANGES
+```
+
+### Using the __interactive__ explanation interface:
+
+```bash
+clinguin client-server --domain-files examples/dont_drive_drunk/encoding.lp --ui-files src/asplain/encodings/ui.lp --custom-classes src/asplain/ui --backend ASPlainBackend  --cost-encoding src/asplain/encodings/costs/program-difference.lp
+```
+
 <!-- --8<-- [end:usage] -->

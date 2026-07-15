@@ -43,7 +43,7 @@ class ASPlainBackend(ClingoBackend):
 
         self._engine = "dot"
 
-        self._intermediate_format = "png"
+        self._intermediate_format = "svg"
         self._attribute_image_key = "image_type"
         self._attribute_image_value = "clingraph"
         self._shown_graphs = [
@@ -379,12 +379,12 @@ class ASPlainBackend(ClingoBackend):
             title="",
             name=name,
             show=False,
-            format="png",
+            format="svg",
         )
         self._messages.append(
             (
                 "Download successful",
-                f"Information saved in file out/{name}.png",
+                f"Information saved in file out/{name}.svg",
                 "success",
             )
         )

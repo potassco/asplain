@@ -19,7 +19,7 @@ def viz_graph(
     title: str,
     show: bool = False,
     name: str = "graph",
-    format: str = "png",  # pylint: disable=redefined-builtin
+    format: str = "svg",  # pylint: disable=redefined-builtin
 ) -> dict[str, Any]:
     """
     Visualize the explanation graph using cligraph
@@ -29,7 +29,7 @@ def viz_graph(
         open: Whether to open the generated graph image.
         name: Name format for the output file.
     """
-    dpi = 500 if format == "png" else 80
+    dpi = 80 if format == "svg" else 80
     fb = Factbase(prefix="v")
     ctl = Control(["--warn=none", "--const", f"setdpi={dpi}"])
     ctx = ClingraphContext()
