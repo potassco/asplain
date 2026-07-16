@@ -5,10 +5,6 @@ tag(rule(disjunction(H),normal(B)), fact):- rule(disjunction(H),normal(B)),
     #count{E:atom_tuple(H,E)}=1,
     not literal_tuple(B,_).
 
-% Assumptions removable
-% tag(R, label("Assumed {} as {}",(A,F))):-tag(R, assume(F)), edge((atom(A),R),_).
-% Maybe this next rule should be optional
-% optional(remove,R):-tag(R, assume(_)).
 
 % Labels without vars
 tag(R, label(L,())):-tag(R, label(L)).

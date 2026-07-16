@@ -26,9 +26,14 @@ atom_addable.
 
     The complete list of tags and their usage can be found in the [Tagging](../../reference/tagging) section.
 
+!!! tip "Selecting your explanation"
+
+    You can customize with an ASP encoding the selection of the explanation you want to obtain.
+    For the complete list of provided cost functions and their usage, see the [Explanation Selection](../../reference/preferences) section.
+
 ## Command line interface
 
-After properly annotating your logic program you can proceed to call asplain over the CLI.
+After properly annotating your logic program you can proceed to call asplain over the [CLI](../../reference/cli).
 
 ```bash
 asplain <YOUR-PROGRAM> 1 --open
