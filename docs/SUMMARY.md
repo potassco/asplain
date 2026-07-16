@@ -5,20 +5,22 @@
 * Reference
     * [Reference](reference/index.md)
     * [CLI](reference/cli.md)
-    * [Foil Finding](reference/foils.md)
-    * [Tagging](reference/tagging.md)
-    * Explanation Selection
-        * [Explanation Selection](reference/preferences/index.md)
-        * [model-difference.lp](reference/preferences/model-difference.md)
-        * [program-difference.lp](reference/preferences/program-difference.md)
-        * [penalize-added.lp](reference/preferences/penalize-added.md)
-        * [penalize-removed.lp](reference/preferences/penalize-removed.md)
-        * [penalize-non-constraints.lp](reference/preferences/penalize-non-constraints.md)
-        * [penalize-non-facts.lp](reference/preferences/penalize-non-facts.md)
-        * [penalize-non-assumptions.lp](reference/preferences/penalize-non-assumptions.md)
-    * [Explanation Graph](reference/explanation-graph.md)
-    * [Pruning Methods](reference/pruning.md)
-    * [API](reference/api/index.md)
+    * [Contrastive Explanation](reference/explanation-graph.md)
+    * Implementation Details
+        * [Setup Construction](reference/setup.md)
+        * [Finding Explanations](reference/foils.md)
+    * Customization
+        * [Tagging](reference/tagging.md)
+        * Explanation Selection
+            * [Explanation Selection](reference/preferences/index.md)
+            * [`model-difference.lp`](reference/preferences/model-difference.md)
+            * [`program-difference.lp`](reference/preferences/program-difference.md)
+            * [`penalize-added.lp`](reference/preferences/penalize-added.md)
+            * [`penalize-removed.lp`](reference/preferences/penalize-removed.md)
+            * [`penalize-non-constraints.lp`](reference/preferences/penalize-non-constraints.md)
+            * [`penalize-non-facts.lp`](reference/preferences/penalize-non-facts.md)
+            * [`penalize-non-assumptions.lp`](reference/preferences/penalize-non-assumptions.md)
+        * [Pruning Methods](reference/pruning.md)
 * Examples
     * [Examples](examples/index.md)
     * [James Bond](examples/jamesbond.md)

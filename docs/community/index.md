@@ -7,7 +7,7 @@ hide:
 
 
 !!! success "Potassco Community"
-    *fillname* is part of the open source systems developed by:
+    *asplain* is part of the open source systems developed by:
     <!-- Potassco technologies logo -->
     <p align="left">
       <a href="https://potassco.org">

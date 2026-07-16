@@ -2,47 +2,23 @@
 icon: material/graph
 ---
 
-# Explanation Graph
+## Contrastive Explanation Graph
 
-The contrastive explanation graph is asplain's central representation of an explanation.
+The contrastive explanation graph is *asplain*'s central representation of an explanation.
 It contrasts the reference program and its model with the found foil, making the differences between both worlds explicit.
 Since the graph is directed, edges can express the cause-effect relationships of the program, which makes the explanation easy to follow.
 This page describes how the graph is constructed, how it is represented as facts, and how to read its visualization.
 
-## Program Graph
 
-The basis of every explanation is the program graph, a directed graph that fully encodes a ground logic program.
-It contains a node for every atom and every rule of the program:
-
-- __Atom nodes__ represent the atoms of the program.
-- __Rule nodes__ represent the rules and are typed as either `choice` or `disjunction` rules. Facts and integrity constraints are special cases of disjunctive rules.
-
-The edges connect rules with the atoms they depend on and derive:
-
-- An edge from an atom to a rule means the atom appears in the rule's body. The edge is __positive__ for positive body literals and __negative__ for negative ones (`not a`).
-- An edge from a rule to an atom means the atom appears in the rule's head.
-
-As a consequence, facts appear as rule nodes without incoming edges, while integrity constraints appear as rule nodes without outgoing edges.
-
-The program graph is constructed from [clingo's reified representation](https://potassco.org/clingo/) of the grounded program using the [`reify-to-pg.lp` encoding](../encodings/index.md).
-
-## Contrastive Explanation Graph
-
-To turn the program graph into a contrastive explanation, it is annotated with membership information that captures the differences between the reference and the foil world:
+The graph is annotated with membership information that captures the differences between the reference and the foil world:
 
 - __Program membership__ assigns each rule node the programs it occurs in: the reference program, the foil program, or both. Rules only in the foil were _added_ during foil finding, rules only in the reference were _removed_.
 - __Model membership__ assigns each atom node the models it holds in: the reference model, the foil model, or both. It is extended to rule nodes, indicating whether the body of a rule is satisfied by the respective model.
 
-### Fired Constraints
-
-The body of an integrity constraint can never be satisfied by a single model, so its model membership is always empty.
-Nevertheless, constraints often encode the relevant domain knowledge behind an explanation.
-To capture their impact, asplain marks a constraint as __fired__ if its body would be satisfied when the reference and foil models are considered simultaneously.
-Informally, these are the constraints that would have been violated under specific changes to the reference program, and they frequently are the reason why a change was necessary in the first place.
 
 ## Fact Representation
 
-asplain represents the contrastive explanation graph as a set of facts, which serve as the interface for [pruning](../pruning/index.md), visualization, and the LLM-based natural language explanations.
+*asplain* represents the contrastive explanation graph as a set of facts, which serve as the interface for [pruning](../pruning/index.md), visualization, and the LLM-based natural language explanations.
 The following predicates are used:
 
 | Predicate | Meaning |
@@ -57,7 +33,7 @@ The following predicates are used:
 
 !!! example "James bond program graph"
 
-    For the [James Bond example](../../examples/jamesbond.md) with the query `p` ("Why is Bond not poisoned?"), asplain finds a foil in which the fact `c` (Bond is careful) is removed and the addable fact `t` (contact with toxin) is added.
+    For the [James Bond example](../../examples/jamesbond.md) with the query `p` ("Why is Bond not poisoned?"), *asplain* finds a foil in which the fact `c` (Bond is careful) is removed and the addable fact `t` (contact with toxin) is added.
     The resulting contrastive explanation graph is represented by the following facts:
 
     ```clingo
@@ -88,9 +64,16 @@ The following predicates are used:
         <figcaption>Resulting Explanation Graph from the example facts above</figcaption>
     </figure>
 
+### Fired Constraints
+
+The body of an integrity constraint can never be satisfied by a single model, so its model membership is always empty.
+Nevertheless, constraints often encode the relevant domain knowledge behind an explanation.
+To capture their impact, *asplain* marks a constraint as __fired__ if its body would be satisfied when the reference and foil models are considered simultaneously.
+Informally, these are the constraints that would have been violated under specific changes to the reference program, and they frequently are the reason why a change was necessary in the first place.
+
 ## Visualization
 
-asplain visualizes contrastive explanation graphs using [clingraph](https://potassco.org/clingraph/), either directly from the command line or interactively in the [user interface](../cli/index.md).
+*asplain* visualizes contrastive explanation graphs using [clingraph](https://potassco.org/clingraph/), either directly from the command line or interactively in the [user interface](../cli/index.md).
 The membership information is conveyed through color and style highlighting:
 
 | Element | Meaning |
@@ -115,7 +98,7 @@ _James would be poisoned if he hadn't been careful and had been in contact with 
 ## Reducing the Graph Size
 
 For complex problems the explanation graph can grow to a size where interpretation becomes difficult.
-asplain offers two mechanisms to keep the graph focused:
+*asplain* offers two mechanisms to keep the graph focused:
 
 - [__Pruning__](../pruning) removes parts of the graph as a post-processing step, e.g., orphan subgraphs or all nodes not lying on a path between the query and the changed rules.
 - The [`@hide` tag](../tagging) excludes specific rules from the final graph, e.g., auxiliary rules that are irrelevant to the explanation.
