@@ -18,7 +18,7 @@ UI_PATH = os.path.join(MAIN_PATH, "ui")
 ENCODINGS_PATH = os.path.join(MAIN_PATH, "encodings")
 
 
-def clinguin_command(args) -> Sequence[str]:  # nocoverage
+def clinguin_command(args: Sequence[str]) -> Sequence[str]:  # nocoverage
     """
     Generate the clinguin command for the system. With the given reified input.
 
@@ -45,10 +45,10 @@ def main() -> None:
         print("Running in user interface mode. Use Ctrl+C to exit.")
         command = clinguin_command(sys.argv[2:])
         print(f"Running command: {' '.join(command)}")
-        result = subprocess.run(command, shell=False)
+        result = subprocess.run(command, shell=False, check=False)
         if result.returncode != 0:
             print(f"Command failed with exit code {result.returncode}")
-        return 0
+        sys.exit(result.returncode)
 
     constants = parse_constants(sys.argv[2:])
     clingo_main(AsplainApp(sys.argv[0], constants=constants), sys.argv[1:])

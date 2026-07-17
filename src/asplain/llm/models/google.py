@@ -3,10 +3,10 @@
 import os
 from typing import Optional
 
-import dotenv
 from google import genai
 
 from ..templates import Template
+from ..utils import load_working_directory_dotenv
 from .base import AbstractModel
 from .tags import ModelTag
 
@@ -18,7 +18,7 @@ class GoogleModel(AbstractModel):
 
     def __init__(self, model_tag: ModelTag, api_key: Optional[str] = None):
         super().__init__(model_tag)
-        dotenv.load_dotenv()
+        load_working_directory_dotenv()
         gemini_api_key = api_key if api_key is not None else os.environ.get("GEMINI_API_KEY")
         self._client = genai.Client(api_key=gemini_api_key)
 

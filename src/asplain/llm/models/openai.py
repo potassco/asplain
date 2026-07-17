@@ -3,10 +3,10 @@
 import os
 from typing import Optional
 
-import dotenv
 from openai import AsyncOpenAI, OpenAI
 
 from ..templates import Template
+from ..utils import load_working_directory_dotenv
 from .base import AbstractModel
 from .tags import ModelTag
 
@@ -18,7 +18,7 @@ class OpenAIModel(AbstractModel):
 
     def __init__(self, model_tag: ModelTag, api_key: Optional[str] = None):
         super().__init__(model_tag)
-        dotenv.load_dotenv()
+        load_working_directory_dotenv()
         openai_api_key = api_key if api_key is not None else os.environ.get("OPENAI_API_KEY")
         self._client = AsyncOpenAI(api_key=openai_api_key)
         self._client_sync = OpenAI(api_key=openai_api_key)
