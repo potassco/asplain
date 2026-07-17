@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "asplain"
 authors = [{ name = "Susana Hahn", email = "hahnmartinlu@uni-potsdam.de" }]
 description = "A template project."
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { file = "LICENSE" }
 dynamic = ["version"]
 readme = "README.md"
