@@ -23,29 +23,31 @@ Get the up to date CLI specification by running the following command which will
     ...
     Asplain Options:
 
-    --log=<level>                  : Provide logging level.
-                <level> ={DEBUG|INFO|ERROR|WARNING}
-                (default: WARNING)
-    --model=<model>                : File with a fixed model to explain. Input should be an ASP program using facts.
+  --log=<level>                  : Provide logging level.
+            <level> ={DEBUG|INFO|ERROR|WARNING}
+            (default: WARNING)
+  --model=<model>                : File with a fixed model to explain. Input should be an ASP program using facts.
     If this parameter is not provided, the solving will follow normally in search for models.
-    --query=<query>                : A query to explain. Input should be atoms separated by spaces.
-                Negated atoms are preceded by '-'.
-                If not given, queries will be provided interactively via the command line
-    --assumptions=<assumptions>    : Assumptions to enforce. Input should be atoms separated by spaces.
-                False assumptions are preceded by '-'.
-                If not given, assumptions will be provided interactively via the command line
-    --nexplanations=<nexplanations>: Number of explanations to compute. (default: 1)
-    --llm=<llm-tag>                : Generate a natural language explanation using an LLM.
-                <llm-tag> ={GPT_5|GPT_5_MINI|GPT_5_NANO|GPT_4O|GPT_4O_MINI|GEMINI_3_PRO|GEMINI_3_FLASH|GEMINI_2_5_FLASH|GEMINI_2_FLASH}
+  --query=<query>                : A query to explain. Input should be atoms separated by spaces.
+            Negated atoms are preceded by '-'.
+            If not given, queries will be provided interactively via the command line
+  --assumptions=<assumptions>    : Assumptions to enforce. Input should be atoms separated by spaces.
+            False assumptions are preceded by '-'.
+            If not given, assumptions will be provided interactively via the command line
+  --nexplanations=<nexplanations>: Number of explanations to compute. (default: 1)
+  --llm=<llm-tag>                : Generate a natural language explanation using an LLM.
+            <llm-tag> ={GPT_5|GPT_5_MINI|GPT_5_NANO|GPT_4O|GPT_4O_MINI|GEMINI_3_PRO|GEMINI_3_FLASH|GEMINI_2_5_FLASH|GEMINI_2_FLASH}
 
-    --prune,-p <method>            : Apply pruning to the explanation graph to simplify it.
-    Multiple pruning methods can be applied by providing this argument multiple self.statistics.
+  --nl-query=<nl-query>          : A natural language query to explain.
+            If not provided, queries can be entered interactively via the command line.
+  --prune,-p <method>            : Apply pruning to the explanation graph to simplify it.
+    Multiple pruning methods can be applied by providing this argument multiple times.
     They will be applied in the order they are given.
-                <method> ={NONE|ORPHANS|PATHS|PATHS_UNDIRECTED|CHANGES}
+            <method> ={NONE|ORPHANS|PATHS|PATHS_UNDIRECTED|CHANGES}
 
-    --dynamic-tags=<dynamic-tags>  : Preference file for automatic tagging.
-    --cost-encoding=<cost-encoding>: Encoding defining the cost function to calculate the best foils via optimization.
-    --[no-]open                    : If active the graphs for all contrastive explanations will be opened automatically.
+  --dynamic-tags=<dynamic-tags>  : Preference file for automatic tagging.
+  --cost-encoding=<cost-encoding>: Encoding defining the cost function to calculate the best foils via optimization.
+  --[no-]open                    : If active the graphs for all contrastive explanations will be opened automatically.
     ...
 ```
 
@@ -159,28 +161,19 @@ A more detailed description of the different pruning methods can be found in the
     asplain [...] --prune=CHANGES --prune=ORPHAN
     ```
 
-## Natural Language Explanation (LLM)
 
-!!! note
+## Natural Language Integration (LLM)
 
-    asplain only supports prompting LLM's over an API. The two API's that are available for now are `google` and `openai`. To access them you need to provide an API key. This can be done two different ways:
+*asplain* supports integration with LLMs to pose queries and interpret explanations.
 
-    #### :one: Using a `.env` file
+!!! important "API keys"
 
-    ```dotenv
-    OPENAI_API_KEY=<YOUR-OPENAI-API-KEY>
-    GEMINI_API_KEY=<YOUR-GOOGLE-API-KEY>
-    ```
+    To use the LLM integration check the details for the integration in the [LLM](../llm/) section.
 
-    #### :two: Directly in command-line
+### Natural Language explanation
 
-    ```
-    OPENAI_API_KEY=<YOUR-OPENAI-API-KEY> asplain [...] --llm=<LLM-TAG-OPENAI>
-    ```
+The explanation graph can be used to generate a natural language explanation of the contrastive explanation. To see the explanation in natural language, the `--llm` option can be used:
 
-    ```
-    GEMINI_API_KEY=<YOUR-GOOGLE-API-KEY> asplain [...] --llm=<LLM-TAG-GOOGLE>
-    ```
 
 ```
 asplain [...] --llm=<LLM-TAG>
@@ -203,3 +196,12 @@ The LLM used for this generation can be specified by replacing `<LLM-TAG>`.
 !!! warning "Response time"
 
     Generating a natural language explanation takes additional time so be patient after running the command with the `--llm` option, especially if you are using a more powerful LLM.
+
+### Natural Language query
+
+You can also provide a natural language query to explain. This query is used to generate the corresponding query atoms.
+
+
+```
+asplain [...] --nl-query=<query in natural language>
+```

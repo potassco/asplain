@@ -24,7 +24,7 @@ from asplain.utils.viz import viz_graph
 try:  # nocoverage
     from asplain.llm.models import ModelTag, OpenAIModel
     from asplain.llm.models.google import GoogleModel
-    from asplain.llm.templates import ExplainTemplate, TranslateTemplate, Template
+    from asplain.llm.templates import ExplainTemplate, TranslateTemplate
     from asplain.llm.utils import parse_llm_json_response
     from asplain.llm.utils.graph import Graph
 
@@ -50,7 +50,7 @@ class AsplainApp(Application):
         self._constants = constants or {}
         self._query_include: List[Symbol] = []
         self._query_exclude: List[Symbol] = []
-        self.nl_query = None
+        self.nl_query: Optional[str] = None
         self._assumptions: List[Tuple[str, bool]] = []
         self._number_explanations = 1
 
@@ -360,7 +360,7 @@ class AsplainApp(Application):
         Main entry point.
         """
         # pylint: disable=W0201
-        # pylint: disable=too-many-branches, too-many-statements
+        # pylint: disable=too-many-branches, too-many-statements, too-many-locals
 
         configure_logging(sys.stderr, self._log_level, sys.stderr.isatty())  # type: ignore
         query_prg = get_query_prg(self._query_include, self._query_exclude)
@@ -403,21 +403,30 @@ class AsplainApp(Application):
                 )
 
                 if INSTALLED_LLMS and self.nl_query is not None:
-                    llm = OpenAIModel(model_tag=ModelTag.GPT_4O)
+                    log.debug("Prompting LLM for query: %s", self.nl_query)
+                    llm_query = OpenAIModel(model_tag=ModelTag.GPT_4O)
 
                     ref_graph = Graph(reference_model_pg)
                     atoms = []
-                    for item, node in ref_graph._nodes.items():
+                    for item, node in ref_graph.get_nodes().items():
                         if node.type == "atom":
-                            atoms.append({"atom": item, "label": node.tags["label"]}
-                                         if "label" in node.tags else {"atom": item, "label": "-"})
+                            atoms.append(
+                                {"atom": item, "label": node.tags["label"]}
+                                if "label" in node.tags
+                                else {"atom": item, "label": "-"}
+                            )
 
                     template = TranslateTemplate(nl_query=self.nl_query, atoms=atoms)
-                    response = llm.prompt_template_sync(template)
+                    response = llm_query.prompt_template_sync(template)
 
                     self.parse_query(response)
                     query_prg = get_query_prg(self._query_include, self._query_exclude)
 
+                query_text = (
+                    " ".join([str(s) for s in self._query_include])
+                    + " "
+                    + " ".join([f"-{s}" for s in self._query_exclude])
+                )
                 start_time = time()
                 foil_ctl = set_foil_ctl(
                     pg=reference_model_pg,
@@ -454,6 +463,7 @@ class AsplainApp(Application):
                         log.debug("Inspecting foil...")
                         self._foil = Foil.from_explanation_graph(explanation_graph)
                         self._on_foil(self._foil)
+                        print(colored("yellow", "Query (expected atoms): " + query_text))
                         self._foil.print()
 
                         viz_graph(
@@ -473,9 +483,9 @@ class AsplainApp(Application):
                                     llm = GoogleModel(model_tag=self._llm_tag)
                                 else:
                                     raise ValueError(f"LLM tag {self._llm_tag} is not supported.")
-                                template = ExplainTemplate(contrastive_program_graph=explanation_graph)
+                                explain_template = ExplainTemplate(contrastive_program_graph=explanation_graph)
                                 print("LLM Explanation:")
-                                response = asyncio.run(llm.prompt_template(template))
+                                response = asyncio.run(llm.prompt_template(explain_template))
                                 response_message = parse_llm_json_response(response)
                                 print(colored("grey", response_message))
                     if not foil_found:
@@ -518,6 +528,7 @@ class AsplainApp(Application):
 
                         self._foil = Foil.from_explanation_graph(explanation_graph)
                         self._on_foil(self._foil)
+                        print(colored("yellow", "Query (expected atoms): " + query_text))
                         self._foil.print()
                     if not foil_found:
                         log.warning("No foil found.")

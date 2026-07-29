@@ -280,7 +280,7 @@ class Foil:
         """
         Print the foil model, added and removed rules.
         """
-        print(colored("blue", "Foil model: " + " ".join([str(s) for s in self.foil_atoms])))
+        print(colored("blue", "Foil model (satisfying query): " + " ".join([str(s) for s in self.foil_atoms])))
         if len(self.removed_rules) > 0:
             print(colored("red", "            Removed: " + "\t".join([str(s) for s in self.removed_rules])))
         if len(self.added_rules) > 0:

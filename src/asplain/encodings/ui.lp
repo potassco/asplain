@@ -651,7 +651,7 @@ attr(main(model), order, 1).
         attr(menu_bar_llm, label, "Activate LLM") :- not llm_active.
         attr(menu_bar_llm, label, "De-activate LLM") :- llm_active.
         attr(menu_bar_llm, icon, "fa-comment-dots").
-        attr(menu_bar_llm, class, ("btn-primary";"opacity-25")):- not llm_active.
-        attr(menu_bar_llm, class, "btn-primary"):- llm_active.
+        attr(menu_bar_llm, class, ("btn-light")):- not llm_active.
+        attr(menu_bar_llm, class, "btn-danger"):- llm_active.
         when(menu_bar_llm, click, call, activate_llm(true)) :- not llm_active.
         when(menu_bar_llm, click, call, activate_llm(false)) :- llm_active.

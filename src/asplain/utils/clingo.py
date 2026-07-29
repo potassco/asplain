@@ -7,8 +7,6 @@ from typing import List, Sequence, Tuple
 
 from clingo import Control, Symbol, SymbolType
 
-from asplain.utils.logging import colored
-
 log = logging.getLogger(__name__)
 
 
@@ -132,22 +130,6 @@ def model_symbols(model_pg_symbols: Sequence[Symbol], graph_name: str = "ref") -
 
     model = [s for s in model if s in shown]
     return model
-
-
-def print_foil(foil_atoms: list[str], added_rules: list[str], removed_rules: list[str]) -> None:
-    """
-    Print the foil model, added and removed rules.
-
-    Args:
-        foil_atoms: The atoms in the foil model.
-        added_rules: The rules added in the foil model.
-        removed_rules: The rules removed in the foil model.
-    """
-    print(colored("blue", "Foil model: " + " ".join([str(s) for s in foil_atoms])))
-    if len(removed_rules) > 0:
-        print(colored("red", "            Removed: " + "\t".join([str(s) for s in removed_rules])))
-    if len(added_rules) > 0:
-        print(colored("green", "            Added: " + "\t".join([str(s) for s in added_rules])))
 
 
 def get_query_prg(query_include: List[Symbol], query_exclude: List[Symbol]) -> str:

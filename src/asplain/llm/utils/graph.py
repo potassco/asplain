@@ -86,6 +86,10 @@ class Graph:
         self._compute_edges()
         self._compute_queries()
 
+    def get_nodes(self) -> Dict[str, GraphNode]:
+        """Get the nodes of the explanation graph"""
+        return self._nodes
+
     @property
     def json(
         self,

@@ -11,6 +11,7 @@
         * [Finding Explanations](reference/foils.md)
     * Customization
         * [Tagging](reference/tagging.md)
+        * [LLM](reference/llm.md)
         * Explanation Selection
             * [Explanation Selection](reference/preferences/index.md)
             * [`model-difference.lp`](reference/preferences/model-difference.md)
