@@ -18,7 +18,7 @@ from asplain.llm.models import ModelTag, OpenAIModel
 from asplain.llm.templates import ExplainTemplate, TranslateTemplate
 from asplain.llm.utils import parse_llm_json_response
 from asplain.llm.utils.graph import Graph
-from asplain.utils.clingo import get_query_prg, symbols_to_prg, divide_space_string
+from asplain.utils.clingo import divide_space_string, get_query_prg, symbols_to_prg
 from asplain.utils.viz import viz_graph
 
 # mypy: ignore-errors
