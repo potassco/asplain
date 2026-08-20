@@ -18,7 +18,7 @@ class GoogleModel(AbstractModel):
 
     def __init__(self, model_tag: ModelTag, api_key: Optional[str] = None):
         super().__init__(model_tag)
-        dotenv.load_dotenv()
+        dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
         gemini_api_key = api_key if api_key is not None else os.environ.get("GEMINI_API_KEY")
         self._client = genai.Client(api_key=gemini_api_key)
 

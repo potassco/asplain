@@ -18,7 +18,7 @@ class OpenAIModel(AbstractModel):
 
     def __init__(self, model_tag: ModelTag, api_key: Optional[str] = None):
         super().__init__(model_tag)
-        dotenv.load_dotenv()
+        dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
         openai_api_key = api_key if api_key is not None else os.environ.get("OPENAI_API_KEY")
         self._client = AsyncOpenAI(api_key=openai_api_key)
         self._client_sync = OpenAI(api_key=openai_api_key)
