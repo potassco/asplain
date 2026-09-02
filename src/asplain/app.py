@@ -4,9 +4,10 @@ import asyncio
 import logging
 import os
 import sys
+from collections.abc import Callable, Sequence
 from textwrap import dedent
 from time import time
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import Any
 
 from clingo import (
     Application,
@@ -54,29 +55,29 @@ class AsplainApp(Application):
     def __init__(
         self,
         name: str,
-        constants: Optional[dict[str, str]] = None,
-        on_foil: Optional[Callable[[Foil], None]] = None,
+        constants: dict[str, str] | None = None,
+        on_foil: Callable[[Foil], None] | None = None,
     ) -> None:
         """Initialize AsplainApp."""
         self.program_name = name
         self._on_foil = on_foil if on_foil is not None else lambda foil: None
         self._log_level = "WARNING"
         self._constants = constants or {}
-        self._query_include: List[Symbol] = []
-        self._query_exclude: List[Symbol] = []
-        self._assumptions: List[Tuple[str, bool]] = []
+        self._query_include: list[Symbol] = []
+        self._query_exclude: list[Symbol] = []
+        self._assumptions: list[tuple[str, bool]] = []
         self._number_explanations = 1
 
         self._dynamic_tags: list[str] = []
         self._cost_encoding: list[str] = []
-        self._model_symbols: Optional[list[str]] = None
+        self._model_symbols: list[str] | None = None
 
         self._open: Flag = Flag()
         self._temporal: Flag = Flag()
 
         self._pruning_methods: list[TransformationMethod] = []
         if INSTALLED_LLMS:
-            self._llm_tag: Optional[ModelTag] = None  # nocoverage
+            self._llm_tag: ModelTag | None = None  # nocoverage
 
         self.statistics: dict[str, Any] = {
             "Program Graph": {},
@@ -84,12 +85,10 @@ class AsplainApp(Application):
             "Contrastive Graph": {},
         }
 
-        self._foil: Optional[Foil] = None
+        self._foil: Foil | None = None
 
     def parse_file(self, attr_name: str, multi: bool = False) -> Callable[[str], bool]:
-        """
-        Parse file attributes
-        """
+        """Parse file attributes."""
 
         def setter(value: Any) -> bool:
             if not os.path.isfile(value):
@@ -109,9 +108,7 @@ class AsplainApp(Application):
         return setter
 
     def parse_log_level(self, log_level: str) -> bool:  # nocoverage
-        """
-        Parse log
-        """
+        """Parse log level."""
         if log_level is not None:
             self._log_level = log_level.upper()
             return self._log_level in ["INFO", "WARNING", "DEBUG", "ERROR"]
@@ -119,10 +116,7 @@ class AsplainApp(Application):
         return True
 
     def parse_assumptions(self, value: str) -> bool:
-        """
-        Parse assumptions string
-        """
-
+        """Parse assumptions string."""
         true_assumptions, false_assumptions = divide_space_string(value)
         self._assumptions = [(str(parse_term(s)), True) for s in true_assumptions]
         self._assumptions += [(str(parse_term(s)), False) for s in false_assumptions]
@@ -130,17 +124,12 @@ class AsplainApp(Application):
         return True
 
     def parse_number_explanations(self, value: str) -> bool:
-        """
-        Parse number of explanations
-        """
+        """Parse number of explanations."""
         self._number_explanations = int(value)
         return True
 
     def parse_query(self, value: str) -> bool:
-        """
-        Parse query string
-        """
-
+        """Parse query string."""
         true_queries, false_queries = divide_space_string(value)
         self._query_include = [parse_term(s) for s in true_queries]
         self._query_exclude = [parse_term(s) for s in false_queries]
@@ -148,9 +137,7 @@ class AsplainApp(Application):
         return True
 
     def parse_model(self, value: str) -> bool:
-        """
-        Save the model command line in the object
-        """
+        """Save the model command line in the object."""
         self.parse_file("_model_file")(value)
         ctl = Control(["1", "--warn=none"])
         ctl.load(value)
@@ -164,20 +151,15 @@ class AsplainApp(Application):
         return False
 
     def parse_llm_tag(self, value: str) -> bool:
-        """
-        Save the LLM tag for prompting in the object
-        """
-        if INSTALLED_LLMS:
-            if value in [str(m) for m in ModelTag.__members__]:
-                tag = ModelTag[value]
-                self._llm_tag = tag
-                return True
+        """Save the LLM tag for prompting in the object."""
+        if INSTALLED_LLMS and value in [str(m) for m in ModelTag.__members__]:
+            tag = ModelTag[value]
+            self._llm_tag = tag
+            return True
         return False
 
     def parse_pruning(self, value: str) -> bool:
-        """
-        Save the pruning method in the object
-        """
+        """Save the pruning method in the object."""
         if value in [str(m) for m in TransformationMethod.__members__]:
             method = TransformationMethod[value]
             self._pruning_methods.append(method)
@@ -323,9 +305,7 @@ class AsplainApp(Application):
         )
 
     def size_for_statistics(self, name: str, pg: str) -> dict[str, Any]:
-        """
-        Compute size statistics for a program graph.
-        """
+        """Compute size statistics for a program graph."""
         ctl = Control(["--warn=none"])
         ctl.add("base", [], pg)
         ctl.load(str(os.path.dirname(__file__)) + "/utils/node-count.lp")
@@ -341,9 +321,7 @@ class AsplainApp(Application):
         return self.statistics[name]  # type: ignore
 
     def on_statistics(self, _: Any, accu: dict[str, Any]) -> None:
-        """
-        Callback to collect statistics after solving
-        """
+        """Collect statistics after solving."""
         self.statistics["Cost encoding"] = {"count": len(self._cost_encoding)}
         self.statistics["Pruning methods"] = {"count": len(self._pruning_methods)}
         self.statistics["Explanations"] = {"count": self._number_explanations}
@@ -363,9 +341,7 @@ class AsplainApp(Application):
         print(" ".join([str(s) for s in model_symbols(symbols)]))
 
     def main(self, control: Control, files: Sequence[str]) -> None:
-        """
-        Main entry point.
-        """
+        """Apply main logic."""
         # pylint: disable=W0201
         # pylint: disable=too-many-branches, too-many-statements
 
@@ -459,22 +435,21 @@ class AsplainApp(Application):
                             name=f"contrastive_pg_{model.number}_{foil_model.number}",
                             show=self._open.flag,
                         )
-                        if INSTALLED_LLMS:  # nocoverage
-                            if self._llm_tag is not None:
-                                # Prompt the LLM
-                                if self._llm_tag.value.openai is not None:
-                                    log.info("Using OpenAI API")
-                                    llm: Union[OpenAIModel, GoogleModel] = OpenAIModel(model_tag=self._llm_tag)
-                                elif self._llm_tag.value.google is not None:
-                                    log.info("Using Google API")
-                                    llm = GoogleModel(model_tag=self._llm_tag)
-                                else:
-                                    raise ValueError(f"LLM tag {self._llm_tag} is not supported.")
-                                template = ExplainTemplate(contrastive_program_graph=explanation_graph)
-                                print("LLM Explanation:")
-                                response = asyncio.run(llm.prompt_template(template))
-                                response_message = parse_llm_json_response(response)
-                                print(colored("grey", response_message))
+                        if INSTALLED_LLMS and self._llm_tag is not None:
+                            # Prompt the LLM
+                            if self._llm_tag.value.openai is not None:
+                                log.info("Using OpenAI API")
+                                llm: Union[OpenAIModel, GoogleModel] = OpenAIModel(model_tag=self._llm_tag)
+                            elif self._llm_tag.value.google is not None:
+                                log.info("Using Google API")
+                                llm = GoogleModel(model_tag=self._llm_tag)
+                            else:
+                                raise ValueError(f"LLM tag {self._llm_tag} is not supported.")
+                            template = ExplainTemplate(contrastive_program_graph=explanation_graph)
+                            print("LLM Explanation:")
+                            response = asyncio.run(llm.prompt_template(template))
+                            response_message = parse_llm_json_response(response)
+                            print(colored("grey", response_message))
                     if not foil_found:
                         log.warning("No foil found.")
 
