@@ -48,6 +48,31 @@ line_length = 120
 [tool.black]
 line-length = 120
 
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    "/usr/**",
+    "**/site-packages/**",
+    "**/node_modules/**",
+    "**/typeshed-fallback/**",
+]
+
+[tool.ruff.lint]
+extend-select = ["I", "E", "F", "B", "C4", "D", "ARG", "SIM", "ANN", "Q"]
+ignore = [
+    "E741",
+    "D200",
+    "D203",
+    "D212",
+    "D413",
+    "B023", # broken lint
+    "D107", # don't require a docstring for constructors
+]
+
+[tool.ruff.lint.per-file-ignores]
+"noxfile.py" = ["ANN"]
+
 [tool.pylint.format]
 max-line-length = 120
 
