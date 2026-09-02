@@ -1,6 +1,7 @@
 """Transformation methods for the explanation graph."""
 
 import logging
+import os
 from collections.abc import Iterable, Sequence
 from enum import Enum
 from pathlib import Path
@@ -15,6 +16,7 @@ ENCODING_CHANGES = "changes.lp"
 ENCODING_INCLUSION_FILTER = "inclusion_filter.lp"
 ENCODING_INERTIA_CONDENSATION = "inertia_condensation.lp"
 SIGNATURE_PATH_DEPTH = "path_depth"
+PATH_DEPTH = os.environ.get("TRANSFORM_PATH_DEPTH", 0)
 
 log = logging.getLogger(__name__)
 
@@ -37,12 +39,11 @@ class TransformationMethod(Enum):
 def apply_transformation_sequence(
     symbols: Iterable[clingo.Symbol],
     methods: Sequence[TransformationMethod],
-    path_depth: int = 0,
 ) -> list[clingo.Symbol]:
     """Apply transformations to the explanation graph in a fixed sequence."""
     transformed = list(symbols)
     for method in methods:
-        transformed = apply_transformation(transformed, method=method, path_depth=path_depth)
+        transformed = apply_transformation(transformed, method=method)
         print([str(a) for a in transformed])
         print()
     return transformed
@@ -51,7 +52,6 @@ def apply_transformation_sequence(
 def apply_transformation(
     symbols: Iterable[clingo.Symbol],
     method: TransformationMethod,
-    path_depth: int = 0,
 ) -> list[clingo.Symbol]:
     """Transform the explanation graph using the specified method."""
     log.info("Transforming Graph using Method: %s", method)
@@ -61,7 +61,7 @@ def apply_transformation(
         case TransformationMethod.ORPHANS:
             return transform_orphans(symbols=symbols)
         case TransformationMethod.PATHS:
-            return transform_path(symbols=symbols, depth=path_depth)
+            return transform_path(symbols=symbols)
         case TransformationMethod.PATHS_UNDIRECTED:
             return transform_path_undirected(symbols=symbols)
         case TransformationMethod.CHANGES:
@@ -102,7 +102,7 @@ def transform_orphans(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
     return solve_program(symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER])
 
 
-def transform_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> list[clingo.Symbol]:
+def transform_path(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
     """
     Pruning method finding a connecting path between changed rules and query in the graph with a maximum depth.
 
@@ -112,7 +112,7 @@ def transform_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> list[cli
     """
     symbols = list(symbols)
     # Add depth symbol
-    depth_symbol = clingo.parse_term(f"{SIGNATURE_PATH_DEPTH}({depth})")
+    depth_symbol = clingo.parse_term(f"{SIGNATURE_PATH_DEPTH}({PATH_DEPTH})")
     symbols.append(depth_symbol)
     # Solve and return model
     return solve_program(symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER])
