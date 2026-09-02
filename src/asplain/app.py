@@ -246,11 +246,12 @@ class AsplainApp(Application):
 
         options.add(
             group,
-            "prune,p",
+            "transformation",
             dedent(
                 f"""\
-                Apply pruning to the explanation graph to simplify it.
-                Multiple pruning methods can be applied by providing this argument multiple self.statistics.
+                Apply transformation to the explanation graph.
+                Transformations can for example be used to prune the explanation graph for simplification.
+                Multiple transformation methods can be applied by providing this argument multiple times.
                 They will be applied in the order they are given.
                             <method> ={{{"|".join([str(m) for m in Transformation.__members__])}}}
                 """
