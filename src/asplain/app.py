@@ -439,7 +439,7 @@ class AsplainApp(Application):
                             # Prompt the LLM
                             if self._llm_tag.value.openai is not None:
                                 log.info("Using OpenAI API")
-                                llm: Union[OpenAIModel, GoogleModel] = OpenAIModel(model_tag=self._llm_tag)
+                                llm: OpenAIModel | GoogleModel = OpenAIModel(model_tag=self._llm_tag)
                             elif self._llm_tag.value.google is not None:
                                 log.info("Using Google API")
                                 llm = GoogleModel(model_tag=self._llm_tag)
