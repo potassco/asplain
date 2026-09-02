@@ -8,15 +8,17 @@ from pathlib import Path
 
 import clingo
 
-DIR_ENCODINGS = Path(__file__).parent.parent / "encodings/transformations"
-ENCODING_PATHS = "paths.lp"
-ENCODING_PATHS_UNDIRECTED = "paths_undirected.lp"
-ENCODING_ORPHANS = "orphans.lp"
-ENCODING_CHANGES = "changes.lp"
-ENCODING_INCLUSION_FILTER = "inclusion_filter.lp"
-ENCODING_INERTIA_CONDENSATION = "inertia_condensation.lp"
-SIGNATURE_PATH_DEPTH = "path_depth"
-PATH_DEPTH = os.environ.get("TRANSFORM_PATH_DEPTH", 0)
+from ..utils import assert_never
+
+DIR_ENCODINGS: Path = Path(__file__).parent.parent / "encodings/transformations"
+ENCODING_PATHS: str = "paths.lp"
+ENCODING_PATHS_UNDIRECTED: str = "paths_undirected.lp"
+ENCODING_ORPHANS: str = "orphans.lp"
+ENCODING_CHANGES: str = "changes.lp"
+ENCODING_INCLUSION_FILTER: str = "inclusion_filter.lp"
+ENCODING_INERTIA_CONDENSATION: str = "inertia_condensation.lp"
+SIGNATURE_PATH_DEPTH: str = "path_depth"
+PATH_DEPTH: int = int(os.environ.get("TRANSFORM_PATH_DEPTH", "0"))
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +27,7 @@ class TransformationException(Exception):
     """Exception that is thrown when the transformation of the explanation graph malfunctions."""
 
 
-class TransformationMethod(Enum):
+class Transformation(Enum):
     """Available transformation methods."""
 
     NONE = "None"
@@ -35,99 +37,97 @@ class TransformationMethod(Enum):
     CHANGES = "Changes"
     INERTIA_CONDENSATION = "Inertia Condensation"
 
+    def apply(self, symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """Apply the transformation to the given symbols."""
+        log.info("Transforming Graph using Method: %s", self)
+        match self:
+            case Transformation.NONE:
+                return list(symbols)
+            case Transformation.ORPHANS:
+                return self._orphans(symbols=symbols)
+            case Transformation.PATHS:
+                return self._path(symbols=symbols)
+            case Transformation.PATHS_UNDIRECTED:
+                return self._path_undirected(symbols=symbols)
+            case Transformation.CHANGES:
+                return self._changes(symbols=symbols)
+            case Transformation.INERTIA_CONDENSATION:
+                return self._inertia_condensation(symbols=symbols)
+            case _ as unreachable:
+                assert_never(unreachable)
+
+    @staticmethod
+    def _inertia_condensation(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """
+        Transform the explanation graph by condensing inertia chains.
+
+        Args:
+            symbols: The symbols of the explanation graph to prune
+
+        """
+        symbols = list(symbols)
+        return solve_program(symbols=symbols, files=[ENCODING_INERTIA_CONDENSATION, ENCODING_INCLUSION_FILTER])
+
+    @staticmethod
+    def _changes(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """
+        Prune methods to keep only changes between reference and foil models.
+
+        Args:
+            symbols: The symbols of the explanation graph to prune
+        """
+        return solve_program(symbols=symbols, files=[ENCODING_CHANGES, ENCODING_INCLUSION_FILTER])
+
+    @staticmethod
+    def _orphans(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """
+        Prune method to remove orphan nodes, i.e., nodes that are not connected to any query.
+
+        Args:
+            symbols: The symbols of the explanation graph to prune
+        """
+        return solve_program(symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER])
+
+    @staticmethod
+    def _path(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """
+        Pruning method finding a connecting path between changed rules and query in the graph with a maximum depth.
+
+        Args:
+            symbols: The symbols of the explanation graph to prune
+            depth: The maximum depth of the path to keep
+        """
+        symbols = list(symbols)
+        # Add depth symbol
+        depth_symbol = clingo.parse_term(f"{SIGNATURE_PATH_DEPTH}({PATH_DEPTH})")
+        symbols.append(depth_symbol)
+        # Solve and return model
+        return solve_program(symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER])
+
+    @staticmethod
+    def _path_undirected(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """
+        Pruning method finding a connecting path between changed rules and query in the graph disregarding edge directions.
+
+        Args:
+            symbols: The symbols of the explanation graph to prune
+
+        """
+        symbols = list(symbols)
+        return solve_program(symbols=symbols, files=[ENCODING_PATHS_UNDIRECTED, ENCODING_INCLUSION_FILTER])
+
 
 def apply_transformation_sequence(
     symbols: Iterable[clingo.Symbol],
-    methods: Sequence[TransformationMethod],
+    methods: Sequence[Transformation],
 ) -> list[clingo.Symbol]:
     """Apply transformations to the explanation graph in a fixed sequence."""
     transformed = list(symbols)
     for method in methods:
-        transformed = apply_transformation(transformed, method=method)
+        transformed = method.apply(transformed)
         print([str(a) for a in transformed])
         print()
     return transformed
-
-
-def apply_transformation(
-    symbols: Iterable[clingo.Symbol],
-    method: TransformationMethod,
-) -> list[clingo.Symbol]:
-    """Transform the explanation graph using the specified method."""
-    log.info("Transforming Graph using Method: %s", method)
-    match method:
-        case TransformationMethod.NONE:
-            return list(symbols)
-        case TransformationMethod.ORPHANS:
-            return transform_orphans(symbols=symbols)
-        case TransformationMethod.PATHS:
-            return transform_path(symbols=symbols)
-        case TransformationMethod.PATHS_UNDIRECTED:
-            return transform_path_undirected(symbols=symbols)
-        case TransformationMethod.CHANGES:
-            return transform_changes(symbols=symbols)
-        case TransformationMethod.INERTIA_CONDENSATION:
-            return transform_inertia_condensation(symbols=symbols)
-
-
-def transform_inertia_condensation(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
-    """
-    Transform the explanation graph by condensing inertia chains.
-
-    Args:
-        symbols: The symbols of the explanation graph to prune
-
-    """
-    symbols = list(symbols)
-    return solve_program(symbols=symbols, files=[ENCODING_INERTIA_CONDENSATION, ENCODING_INCLUSION_FILTER])
-
-
-def transform_changes(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
-    """
-    Prune methods to keep only changes between reference and foil models.
-
-    Args:
-        symbols: The symbols of the explanation graph to prune
-    """
-    return solve_program(symbols=symbols, files=[ENCODING_CHANGES, ENCODING_INCLUSION_FILTER])
-
-
-def transform_orphans(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
-    """
-    Prune method to remove orphan nodes, i.e., nodes that are not connected to any query.
-
-    Args:
-        symbols: The symbols of the explanation graph to prune
-    """
-    return solve_program(symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER])
-
-
-def transform_path(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
-    """
-    Pruning method finding a connecting path between changed rules and query in the graph with a maximum depth.
-
-    Args:
-        symbols: The symbols of the explanation graph to prune
-        depth: The maximum depth of the path to keep
-    """
-    symbols = list(symbols)
-    # Add depth symbol
-    depth_symbol = clingo.parse_term(f"{SIGNATURE_PATH_DEPTH}({PATH_DEPTH})")
-    symbols.append(depth_symbol)
-    # Solve and return model
-    return solve_program(symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER])
-
-
-def transform_path_undirected(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
-    """
-    Pruning method finding a connecting path between changed rules and query in the graph disregarding edge directions.
-
-    Args:
-        symbols: The symbols of the explanation graph to prune
-
-    """
-    symbols = list(symbols)
-    return solve_program(symbols=symbols, files=[ENCODING_PATHS_UNDIRECTED, ENCODING_INCLUSION_FILTER])
 
 
 def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> list[clingo.Symbol]:

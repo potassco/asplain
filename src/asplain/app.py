@@ -21,8 +21,7 @@ from clingo import (
 
 from asplain import Foil, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
 from asplain.transformations.transformers import (
-    TransformationMethod,
-    apply_transformation,
+    Transformation,
     apply_transformation_sequence,
 )
 from asplain.utils.clingo import (
@@ -75,7 +74,7 @@ class AsplainApp(Application):
         self._open: Flag = Flag()
         self._temporal: Flag = Flag()
 
-        self._pruning_methods: list[TransformationMethod] = []
+        self._pruning_methods: list[Transformation] = []
         if INSTALLED_LLMS:
             self._llm_tag: ModelTag | None = None  # nocoverage
 
@@ -160,8 +159,8 @@ class AsplainApp(Application):
 
     def parse_pruning(self, value: str) -> bool:
         """Save the pruning method in the object."""
-        if value in [str(m) for m in TransformationMethod.__members__]:
-            method = TransformationMethod[value]
+        if value in [str(m) for m in Transformation.__members__]:
+            method = Transformation[value]
             self._pruning_methods.append(method)
             return True
         return False  # nocoverage
@@ -253,7 +252,7 @@ class AsplainApp(Application):
                 Apply pruning to the explanation graph to simplify it.
                 Multiple pruning methods can be applied by providing this argument multiple self.statistics.
                 They will be applied in the order they are given.
-                            <method> ={{{"|".join([str(m) for m in TransformationMethod.__members__])}}}
+                            <method> ={{{"|".join([str(m) for m in Transformation.__members__])}}}
                 """
             ),
             self.parse_pruning,
@@ -406,15 +405,12 @@ class AsplainApp(Application):
                             log.info("Applying temporal pruning")
                             explanation_symbols = apply_transformation_sequence(
                                 explanation_symbols,
-                                [TransformationMethod.CHANGES, TransformationMethod.INERTIA_CONDENSATION],
+                                [Transformation.CHANGES, Transformation.INERTIA_CONDENSATION],
                             )
                         else:
                             for method in self._pruning_methods:
                                 log.info("Applying pruning method %s to foil model", method)
-                                explanation_symbols = apply_transformation(
-                                    explanation_symbols,
-                                    method=method,
-                                )
+                                explanation_symbols = method.apply(explanation_symbols)
                         self.statistics["Contrastive Graph"]["pruning_time"] = round(time() - start_time, 2)
                         self.size_for_statistics("Contrastive Graph", symbols_to_prg(explanation_symbols))
 
@@ -482,10 +478,7 @@ class AsplainApp(Application):
                         explanation_symbols = list(foil_model.symbols(shown=True))
                         for method in self._pruning_methods:
                             log.info("Applying pruning method %s to foil model", method)
-                            explanation_symbols = apply_transformation(
-                                explanation_symbols,
-                                method=method,
-                            )
+                            explanation_symbols = method.apply(explanation_symbols)
                         explanation_graph = symbols_to_prg(explanation_symbols)
 
                         self._foil = Foil.from_explanation_graph(explanation_graph)
