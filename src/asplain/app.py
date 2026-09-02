@@ -19,7 +19,11 @@ from clingo import (
 )
 
 from asplain import Foil, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
-from asplain.pruning.pruners import PruningMethod, prune_explanation_graph, prune_sequence
+from asplain.transformations.transformers import (
+    TransformationMethod,
+    apply_transformation,
+    apply_transformation_sequence,
+)
 from asplain.utils.clingo import (
     divide_space_string,
     get_query_prg,
@@ -70,7 +74,7 @@ class AsplainApp(Application):
         self._open: Flag = Flag()
         self._temporal: Flag = Flag()
 
-        self._pruning_methods: list[PruningMethod] = []
+        self._pruning_methods: list[TransformationMethod] = []
         if INSTALLED_LLMS:
             self._llm_tag: Optional[ModelTag] = None  # nocoverage
 
@@ -174,8 +178,8 @@ class AsplainApp(Application):
         """
         Save the pruning method in the object
         """
-        if value in [str(m) for m in PruningMethod.__members__]:
-            method = PruningMethod[value]
+        if value in [str(m) for m in TransformationMethod.__members__]:
+            method = TransformationMethod[value]
             self._pruning_methods.append(method)
             return True
         return False  # nocoverage
@@ -267,7 +271,7 @@ class AsplainApp(Application):
                 Apply pruning to the explanation graph to simplify it.
                 Multiple pruning methods can be applied by providing this argument multiple self.statistics.
                 They will be applied in the order they are given.
-                            <method> ={{{"|".join([str(m) for m in PruningMethod.__members__])}}}
+                            <method> ={{{"|".join([str(m) for m in TransformationMethod.__members__])}}}
                 """
             ),
             self.parse_pruning,
@@ -424,13 +428,14 @@ class AsplainApp(Application):
                         explanation_symbols = list(foil_model.symbols(shown=True))
                         if self._temporal:
                             log.info("Applying temporal pruning")
-                            explanation_symbols = prune_sequence(
-                                explanation_symbols, [PruningMethod.CHANGES, PruningMethod.INERTIA_CONDENSATION]
+                            explanation_symbols = apply_transformation_sequence(
+                                explanation_symbols,
+                                [TransformationMethod.CHANGES, TransformationMethod.INERTIA_CONDENSATION],
                             )
                         else:
                             for method in self._pruning_methods:
                                 log.info("Applying pruning method %s to foil model", method)
-                                explanation_symbols = prune_explanation_graph(
+                                explanation_symbols = apply_transformation(
                                     explanation_symbols,
                                     method=method,
                                 )
@@ -502,7 +507,7 @@ class AsplainApp(Application):
                         explanation_symbols = list(foil_model.symbols(shown=True))
                         for method in self._pruning_methods:
                             log.info("Applying pruning method %s to foil model", method)
-                            explanation_symbols = prune_explanation_graph(
+                            explanation_symbols = apply_transformation(
                                 explanation_symbols,
                                 method=method,
                             )

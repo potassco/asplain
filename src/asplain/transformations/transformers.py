@@ -1,4 +1,4 @@
-"""Pruning methods for the explanation graph."""
+"""Transformation methods for the explanation graph."""
 
 import logging
 from collections.abc import Iterable, Sequence
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import clingo
 
-DIR_ENCODINGS = Path(__file__).parent.parent / "encodings/pruning"
+DIR_ENCODINGS = Path(__file__).parent.parent / "encodings/transformations"
 ENCODING_PATHS = "paths.lp"
 ENCODING_PATHS_UNDIRECTED = "paths_undirected.lp"
 ENCODING_ORPHANS = "orphans.lp"
@@ -19,12 +19,12 @@ SIGNATURE_PATH_DEPTH = "path_depth"
 log = logging.getLogger(__name__)
 
 
-class PruningException(Exception):
-    """Exception that is thrown when the pruning of the explanation graph malfunctions."""
+class TransformationException(Exception):
+    """Exception that is thrown when the transformation of the explanation graph malfunctions."""
 
 
-class PruningMethod(Enum):
-    """Available pruning methods."""
+class TransformationMethod(Enum):
+    """Available transformation methods."""
 
     NONE = "None"
     ORPHANS = "Orphans"
@@ -34,45 +34,45 @@ class PruningMethod(Enum):
     INERTIA_CONDENSATION = "Inertia Condensation"
 
 
-def prune_sequence(
+def apply_transformation_sequence(
     symbols: Iterable[clingo.Symbol],
-    methods: Sequence[PruningMethod],
+    methods: Sequence[TransformationMethod],
     path_depth: int = 0,
 ) -> list[clingo.Symbol]:
-    """Apply prunings to the explanation graph in a fixed sequence."""
+    """Apply transformations to the explanation graph in a fixed sequence."""
     transformed = list(symbols)
     for method in methods:
-        transformed = prune_explanation_graph(transformed, method=method, path_depth=path_depth)
+        transformed = apply_transformation(transformed, method=method, path_depth=path_depth)
         print([str(a) for a in transformed])
         print()
     return transformed
 
 
-def prune_explanation_graph(
+def apply_transformation(
     symbols: Iterable[clingo.Symbol],
-    method: PruningMethod,
+    method: TransformationMethod,
     path_depth: int = 0,
 ) -> list[clingo.Symbol]:
-    """Prune the explanation graph using the specified method."""
-    log.info("Pruning Graph using Method: %s", method)
+    """Transform the explanation graph using the specified method."""
+    log.info("Transforming Graph using Method: %s", method)
     match method:
-        case PruningMethod.NONE:
+        case TransformationMethod.NONE:
             return list(symbols)
-        case PruningMethod.ORPHANS:
-            return prune_orphans(symbols=symbols)
-        case PruningMethod.PATHS:
-            return prune_path(symbols=symbols, depth=path_depth)
-        case PruningMethod.PATHS_UNDIRECTED:
-            return prune_path_undirected(symbols=symbols)
-        case PruningMethod.CHANGES:
-            return prune_changes(symbols=symbols)
-        case PruningMethod.INERTIA_CONDENSATION:
-            return prunte_inertia_condensation(symbols=symbols)
+        case TransformationMethod.ORPHANS:
+            return transform_orphans(symbols=symbols)
+        case TransformationMethod.PATHS:
+            return transform_path(symbols=symbols, depth=path_depth)
+        case TransformationMethod.PATHS_UNDIRECTED:
+            return transform_path_undirected(symbols=symbols)
+        case TransformationMethod.CHANGES:
+            return transform_changes(symbols=symbols)
+        case TransformationMethod.INERTIA_CONDENSATION:
+            return transform_inertia_condensation(symbols=symbols)
 
 
-def prunte_inertia_condensation(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+def transform_inertia_condensation(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
     """
-    Pruning method condensing inertia chains.
+    Transform the explanation graph by condensing inertia chains.
 
     Args:
         symbols: The symbols of the explanation graph to prune
@@ -82,7 +82,7 @@ def prunte_inertia_condensation(symbols: Iterable[clingo.Symbol]) -> list[clingo
     return solve_program(symbols=symbols, files=[ENCODING_INERTIA_CONDENSATION, ENCODING_INCLUSION_FILTER])
 
 
-def prune_changes(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+def transform_changes(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
     """
     Prune methods to keep only changes between reference and foil models.
 
@@ -92,7 +92,7 @@ def prune_changes(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
     return solve_program(symbols=symbols, files=[ENCODING_CHANGES, ENCODING_INCLUSION_FILTER])
 
 
-def prune_orphans(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+def transform_orphans(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
     """
     Prune method to remove orphan nodes, i.e., nodes that are not connected to any query.
 
@@ -102,7 +102,7 @@ def prune_orphans(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
     return solve_program(symbols=symbols, files=[ENCODING_ORPHANS, ENCODING_INCLUSION_FILTER])
 
 
-def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> list[clingo.Symbol]:
+def transform_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> list[clingo.Symbol]:
     """
     Pruning method finding a connecting path between changed rules and query in the graph with a maximum depth.
 
@@ -118,7 +118,7 @@ def prune_path(symbols: Iterable[clingo.Symbol], depth: int = 0) -> list[clingo.
     return solve_program(symbols=symbols, files=[ENCODING_PATHS, ENCODING_INCLUSION_FILTER])
 
 
-def prune_path_undirected(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+def transform_path_undirected(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
     """
     Pruning method finding a connecting path between changed rules and query in the graph disregarding edge directions.
 
@@ -152,7 +152,7 @@ def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> lis
         model = solve_handle.model()
         match model:
             case None:
-                raise PruningException()
+                raise TransformationException()
             case clingo.Model():
                 return list(model.symbols(shown=True))
-    raise PruningException()
+    raise TransformationException()
