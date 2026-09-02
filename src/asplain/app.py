@@ -19,7 +19,7 @@ from clingo import (
 )
 
 from asplain import Foil, construct_program_graph, set_foil_ctl, set_model_subgraphs_ctl
-from asplain.pruning.pruners import PruningMethod, prune_explanation_graph
+from asplain.pruning.pruners import PruningMethod, prune_explanation_graph, prune_sequence
 from asplain.utils.clingo import (
     divide_space_string,
     get_query_prg,
@@ -68,6 +68,7 @@ class AsplainApp(Application):
         self._model_symbols: Optional[list[str]] = None
 
         self._open: Flag = Flag()
+        self._temporal: Flag = Flag()
 
         self._pruning_methods: list[PruningMethod] = []
         if INSTALLED_LLMS:
@@ -300,6 +301,15 @@ class AsplainApp(Application):
 
         options.add_flag(
             group,
+            "temporal",
+            dedent(
+                """\
+                If active uses optimizations for temporal problem domains. Ignores other pruning options when active."""
+            ),
+            self._temporal,
+        )
+        options.add_flag(
+            group,
             "open",
             dedent(
                 """\
@@ -412,12 +422,18 @@ class AsplainApp(Application):
 
                         start_time = time()
                         explanation_symbols = list(foil_model.symbols(shown=True))
-                        for method in self._pruning_methods:
-                            log.info("Applying pruning method %s to foil model", method)
-                            explanation_symbols = prune_explanation_graph(
-                                explanation_symbols,
-                                method=method,
+                        if self._temporal:
+                            log.info("Applying temporal pruning")
+                            explanation_symbols = prune_sequence(
+                                explanation_symbols, [PruningMethod.CHANGES, PruningMethod.INERTIA_CONDENSATION]
                             )
+                        else:
+                            for method in self._pruning_methods:
+                                log.info("Applying pruning method %s to foil model", method)
+                                explanation_symbols = prune_explanation_graph(
+                                    explanation_symbols,
+                                    method=method,
+                                )
                         self.statistics["Contrastive Graph"]["pruning_time"] = round(time() - start_time, 2)
                         self.size_for_statistics("Contrastive Graph", symbols_to_prg(explanation_symbols))
 

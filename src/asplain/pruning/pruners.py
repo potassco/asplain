@@ -3,7 +3,7 @@
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Sequence
 
 import clingo
 
@@ -13,6 +13,7 @@ ENCODING_PATHS_UNDIRECTED = "paths_undirected.lp"
 ENCODING_ORPHANS = "orphans.lp"
 ENCODING_CHANGES = "changes.lp"
 ENCODING_INCLUSION_FILTER = "inclusion_filter.lp"
+ENCODING_INERTIA_CONDENSATION = "inertia_condensation.lp"
 SIGNATURE_PATH_DEPTH = "path_depth"
 
 log = logging.getLogger(__name__)
@@ -30,6 +31,20 @@ class PruningMethod(Enum):
     PATHS = "Path"
     PATHS_UNDIRECTED = "Path Undirected"
     CHANGES = "Changes"
+    INERTIA_CONDENSATION = "Inertia Condensation"
+
+
+def prune_sequence(
+    symbols: Iterable[clingo.Symbol],
+    methods: Sequence[PruningMethod],
+    path_depth: int = 0,
+):
+    transformed = symbols
+    for method in methods:
+        transformed = prune_explanation_graph(transformed, method=method, path_depth=path_depth)
+        print([str(a) for a in transformed])
+        print()
+    return transformed
 
 
 def prune_explanation_graph(
@@ -50,6 +65,19 @@ def prune_explanation_graph(
             return prune_path_undirected(symbols=symbols)
         case PruningMethod.CHANGES:
             return prune_changes(symbols=symbols)
+        case PruningMethod.INERTIA_CONDENSATION:
+            return prunte_inertia_condensation(symbols=symbols)
+
+
+def prunte_inertia_condensation(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+    """
+    Pruning method condensing inertia chains.
+    Args:
+        symbols: The symbols of the explanation graph to prune
+
+    """
+    symbols = list(symbols)
+    return solve_program(symbols=symbols, files=[ENCODING_INERTIA_CONDENSATION, ENCODING_INCLUSION_FILTER])
 
 
 def prune_changes(symbols: Iterable[clingo.Symbol]) -> List[clingo.Symbol]:
