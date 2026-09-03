@@ -3,7 +3,6 @@
 % @time(T) :: occur(A,T)
 % @time(T) :: holds(F,T)
 % @time(T) :: time(T)
-% @time(T) :: has_action(T)
 
 
 time(0..horizon).
