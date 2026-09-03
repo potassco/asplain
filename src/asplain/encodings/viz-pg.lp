@@ -100,6 +100,9 @@ vattr(node,N,(fontcolor;color),C):- gray_node(N),
 vattr(node,R,(fontcolor;color),red):- change(rm,R).
 vattr(node,R,(fontcolor;color),blue):- change(add,R).
 
+% query
+vattr(node,Q,penwidth,"3.0"):- query(Q,_).
+
 % -------------- Edges
 vattr(edge,E,style,dashed):- vedge(E,explanation), edge(E,0).
 vattr(edge,E,arrowhead,vee):- vedge(E,explanation).
