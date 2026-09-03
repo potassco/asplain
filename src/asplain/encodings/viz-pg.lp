@@ -108,5 +108,8 @@ vattr(edge,E,arrowsize,"0.5"):- vedge(E,explanation).
 active_edge((N1,N2)):- vedge((N1,N2),explanation), active_node(N1), active_node(N2).
 vattr(edge,E,color,C):- vedge(E,explanation), not active_edge(E), color_set(light,C).
 
+% Inertia edges
+vattr(edge,(N,M),penwidth,"2.0") :- vedge((N,M),_), edge_tag((N,M),inertia_condensed).
+vattr(edge,(N,M),arrowsize,"1.0") :- vedge((N,M),_), edge_tag((N,M),inertia_condensed).
 
 vattr(node,X, fillcolor, C):-fired(X), color_set(constraint,C).
