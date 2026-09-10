@@ -125,8 +125,6 @@ def apply_transformation_sequence(
     transformed = list(symbols)
     for method in methods:
         transformed = method.apply(transformed)
-        print([str(a) for a in transformed])
-        print()
     return transformed
 
 
