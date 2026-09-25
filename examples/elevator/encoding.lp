@@ -68,6 +68,7 @@ holds(at(X),T+1) :- holds(at(X),T), not occur(up,T), not occur(down,T), time(T).
 % @inertia
 holds(called(X),T+1) :- holds(called(X),T), not holds(served(X),T), time(T).
 
+% CONSTRAINTS
 
 % Only allow calling the elevator inside horizon
 % @label("The elevator cannot be called at time {}, because it is outside the allowed timesteps",(T,))
