@@ -406,7 +406,7 @@ class AsplainApp(Application):
                             log.info("Applying temporal pruning")
                             explanation_symbols = apply_transformation_sequence(
                                 explanation_symbols,
-                                [Transformation.CHANGES, Transformation.INERTIA_CONDENSATION],
+                                [Transformation.NO_MODEL],
                             )
                         else:
                             for method in self._pruning_methods:

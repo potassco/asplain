@@ -17,6 +17,7 @@ ENCODING_ORPHANS: str = "orphans.lp"
 ENCODING_CHANGES: str = "changes.lp"
 ENCODING_INCLUSION_FILTER: str = "inclusion_filter.lp"
 ENCODING_INERTIA_CONDENSATION: str = "inertia_condensation.lp"
+ENCODING_NO_MODEL: str = "no_model.lp"
 SIGNATURE_PATH_DEPTH: str = "path_depth"
 PATH_DEPTH: int = int(os.environ.get("TRANSFORM_PATH_DEPTH", "0"))
 
@@ -36,10 +37,11 @@ class Transformation(Enum):
     PATHS_UNDIRECTED = "Path Undirected"
     CHANGES = "Changes"
     INERTIA_CONDENSATION = "Inertia Condensation"
+    NO_MODEL = "No Model"
 
     def apply(self, symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
         """Apply the transformation to the given symbols."""
-        log.info("Transforming Graph using Method: %s", self)
+        log.debug("Transforming Graph using Method: %s", self)
         match self:
             case Transformation.NONE:
                 return list(symbols)
@@ -53,8 +55,20 @@ class Transformation(Enum):
                 return self._changes(symbols=symbols)
             case Transformation.INERTIA_CONDENSATION:
                 return self._inertia_condensation(symbols=symbols)
+            case Transformation.NO_MODEL:
+                return self._no_model(symbols=symbols)
             case _ as unreachable:
                 assert_never(unreachable)
+
+    @staticmethod
+    def _no_model(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """
+        Prune white nodes that are not part of any model.
+
+        Args:
+            symbols: The symbols of the explanation graph to prune
+        """
+        return solve_program(symbols=symbols, files=[ENCODING_NO_MODEL, ENCODING_INCLUSION_FILTER])
 
     @staticmethod
     def _inertia_condensation(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
@@ -63,7 +77,6 @@ class Transformation(Enum):
 
         Args:
             symbols: The symbols of the explanation graph to prune
-
         """
         symbols = list(symbols)
         return solve_program(symbols=symbols, files=[ENCODING_INERTIA_CONDENSATION, ENCODING_INCLUSION_FILTER])
@@ -123,7 +136,8 @@ def apply_transformation_sequence(
 ) -> list[clingo.Symbol]:
     """Apply transformations to the explanation graph in a fixed sequence."""
     transformed = list(symbols)
-    for method in methods:
+    for i, method in enumerate(methods):
+        log.info(f"Transformation Step [{i + 1}/{len(methods)}]: {method.value}")
         transformed = method.apply(transformed)
     return transformed
 
