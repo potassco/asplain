@@ -18,6 +18,7 @@ ENCODING_CHANGES: str = "changes.lp"
 ENCODING_INCLUSION_FILTER: str = "inclusion_filter.lp"
 ENCODING_INERTIA_CONDENSATION: str = "inertia_condensation.lp"
 ENCODING_NO_MODEL: str = "no_model.lp"
+ENCODING_FACT_RULES: str = "fact_rules.lp"
 SIGNATURE_PATH_DEPTH: str = "path_depth"
 PATH_DEPTH: int = int(os.environ.get("TRANSFORM_PATH_DEPTH", "0"))
 
@@ -38,6 +39,7 @@ class Transformation(Enum):
     CHANGES = "Changes"
     INERTIA_CONDENSATION = "Inertia Condensation"
     NO_MODEL = "No Model"
+    FACT_RULES = "Fact Rules"
 
     def apply(self, symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
         """Apply the transformation to the given symbols."""
@@ -57,8 +59,20 @@ class Transformation(Enum):
                 return self._inertia_condensation(symbols=symbols)
             case Transformation.NO_MODEL:
                 return self._no_model(symbols=symbols)
+            case Transformation.FACT_RULES:
+                return self._fact_rules(symbols=symbols)
             case _ as unreachable:
                 assert_never(unreachable)
+
+    @staticmethod
+    def _fact_rules(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """
+        Prune fact rules.
+
+        Args:
+            symbols: The symbols of the explanation graph to prune
+        """
+        return solve_program(symbols=symbols, files=[ENCODING_FACT_RULES, ENCODING_INCLUSION_FILTER])
 
     @staticmethod
     def _no_model(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
