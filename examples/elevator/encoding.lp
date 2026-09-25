@@ -45,9 +45,6 @@ holds(at(X+1),T+1) :- occur(up,T),   holds(at(X),T).
 % @label("The elevator moves from floor {} down at time {} since action down is chosen",(X,T,))
 % @time(T)
 holds(at(X-1),T+1) :- occur(down,T), holds(at(X),T).
-% @label("The elevator serves floor {} and doesn't change its positon at time {} since action serve is chosen",(X,T,))
-% @time(T)
-holds(at(X),T+1) :- holds(at(X),T), occur(serve,T), time(T).
 % @label("Serve floor {} at time {} when serve action occurs on floor {}",(X,T,X))
 % @time(T)
 holds(served(X),T) :- holds(at(X),T), occur(serve,T).
