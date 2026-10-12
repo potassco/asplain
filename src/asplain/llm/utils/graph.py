@@ -1,6 +1,4 @@
-"""
-Graph utilities for generating the explanation graph representation for the LLM
-"""
+"""Graph utilities for generating the explanation graph representation for the LLM."""
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple, TypedDict
@@ -23,7 +21,7 @@ from .predicates import (
 
 @dataclass
 class GraphNode:
-    """Node of the explanation graph"""
+    """Node of the explanation graph."""
 
     id: str
     type: str
@@ -34,7 +32,7 @@ class GraphNode:
 
 
 class GraphNodeDict(TypedDict):
-    """Dictionary Type of a graph node"""
+    """Dictionary Type of a graph node."""
 
     type: str
     models: Set[str]
@@ -45,7 +43,7 @@ class GraphNodeDict(TypedDict):
 
 @dataclass
 class GraphEdge:
-    """Edge of the explanation graph"""
+    """Edge of the explanation graph."""
 
     source: str
     target: str
@@ -53,7 +51,7 @@ class GraphEdge:
 
 
 class JsonEdge(TypedDict):
-    """Dictionary Type of a JSON edge"""
+    """Dictionary Type of a JSON edge."""
 
     type: str
     source: str
@@ -61,7 +59,7 @@ class JsonEdge(TypedDict):
 
 
 class JsonQuery(TypedDict):
-    """Dictionary Type of a JSON query"""
+    """Dictionary Type of a JSON query."""
 
     query_atom: str
     type: str
@@ -72,7 +70,7 @@ JsonNodeTagged = Dict[str, str | bool | List[str]]
 
 
 class Graph:
-    """Representation of the explanation graph for the LLM"""
+    """Representation of the explanation graph for the LLM."""
 
     def __init__(self, contrastive_program_graph: str) -> None:
         self._graph: str = contrastive_program_graph
@@ -91,11 +89,11 @@ class Graph:
         self,
     ) -> Dict[str, List[JsonNodeTagged] | List[JsonEdge] | List[JsonQuery]]:
         """
-        A JSON representation of the explanation graph
+        A JSON representation of the explanation graph.
+
         Returns:
             A JSON representation of the explanation graph as a python dictionary
         """
-
         json_nodes: List[JsonNodeTagged] = []
         for node in self._nodes.values():
             json_node: JsonNodeTagged = {
