@@ -16,6 +16,7 @@ from .predicates import (
     Tag,
     TagLabel,
     TagRuleFirstOrder,
+    TagTime,
 )
 
 
@@ -27,7 +28,7 @@ class GraphNode:
     type: str
     models: set[str]
     programs: set[str]
-    tags: dict[str, str | bool]
+    tags: dict[str, str | bool | int]
     fired: bool
 
 
@@ -37,7 +38,7 @@ class GraphNodeDict(TypedDict):
     type: str
     models: set[str]
     programs: set[str]
-    tags: dict[str, str | bool]
+    tags: dict[str, str | bool | int]
     fired: bool
 
 
@@ -66,7 +67,7 @@ class JsonQuery(TypedDict):
 
 
 # No TypedDict here to accommodate dynamic tag keys
-JsonNodeTagged = dict[str, str | bool | list[str]]
+JsonNodeTagged = dict[str, str | bool | int | list[str]]
 
 
 class JsonGraph(TypedDict):
@@ -195,6 +196,8 @@ class Graph:
                     nodes[str(tag.node)]["tags"]["label"] = tag.tag.label.format(
                         *[str(a) for a in tag.tag.variables.symbol.arguments]
                     )
+                case TagTime():
+                    nodes[str(tag.node)]["tags"]["time"] = tag.tag.time
                 case TagRuleFirstOrder():
                     nodes[str(tag.node)]["tags"]["first_order"] = tag.tag.first_order
 

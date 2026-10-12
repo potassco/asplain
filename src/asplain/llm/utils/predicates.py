@@ -56,6 +56,12 @@ class TagLabel(Predicate, name="label"):
     variables: Raw
 
 
+class TagTime(Predicate, name="time"):
+    """Node tag with for a timestep."""
+
+    time: int
+
+
 class TagRuleLocation(Predicate, name="rule_loc"):
     """Node tag with the file location of a rule."""
 
@@ -74,7 +80,7 @@ class Tag(Predicate, name="tag"):
     """Tag for a node."""
 
     node: Raw
-    tag: ConstantStr | TagLabel | TagRuleLocation | TagRuleFirstOrder
+    tag: ConstantStr | TagLabel | TagRuleLocation | TagRuleFirstOrder | TagTime
 
 
 class EdgeNodes(Predicate, is_tuple=True):
