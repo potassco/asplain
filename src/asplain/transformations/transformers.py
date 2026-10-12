@@ -184,7 +184,7 @@ def apply_transformation_sequence(
     return transformed
 
 
-def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> list[clingo.Symbol]:
+def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str], warn: bool = False) -> list[clingo.Symbol]:
     """
     Solve the ASP program with the given symbols and files.
 
@@ -195,7 +195,8 @@ def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str]) -> lis
     Returns:
         The symbols of the solved model
     """
-    control = clingo.Control()
+    control_args = [] if warn else ["--warn=none"]
+    control = clingo.Control(control_args)
     # Add explanation graph
     control.add(" ".join([f"{str(s)}." for s in symbols]))
     # Load pruning programs

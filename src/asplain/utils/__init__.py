@@ -2,7 +2,12 @@
 Utilities.
 """
 
-from typing_extensions import Never
+import sys
+
+if sys.version_info >= (3, 11):
+    from typing import Never
+else:
+    from typing_extensions import Never
 
 
 def assert_never(_: Never) -> Never:
