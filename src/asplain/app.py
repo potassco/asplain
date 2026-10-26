@@ -411,7 +411,7 @@ class AsplainApp(Application):
                                     Transformation.FACT_RULES,
                                     Transformation.STATIC_DOMAIN_FACTS,
                                     Transformation.CHOICE_RULES,
-                                    Transformation.INERTIA_CONDENSATION,
+                                    # Transformation.INERTIA_CONDENSATION,
                                 ],
                             )
                         else:
