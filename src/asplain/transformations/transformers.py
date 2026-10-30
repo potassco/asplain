@@ -21,6 +21,7 @@ ENCODING_NO_MODEL: str = "no_model.lp"
 ENCODING_FACT_RULES: str = "fact_rules.lp"
 ENCODING_STATIC_DOMAIN_FACTS: str = "static_domain_facts.lp"
 ENCODING_LEAF_RULES: str = "leaf_rules.lp"
+ENCODING_IRRELEVANT: str = "irrelevant.lp"
 SIGNATURE_PATH_DEPTH: str = "path_depth"
 PATH_DEPTH: int = int(os.environ.get("TRANSFORM_PATH_DEPTH", "0"))
 
@@ -44,6 +45,7 @@ class Transformation(Enum):
     FACT_RULES = "Fact Rules"
     STATIC_DOMAIN_FACTS = "Static Domain Facts"
     LEAF_RULES = "Leaf Rules"
+    IRRELEVANT = "Irrelevant"
 
     def apply(self, symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
         """Apply the transformation to the given symbols."""
@@ -69,8 +71,20 @@ class Transformation(Enum):
                 return self._static_domain_facts(symbols=symbols)
             case Transformation.LEAF_RULES:
                 return self._leaf_rules(symbols=symbols)
+            case Transformation.IRRELEVANT:
+                return self._irrelevant(symbols=symbols)
             case _ as unreachable:
                 assert_never(unreachable)
+
+    @staticmethod
+    def _irrelevant(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
+        """
+        Prune disconnected subgraphs that are irrelevant to the explanation.
+
+        Args:
+            symbols: The symbols of the explanation graph to prune
+        """
+        return solve_program(symbols=symbols, files=[ENCODING_IRRELEVANT, ENCODING_INCLUSION_FILTER])
 
     @staticmethod
     def _leaf_rules(symbols: Iterable[clingo.Symbol]) -> list[clingo.Symbol]:
