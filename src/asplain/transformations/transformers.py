@@ -7,6 +7,7 @@ from enum import Enum
 from pathlib import Path
 
 import clingo
+from rich.align import console
 
 from ..utils import assert_never
 
@@ -192,9 +193,11 @@ def apply_transformation_sequence(
 ) -> list[clingo.Symbol]:
     """Apply transformations to the explanation graph in a fixed sequence."""
     transformed = list(symbols)
+    print_graph_stats(transformed)
     for i, method in enumerate(methods):
         log.info(f"Transformation Step [{i + 1}/{len(methods)}]: {method.value}")
         transformed = method.apply(transformed)
+        print_graph_stats(transformed)
     return transformed
 
 
@@ -225,3 +228,17 @@ def solve_program(symbols: Iterable[clingo.Symbol], files: Iterable[str], warn: 
             case clingo.Model():
                 return list(model.symbols(shown=True))
     raise TransformationException()
+
+
+def print_graph_stats(symbols: Iterable[clingo.Symbol]) -> None:
+    """Print statistics about the graph."""
+    num_nodes = 0
+    num_edges = 0
+
+    for symbol in symbols:
+        if symbol.match("node", 2):
+            num_nodes += 1
+        if symbol.match("edge", 2):
+            num_edges += 1
+
+    log.info(f"Graph stats: nodes={num_nodes}, edges={num_edges}")
