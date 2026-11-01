@@ -7,7 +7,6 @@ from enum import Enum
 from pathlib import Path
 
 import clingo
-from rich.align import console
 
 from ..utils import assert_never
 
