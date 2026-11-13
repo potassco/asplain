@@ -12,10 +12,16 @@ inertia_node(IR,F,both,(IN,OUT)) :- inertia_node_(IR,F,(IN,OUT)), not other_inco
 inertia_node(IR,F,ref,(IN,OUT)) :- inertia_node_(IR,F,(IN,OUT)), not other_incoming(IR), model(IR,ref), not model(IR,foil).
 inertia_node(IR,F,foil,(IN,OUT)) :- inertia_node_(IR,F,(IN,OUT)), not other_incoming(IR), not model(IR,ref), model(IR,foil).
 
-% Identify uniform inertia chains
-chain_(F,W,(IN,OUT)) :- inertia_node(IR,F,W,(IN,OUT)), not inertia_node(_,F,W,(_,IN)).
-chain_(F,W,(IN,NEXT)) :- chain_(F,W,(IN,OUT)), inertia_node(_,F,W,(OUT,NEXT)).
+% Interior fluent nodes with edges outside their chain break idleness
+used_elsewhere(OUT) :- inertia_node(_,F,_,(_,OUT)), edge((OUT,N),_), not inertia_node(N,F,_,_).
+used_elsewhere(OUT) :- inertia_node(_,F,_,(_,OUT)), edge((N,OUT),_), not inertia_node(N,F,_,_).
+
+% Identify maximal idle uniform inertia chains
+chain_(F,W,(IN,OUT)) :- inertia_node(_,F,W,(IN,OUT)), not inertia_node(_,F,W,(_,IN)).
+chain_(F,W,(IN,OUT)) :- inertia_node(_,F,W,(IN,OUT)), used_elsewhere(IN).
+chain_(F,W,(IN,NEXT)) :- chain_(F,W,(IN,OUT)), inertia_node(_,F,W,(OUT,NEXT)), not used_elsewhere(OUT).
 chain(F,W,(IN,OUT)) :- chain_(F,W,(IN,OUT)), not inertia_node(_,F,W,(OUT,_)).
+chain(F,W,(IN,OUT)) :- chain_(F,W,(IN,OUT)), used_elsewhere(OUT).
 
 % Include uniform inertia chain edges
 edge_included((IN,OUT),1) :- chain(_,_,(IN,OUT)).
